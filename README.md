@@ -5,6 +5,7 @@ CMPUT404-project-socialdistribution
 ## 📜 description
 
 Make a distributed social network!
+
 [Project Details](https://uofa-cmput404.github.io/general/project.html)
 
 ## 🌸 team mistyrose
