@@ -10,7 +10,7 @@ Make a distributed social network!
 
 ## License
 
-MIT License
+This project is licensed under the terms of the MIT License.
 
 ## Copyright
 
