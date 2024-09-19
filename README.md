@@ -11,12 +11,12 @@ Make a distributed social network!
 
 ## 🌸 _team mistyrose_
 
-* Franco Bonilla
 * Syjer Asuncion
-* Sapandeep Singh
-* Kelly Shih
-* Xiangxu Meng
 * Rithwik Bhattar
+* Franco Bonilla
+* Xiangxu Meng
+* Kelly Shih
+* Sapandeep Singh
 
 ## 📃 _license_
 
