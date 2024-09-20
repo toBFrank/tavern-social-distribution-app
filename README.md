@@ -12,7 +12,7 @@ Make a distributed social network!
 ## 🌸 _team mistyrose_
 
 * Syjer Asuncion
-* Rithwik Bhattar
+* Rithwik Korukonda Bhattar
 * Franco Bonilla
 * Xiangxu Meng
 * Kelly Shih
