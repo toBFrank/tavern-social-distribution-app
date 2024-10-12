@@ -1,0 +1,36 @@
+.navbar-menu {
+  transition: width 0.5s;
+  overflow: hidden;
+}
+
+.burger {
+  cursor: pointer;
+  padding: 10px;
+}
+
+.navbar-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.navbar-list-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.navbar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+}
+
+.navbar-list-text {
+  white-space: nowrap;
+  transition: opacity 0.5s ease-in-out;
+  transition-delay: 0.3s;
+}
