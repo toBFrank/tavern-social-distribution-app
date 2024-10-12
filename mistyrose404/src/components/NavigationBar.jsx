@@ -1,18 +1,18 @@
 import React, { useState } from "react";
-import { Link } from 'react-router-dom';
-import { Menu, Cottage, Add, Person, Settings } from "@mui/icons-material";
+import { Link, useLocation } from 'react-router-dom';
+import { MenuOutlined, CottageOutlined, AddOutlined, PersonOutlined, SettingsOutlined, MeetingRoomOutlined } from "@mui/icons-material";
 import "../styles/components/NavigationBar.css";
 
 const NavigationBar = () => {
   //#region Variables
   const [expanded, setExpanded] = useState(true);
-
   const pages = [
-    ["Home", <Cottage className="navbar-icon" />, "/"],
-    ["Post", <Add className="navbar-icon" />, "/post"],
-    ["Profile", <Person className="navbar-icon" />, "/profile"],
-    ["Settings", <Settings className="navbar-icon" />, "/settings"]
+    ["Home", <CottageOutlined fontSize="inherit"/>, "/"],
+    ["Post", <AddOutlined fontSize="inherit"/>, "/post"],
+    ["Profile", <PersonOutlined fontSize="inherit"/>, "/profile"],
+    ["Settings", <SettingsOutlined fontSize="inherit"/>, "/settings"]
   ];
+  const location = useLocation();
   //#endregion
 
   //#region Functions
@@ -22,14 +22,17 @@ const NavigationBar = () => {
   //#endregion
 
   return (
-    <nav className="navbar-menu" style={{ width: expanded ? 250 : 50 }}>
-      <div className="burger" onClick={changeExpanded}>
-        <Menu className="navbar-icon" />
+    <nav className="navbar-menu" style={{ width: expanded ? 300 : 150 }}>
+      <div className={`navbar-header${expanded ? "" : " minimized"}`}>
+        {expanded && <span className="navbar-title">Tavern</span>}
+        <div className="burger" onClick={changeExpanded}>
+          <div className="navbar-icon"><MenuOutlined fontSize="inherit"/></div>
+        </div>
       </div>
       <ul className="navbar-list">
         {pages.map((page, index) => (
-            <Link to={page[2]}>
-          <li className="navbar-list-item" key={index}>
+            <Link className="list-link" to={page[2]}>
+          <li className={`navbar-list-item${location.pathname === page[2] ? " current" : ""}${expanded? "" : " minimized"}`} key={index}>
             <div className="navbar-icon">{page[1]}</div>
             {expanded && (
               <span className="navbar-list-text">
@@ -40,6 +43,14 @@ const NavigationBar = () => {
             </Link>
         ))}
       </ul>
+      <div className="navbar-footer">
+        <div className="navbar-icon"><MeetingRoomOutlined fontSize="inherit"/></div>
+        {expanded && (
+          <span className="navbar-list-text">
+            Logout
+          </span>
+        )}
+      </div>
     </nav>
   );
 };
