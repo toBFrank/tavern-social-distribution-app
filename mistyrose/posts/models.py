@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 
 # Create your models here.
 class Post(models.Model):
@@ -14,7 +15,7 @@ class Post(models.Model):
       ('image', 'Image'),
     ]
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) #TODO: later need to handle when different nodes have the same UUID
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='posts')  # TODO: replace 'users.Author' with the path to the Author model (OR set to settings.AUTH_USER_MODEL)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
