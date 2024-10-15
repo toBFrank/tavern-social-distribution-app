@@ -9,16 +9,32 @@ class Inbox(APIView):
         object_type = request.POST['type']
 
         if object_type == "post":
-            pass
+            serializer = PostSerializer(data=request.data) #TODO: import the Serializer after its created
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=201)
 
         elif object_type == "comment":
-            pass
+            serializer = CommentSerializer(data=request.data) #TODO:import the Serializer after its created 
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=201)
 
         elif object_type == "like":
-            pass
+            serializer = LikeSerializer(data=request.data) #TODO: import the Serializer after its created
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=201)
 
         elif object_type == "follow":
-            pass
+            serializer = FollowSerializer(data=request.data) #TODO: after users app is created, import the FollowSerializer 
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=201)
 
         else:
             return Response({"Error":"Object type does not exist"}, status=400)
