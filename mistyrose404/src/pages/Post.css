@@ -25,6 +25,7 @@
     gap: 15px;
     font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     font-size: 13px;
+    cursor: pointer;
 }
 
 .custom_input {
@@ -107,4 +108,31 @@ textarea::placeholder {
     font-size: 17px;
     padding: 0 31px;                    
     text-decoration: none;
+}
+
+.posts-options h3 {
+    cursor: pointer;
+    transition: opacity 0.3s ease; 
+}
+
+.active-option {
+    opacity: 1; 
+}
+
+.inactive-option {
+    opacity: 0.5; 
+}
+
+.uploaded-image {
+    width: 300px;
+    height: 300px;
+    margin-top: 20px;
+    object-fit: cover; 
+}
+
+.image-uploader-svg {
+    cursor: pointer;
+    width: 300px;
+    height: 300px;
+    margin-top: 20px;
 }
