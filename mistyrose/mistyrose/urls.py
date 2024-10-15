@@ -24,15 +24,15 @@ from django.conf import settings
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="My Project API",
+        title="MistyRose API Docs",
         default_version='v1',
-        description="API documentation for My Project",
+        description="MistyRose Swagger style api",
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
 
 urlpatterns = [
-    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('admin/', admin.site.urls),
+    path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
 ]
