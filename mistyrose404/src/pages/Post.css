@@ -1,0 +1,138 @@
+.posts-page {
+    display: flex;                   
+    flex-direction: column;          
+    align-items: center;             
+    height: calc(100vh - 30px);    
+    text-align: center;       
+    margin-left: 12%;      
+}
+
+.top-container {
+    display: flex;
+    flex-direction: row; 
+    align-items: center; 
+    justify-content: space-between;  
+    gap: 600px;
+    height: auto;                    
+    margin-bottom: 20px;             
+}
+
+.posts-options {
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;  
+    gap: 15px;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.custom_input {
+    display: flex;
+    align-items: center;
+    position: relative;
+    max-width: 100%;
+}
+
+textarea {
+    font-size: 13px;
+    padding: 5px 10px;
+    width: 845px;
+    height: 350px;
+    outline: none;
+    background: #F8E5D3;
+    color: #000000;
+    border: 3px solid #000000;
+    border-radius: 20px;
+    box-shadow: 3px 3px 2px 0px #E2E2E2;
+    transition: .3s ease;
+    font-family: 'Open Sans', sans-serif; 
+}
+
+textarea:focus {
+    background: #ffffff;
+    border: 3px solid #9f7b03;
+    border-radius: 10px;
+}
+
+textarea::placeholder {
+    color: #000000;
+    font-size: 13px; 
+    font-family: 'Open Sans', sans-serif; 
+}
+
+.visibility-options {
+    display: flex;                       
+    align-items: center;                 
+    gap: 50px;                           
+    margin-top: 15px;                   
+    font-family: 'Open Sans', sans-serif; 
+    font-size: 16px;  
+    margin-bottom: 50px;
+}
+
+.postPage-buttons {
+    display: flex;                   
+    justify-content: space-between;     
+    gap: 20px;                         
+}
+
+.post-button {
+    display: flex;                    
+    justify-content: center;          
+    align-items: center;  
+    width: 300px;              
+    height: 50px;                       
+    background-color: #C1FFC7;
+    border-radius: 28px;
+    cursor: pointer;
+    color: #000000;
+    font-family: Arial, sans-serif;   
+    font-size: 17px;
+    padding: 0 31px;                    
+    text-decoration: none;
+}
+
+.delete-button {
+    display: flex;                    
+    justify-content: center;          
+    align-items: center;  
+    width: 300px;             
+    height: 50px;                       
+    background-color: #FFC2C2;
+    border-radius: 28px;
+    cursor: pointer;
+    color: #000000;
+    font-family: Arial, sans-serif;   
+    font-size: 17px;
+    padding: 0 31px;                    
+    text-decoration: none;
+}
+
+.posts-options h3 {
+    cursor: pointer;
+    transition: opacity 0.3s ease; 
+}
+
+.active-option {
+    opacity: 1; 
+}
+
+.inactive-option {
+    opacity: 0.5; 
+}
+
+.uploaded-image {
+    width: 300px;
+    height: 300px;
+    margin-top: 20px;
+    object-fit: cover; 
+}
+
+.image-uploader-svg {
+    cursor: pointer;
+    width: 300px;
+    height: 300px;
+    margin-top: 20px;
+}
