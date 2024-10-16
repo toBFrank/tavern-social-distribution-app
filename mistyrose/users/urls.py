@@ -1,7 +1,10 @@
 from django.urls import path
 from . import views
+from .views import LoginView, SignUpView, AuthorDetailView, LogoutView
 
 urlpatterns = [
-    path('api/profile/', views.get_profile, name='get_profile'),  # GET request for profile
-    path('api/profile/update/', views.update_profile, name='update_profile'),  # POST request to update profile
+    path('login/', LoginView.as_view(), name='login'),
+    path('signup/', SignUpView.as_view(), name='signup'),
+    path('authors/<uuid:pk>/', AuthorDetailView.as_view(), name='author-detail'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ]

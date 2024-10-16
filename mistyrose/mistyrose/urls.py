@@ -17,9 +17,28 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path ,include
 from django.views.generic import TemplateView
+from django.urls import include, path
+from django.conf.urls.static import static
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework import permissions
+from django.conf import settings
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="MistyRose API Docs",
+        default_version='v1',
+        description="MistyRose Swagger style api",
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
+    path('', include('stream.urls')),  
     path('admin/', admin.site.urls),
     path('',TemplateView.as_view(template_name='index.html')),
     path('users/', include('users.urls')),  # Add the users app URLs
+    path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
+    path('', include('users.urls')),
 ]
