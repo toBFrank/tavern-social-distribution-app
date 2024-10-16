@@ -1,7 +1,8 @@
 from django.db import models
 
 class Node(models.Model):
-    host = models.URLField(primary_key=True)    
+    host = models.URLField(max_length=200)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
-    is_connected = models.BooleanField(default=True)
+    team = models.IntegerField(default=0)
+    isconnected = models.BooleanField(default=True)
