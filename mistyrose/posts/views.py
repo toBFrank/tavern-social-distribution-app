@@ -7,14 +7,7 @@ from rest_framework.response import Response
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 
-class AllPostsView(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    
-    def get(self, request):
-        posts = Post.objects.all()
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
-
+#region Post Views
 class PostDetailsView(APIView):
     """
     Retrieve, update or delete a post instance by author ID & post ID.
@@ -110,4 +103,9 @@ class PostImageView(APIView):
             return Response({'image_url': image_url})
         else:
             return Response({'detail': 'No image available for this post'}, status=status.HTTP_404_NOT_FOUND)
+#endregion
 
+#region Comment Views
+#endregion
+
+#region Like Views
