@@ -38,11 +38,11 @@
 }
 
 .accept-button {
-    color: rgb(87, 202, 135);
+    color: #C1FFC7;
 }
 
 .reject-button {
-    color: rgb(216, 134, 196);
+    color: #FFC2C2;
 }
 
 /*TODO: style the actual icon, not the button e.g. black border */
