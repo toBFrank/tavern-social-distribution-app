@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'drf_yasg',                # Yet Another Swagger 
     'posts',
     'users',
+    'stream',
 ]
 
 MIDDLEWARE = [

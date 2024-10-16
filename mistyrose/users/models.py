@@ -14,3 +14,19 @@ class Author(models.Model):
 
     def __str__(self):
         return self.display_name
+    
+class Follows(models.Model):
+    STATUS_CHOICES = [
+      ('PENDING', 'Follow Request Pending'),
+      ('ACCEPTED', 'Follow Request Accepted'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # Unique UUID for Inbox purposes
+
+    local_follower_id = models.ForeignKey(Author, on_delete=models.CASCADE, null=True, blank=True) # for local only - optional - can be null
+    remote_follower_url = models.URLField(max_length=200, null=True, blank=True) # for remote only, optional
+
+    followed_id = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='followers') # user being followed
+
+    is_remote = models.BooleanField(default=False)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
