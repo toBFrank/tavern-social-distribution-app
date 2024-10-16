@@ -36,4 +36,5 @@ urlpatterns = [
     path('', include('stream.urls')),  
     path('admin/', admin.site.urls),
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
+    path('', include('users.urls')),
 ]
