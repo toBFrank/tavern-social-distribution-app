@@ -26,4 +26,7 @@ class Inbox(models.Model):
     object_id = models.CharField(max_length=200) # for storing primary key value of the model itll be relating to
     content_object = GenericForeignKey('content_type', 'object_id') # foreign key to Like or Comment, or Follow or Post
 
+    def __str__(self):
+      return f'{self.author} inbox'
+
 

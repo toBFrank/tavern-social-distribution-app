@@ -30,3 +30,6 @@ class Follows(models.Model):
 
     is_remote = models.BooleanField(default=False)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
+
+    def __str__(self):
+      return f'{self.local_follower_id} is following or has requested to follow {self.followed_id}'
