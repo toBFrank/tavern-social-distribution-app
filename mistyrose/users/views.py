@@ -127,13 +127,6 @@ class SignUpView(APIView):
                 {"message": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from rest_framework.authtoken.models import Token
-
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
 
@@ -157,9 +150,6 @@ class LogoutView(APIView):
                 {"message": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-
-
 class AuthorDetailView(generics.RetrieveAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
