@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Author, Post, Follows
+from posts.serializers import PostSerializer
+from users.models import Author,Follows
+from posts.models import Post
 
 class AuthorSerializer(serializers.Serializer):
     type = serializers.CharField(default='author', read_only=True)
@@ -16,7 +18,7 @@ class AuthorSerializer(serializers.Serializer):
     following_count = serializers.SerializerMethodField(required=False)
 
 
-    # Get public posts for the author
+     # Get public posts for the author
     def get_public_posts(self, author):
         # Retrieve only public posts
         return PostSerializer(author.posts.filter(visibility='PUBLIC').order_by('-published'), many=True).data
@@ -44,4 +46,18 @@ class AuthorSerializer(serializers.Serializer):
         data = super().to_representation(instance)
         data['type'] = 'author'  # Add 'type' to the representation
         return data
+    
+class AuthorEditProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Author
+        fields = ['display_name', 'github', 'profile_image']  # Only fields you want to update
+    
+    def update(self, instance, validated_data):
+        # Update the author instance with the provided validated data
+        instance.display_name = validated_data.get('display_name', instance.display_name)
+        instance.github = validated_data.get('github', instance.github)
+        instance.profile_image = validated_data.get('profile_image', instance.profile_image)
+        instance.save()  # Save the updated instance to the database
+        return instance
+
     
