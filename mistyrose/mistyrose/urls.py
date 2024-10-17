@@ -33,7 +33,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('api', include('stream.urls')),  
+    path('api/authors/<str:author_id>/inbox/', include('stream.urls')),
     path('admin/', admin.site.urls),
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
     path('', include('users.urls')),
