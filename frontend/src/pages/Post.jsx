@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'; 
 import './Post.css';
-import { ReactComponent as ImageUploader } from './../Images/imageUploader.svg';
+import { ReactComponent as ImageUploader } from './../images/imageUploader.svg';
 
 const Post = () => {
     const [visibility, setVisibility] = useState('public'); 
