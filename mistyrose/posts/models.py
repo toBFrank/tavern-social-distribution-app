@@ -36,7 +36,7 @@ class Like(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='likes') 
     published = models.DateTimeField(auto_now_add=True)
-    object_url = models.URLField()  # can be a URL to a post or comment
+    object_url = models.URLField(null=True, blank=True)  # can be a URL to a post or comment
     
     def __str__(self):
       return f'{self.author_id} liked {self.object_url}'
