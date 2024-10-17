@@ -1,13 +1,19 @@
 import React, { useState, useRef } from 'react';
 import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
+import MarkdownEditor from '../components/MarkdownEditor';
 
 const Post = () => {
+  //#region Properties
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
   const [uploadedImage, setUploadedImage] = useState(null);
   const fileInputUpload = useRef(null);
 
+  const options = ['Plain', 'Markdown', 'Image'];
+  //#endregion
+
+  //#region Event Handlers
   const handleVisibilityChange = (event) => {
     setVisibility(event.target.value);
   };
@@ -27,39 +33,30 @@ const Post = () => {
       setUploadedImage(imageUrl);
     }
   };
+  //#endregion
+
+  //#region Functions
+  //#endregion
+
+  //#region Render
+  const renderOption = (option) => (
+    <h3
+      key={option}
+      className={
+        selectedOption === option ? 'active-option' : 'inactive-option'
+      }
+      onClick={() => handleOptionClick(option)}
+    >
+      {option}
+    </h3>
+  );
+  //#endregion
 
   return (
     <div className="posts-page">
       <div className="top-container">
         <h1>Post</h1>
-        <div className="posts-options">
-          <h3
-            className={
-              selectedOption === 'Plain' ? 'active-option' : 'inactive-option'
-            }
-            onClick={() => handleOptionClick('Plain')}
-          >
-            Plain
-          </h3>
-          <h3
-            className={
-              selectedOption === 'Markdown'
-                ? 'active-option'
-                : 'inactive-option'
-            }
-            onClick={() => handleOptionClick('Markdown')}
-          >
-            Markdown
-          </h3>
-          <h3
-            className={
-              selectedOption === 'Image' ? 'active-option' : 'inactive-option'
-            }
-            onClick={() => handleOptionClick('Image')}
-          >
-            Image
-          </h3>
-        </div>
+        <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
 
       {selectedOption === 'Image' ? (
@@ -84,8 +81,10 @@ const Post = () => {
             onChange={handleFileChange}
           />
         </>
-      ) : (
+      ) : selectedOption === 'Plain' ? (
         <textarea placeholder="Type something here..."></textarea>
+      ) : (
+        <MarkdownEditor />
       )}
 
       <div className="visibility-options">

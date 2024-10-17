@@ -1,0 +1,37 @@
+.mde-container {
+  background-color: #d20000; /* Light gray background */
+  border-radius: 8px; /* Rounded corners */
+  border: 1px solid #ddd; /* Light border */
+  padding: 10px; /* Padding inside the editor */
+}
+
+/* Style the toolbar */
+.mde-toolbar {
+  background-color: #333;
+  border-bottom: 1px solid #555;
+  border-radius: 8px 8px 0 0;
+  color: white;
+}
+
+/* Toolbar button hover effect */
+.mde-toolbar button:hover {
+  background-color: #444;
+}
+
+/* Style the text area */
+.mde-content {
+  min-height: 200px;
+  background-color: white;
+  font-family: 'Arial', sans-serif;
+  color: #333;
+  padding: 8px;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Customize Markdown preview area */
+.mde-preview {
+  font-family: 'Arial', sans-serif;
+  background-color: #fefefe;
+  border-top: 1px solid #ddd;
+  padding: 10px;
+}
