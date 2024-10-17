@@ -7,6 +7,8 @@ from users.models import Author, Follows
 from posts.models import Post, Like
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view
+
 
 
 # Create your views here.
@@ -48,8 +50,22 @@ class InboxView(APIView):
                 object_id=object_instance.id, # assumes Follow, Comment, Like, Post all have id
                 content_object=object_instance
             )
-
-
             return Response(serializer.data, status=201)
         else:
             return Response(serializer.errors, status=400)
+        
+#local only TODO: need to document this is a new one for local use only
+@api_view(['GET'])
+def get_follow_requests(request, author_id):
+    author = get_object_or_404(Author, id=author_id)
+    follow_content_type = ContentType.objects.get_for_model(Follows)
+
+    inbox_entries = Inbox.objects.filter(author=author, content_type=follow_content_type)
+
+    serialized_data = []
+    for entry in inbox_entries:
+        follow_data = FollowSerializer(entry.content_object).data
+        follow_data['type'] = 'follow'
+        serialized_data.append(follow_data)
+        #TODO: Where the request is pending --> 
+    return Response(serialized_data, status=200)

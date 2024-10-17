@@ -35,7 +35,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('api', include('stream.urls')),  
+    path('api/authors/<str:author_id>/inbox/', include('stream.urls')),
     path('admin/', admin.site.urls),
     path('',TemplateView.as_view(template_name='index.html')),
     path('users/', include('users.urls')),  # Add the users app URLs

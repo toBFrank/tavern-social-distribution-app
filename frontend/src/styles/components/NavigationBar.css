@@ -57,12 +57,12 @@
 }
 
 .navbar-list-item.current {
-  background-color: #F8E5D3;
+  background-color: #f8e5d3;
   border: 3px solid black;
 }
 
 .navbar-list-item:hover {
-  background-color: #F8E5D3;
+  background-color: #f8e5d3;
 }
 
 .list-link {
