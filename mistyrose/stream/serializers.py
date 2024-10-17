@@ -17,6 +17,7 @@ class FollowSerializer(serializers.Serializer):
         """
         actor_data = validated_data.pop('local_follower_id')
         object_data = validated_data.pop('followed_id')
+        #TODO: validate that the author id in the url is the same as the object's author id
 
         # Greg wants to follow lara 
         local_follower = Author.objects.get(id=actor_data['id']) #Greg TODO: returns 500 if not found, maybe wanna return 404?
