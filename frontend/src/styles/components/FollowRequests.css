@@ -1,40 +1,41 @@
 .follow-requests-column {
-    width: 15rem;
-    background-color: #F8E5D3; 
-    padding: 20px;
-    border-radius: 20px;
-    position: fixed;
-    right: 1rem;
-    top: 1rem;
-    bottom: 1rem;
-  }
+  width: 15rem;
+  background-color: #f8e5d3;
+  padding: 20px;
+  border-radius: 20px;
+  position: fixed;
+  right: 1rem;
+  top: 1rem;
+  bottom: 1rem;
+}
 
 .follow-request-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    padding: 0.5rem;
-    margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .btns {
-    display: flex;
-    margin-left: auto;
+  display: flex;
+  margin-left: auto;
 }
 
 .requests-title {
-    font-family: 'Fredoka', sans-serif;
-    text-align: center;
-    font-weight: 600;
-    font-size: large;
+  font-family: 'Fredoka', sans-serif;
+  text-align: center;
+  font-weight: 600;
+  font-size: large;
 }
 
-.accept-button, .reject-button {
-    border: none;
-    background: none;
-    cursor: pointer;
-    margin-bottom: -0.5rem;
+.accept-button,
+.reject-button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  margin-bottom: -0.5rem;
 }
 
 .accept-button {

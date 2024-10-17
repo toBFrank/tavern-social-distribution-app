@@ -12,7 +12,7 @@ class Author(models.Model):
     page = models.URLField()  # URL of the author's HTML profile page
     created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the author was created
     updated_at = models.DateTimeField(auto_now=True)  # Timestamp for when the author was last updated
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='author')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='author', null=True, blank=True)  # User object for the author
 
     def __str__(self):
         return self.display_name
