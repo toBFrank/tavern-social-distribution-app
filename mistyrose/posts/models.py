@@ -35,7 +35,7 @@ class Post(models.Model):
 class Like(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='likes') 
-    published = models.DateTimeField(auto_now_add=True)
+    published = models.DateTimeField(null=True, auto_now_add=True)
     object_url = models.URLField(null=True, blank=True)  # can be a URL to a post or comment
     
     def __str__(self):

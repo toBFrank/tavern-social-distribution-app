@@ -1,3 +1,9 @@
+from django.shortcuts import render
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Author
+from .serializers import AuthorSerializer,AuthorEditProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,6 +18,13 @@ from .serializers import AuthorSerializer
 from django.utils import timezone
 from django.conf import settings
 import uuid
+from posts.models import Post
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
+from .models import Author, Follows
+from .serializers import AuthorSerializer, PostSerializer
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 
 def create_author(author_data, request, user):
@@ -154,3 +167,43 @@ class AuthorDetailView(generics.RetrieveAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     lookup_field = 'pk'
+
+class AuthorProfileView(APIView):
+    def get(self, request, pk):
+        author = get_object_or_404(Author, pk=pk)
+        
+        # Fetch counts
+        friends_count = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()  # Mutual followers logic
+        followers_count = Follows.objects.filter(followed_id=author, status='ACCEPTED').count()
+        following_count = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
+
+        # Fetch public posts
+        public_posts = Post.objects.filter(author_id=author, visibility='PUBLIC').order_by('-published')
+
+        # Serialize data
+        author_serializer = AuthorSerializer(author)
+        post_serializer = PostSerializer(public_posts, many=True)
+        
+        # Add additional fields to the author profile response
+        data = author_serializer.data
+        data['friends_count'] = friends_count
+        data['followers_count'] = followers_count
+        data['following_count'] = following_count
+        data['public_posts'] = post_serializer.data
+        
+        return Response(data)
+    
+class AuthorEditProfileView(APIView):
+    def get(self, request, pk):
+        author = get_object_or_404(Author, pk=pk)
+        serializer = AuthorEditProfileSerializer(author)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        author = get_object_or_404(Author, pk=pk)
+        serializer = AuthorEditProfileSerializer(author, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+
