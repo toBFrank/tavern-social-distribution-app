@@ -2,12 +2,15 @@ import React, { useState, useRef } from 'react';
 import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
 import MarkdownEditor from '../components/MarkdownEditor';
+import { useAuth } from '../contexts/AuthContext';
 
 const Post = () => {
   //#region Properties
+  const { userAuthentication } = useAuth();
+
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
-  
+
   const options = ['Plain', 'Markdown', 'Image'];
   const [uploadedImage, setUploadedImage] = useState(null);
   const fileInputUpload = useRef(null);
@@ -20,7 +23,6 @@ const Post = () => {
   const handleVisibilityChange = (event) => {
     setVisibility(event.target.value);
   };
-
   const handleOptionClick = (option) => {
     setSelectedOption(option);
   };
@@ -28,7 +30,6 @@ const Post = () => {
   const handleImageUploaderClick = () => {
     fileInputUpload.current.click();
   };
-
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -36,10 +37,13 @@ const Post = () => {
       setUploadedImage(imageUrl);
     }
   };
-
   const handlePlainTextChange = (event) => {
     setPlainText(event.target.value);
-  }
+  };
+
+  const handlePostClick = () => {
+    // TODO: Implement post click
+  };
   //#endregion
 
   //#region Functions
