@@ -1,9 +1,12 @@
+
 export const getAuthorProfile = async (authorId) => {
+    const token = localStorage.getItem('accessToken'); // Your token
 
     try {
         const response = await fetch(`http://localhost:8000/authors/${authorId}/profile/`, {
             method: 'GET',
             headers: {
+                'Authorization': `Token ${token}`,  // Include the token in the Authorization header
                 'Content-Type': 'application/json',
             },
         });
@@ -18,4 +21,3 @@ export const getAuthorProfile = async (authorId) => {
         throw error;
     }
 };
-

@@ -8,7 +8,7 @@ import { createPost } from '../services/PostsService';
 const Post = () => {
   //#region Properties
   const { userAuthentication } = useAuth();
-
+  
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
 

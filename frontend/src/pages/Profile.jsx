@@ -7,7 +7,8 @@ import { useAuth } from '../contexts/AuthContext';
 const Profile = () => {
   // Get authorId from the URL parameters
   const { userAuthentication } = useAuth();
-  const { authorId } = useParams();
+  
+  const { authorId } = userAuthentication.authorSerial;
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
