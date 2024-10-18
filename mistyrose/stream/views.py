@@ -33,6 +33,7 @@ class InboxView(APIView):
 
         #follow request 
         if object_type == "follow":
+            #TODO: shouldn't allow creating the same follow request multiple times.
             serializer = FollowSerializer(data=request.data)
             content_type = ContentType.objects.get_for_model(Follows)
 
