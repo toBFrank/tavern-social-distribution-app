@@ -63,11 +63,7 @@ const Post = () => {
     };
 
     try {
-      const response = await createPost(
-        userAuthentication.authorSerial ??
-          '0b61c141-371e-4f34-9b4e-275df8c0e666', // TODO: Add authorSerial (currently FrancoPersonal)
-        postData
-      );
+      const response = await createPost(userAuthentication.authorId, postData);
       console.log(response);
     } catch (error) {
       console.error(error);

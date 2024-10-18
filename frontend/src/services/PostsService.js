@@ -1,4 +1,4 @@
-import api from './axios';
+import api from "./axios";
 
 // URL: ://service/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}
 export const getPost = async (authorSerial, postSerial) => {
