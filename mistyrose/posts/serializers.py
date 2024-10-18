@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Post, Comment, Like
 
+#region Post Serializers
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
@@ -15,7 +16,9 @@ class PostSerializer(serializers.ModelSerializer):
             'published',
             'visibility'
         ]
-        
+#endregion
+
+#region Comment Serializers        
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -28,7 +31,9 @@ class CommentSerializer(serializers.ModelSerializer):
             'content_type',
             'page'
         ]
+#endregion
         
+#region Like Serializers
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
@@ -38,3 +43,4 @@ class LikeSerializer(serializers.ModelSerializer):
             'published',
             'object_url'
         ]
+#endregion

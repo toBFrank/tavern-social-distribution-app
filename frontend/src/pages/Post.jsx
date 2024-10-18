@@ -3,6 +3,7 @@ import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
 import MarkdownEditor from '../components/MarkdownEditor';
 import { useAuth } from '../contexts/AuthContext';
+import { createPost } from '../services/PostsService';
 
 const Post = () => {
   //#region Properties
@@ -41,8 +42,29 @@ const Post = () => {
     setPlainText(event.target.value);
   };
 
-  const handlePostClick = () => {
-    // TODO: Implement post click
+  const handlePostClick = async () => {
+    const postData = {
+      title: 'My Post', // TODO: Add title
+      plain_or_markdown_content:
+        selectedOption === 'Plain'
+          ? plainText
+          : selectedOption === 'Markdown'
+            ? markdown
+            : null,
+      image_content: selectedOption === 'Image' ? uploadedImage : null,
+      content_type: selectedOption,
+      visibility: visibility
+    };
+
+    try {
+      const response = await createPost(
+        userAuthentication.authorSerial,
+        postData
+      );
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
   };
   //#endregion
 
