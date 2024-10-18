@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';  // Import useParams to get route parameters
 import { getAuthorProfile } from '../services/profileService';  // Import service
 import '../styles/pages/Profile.css';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,13 +8,13 @@ const Profile = () => {
   const { userAuthentication } = useAuth();
   
   const { authorId } = userAuthentication.authorSerial;
-
+  const { token } = userAuthentication.tokenSerial;
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch profile data when the component mounts
-    getAuthorProfile(authorId)
+    getAuthorProfile(authorId, token)
       .then(data => {
         setProfileData(data);
         setLoading(false);
@@ -24,7 +23,7 @@ const Profile = () => {
         console.error(err);
         setLoading(false);  // Stop loading even on error
       });
-  }, [authorId]);
+  }, [authorId, token]);
 
   // Show loading message or an error message if data is not available
   if (loading) {

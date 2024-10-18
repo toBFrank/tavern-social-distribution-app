@@ -1,7 +1,4 @@
-
-export const getAuthorProfile = async (authorId) => {
-    const token = localStorage.getItem('accessToken'); // Your token
-
+export const getAuthorProfile = async (authorId, token) => {
     try {
         const response = await fetch(`http://localhost:8000/authors/${authorId}/profile/`, {
             method: 'GET',

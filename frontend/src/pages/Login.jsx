@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { login } from '../services/loginservice'; 
 import { useNavigate } from 'react-router-dom'; 
+import { useAuth } from '../contexts/AuthContext';
+
 
 const Login = () => {
+  const {setUserAuthentication} = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
+
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,12 +31,15 @@ const Login = () => {
     try {
       const result = await login(formData);
       console.log('Login successful:', result);
-      
       // Store tokens securely
-      if (result?.access && result?.refresh && result?.author.id) {
-        localStorage.setItem('accessToken', result.accessToken);
-        localStorage.setItem('refreshToken', result.refreshToken);
-        localStorage.setItem('authorId', result.author.id);
+      if (result?.access && result?.author.id) {
+        setUserAuthentication({
+            authorId: result.author.id,
+            token: result.access,
+        });
+
+        // localStorage.setItem('accessToken', result.access);
+        // localStorage.setItem('authorId', result.author.id);
       }
 
       navigate('/home');

@@ -5,10 +5,9 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   // store both author id and token
   const [userAuthentication, setUserAuthentication] = useState({
-    authorId: localStorage.getItem('authorId') || null,
-    token: localStorage.getItem('accessToken') || null,
-  });
-
+    authorId: null,
+    token: null,
+  })
   return (
     <AuthContext.Provider value={{ userAuthentication, setUserAuthentication }}>
       {children}
