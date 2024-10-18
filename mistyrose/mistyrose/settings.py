@@ -31,8 +31,10 @@ ALLOWED_HOSTS = []
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Add your frontend URL here
-    "http://localhost:3001"
+    "http://localhost:3000"
+]
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',  # Add your frontend URL
 ]
 
 # Application definition
@@ -57,7 +59,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Should be before CsrfViewMiddleware
+    'corsheaders.middleware.CorsMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
