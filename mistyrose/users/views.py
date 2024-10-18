@@ -1,37 +1,29 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from .models import Author
-from .serializers import AuthorSerializer,AuthorEditProfileSerializer
+from .serializers import AuthorSerializer, AuthorEditProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status, generics
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.reverse import reverse
-from .models import Author
-from .serializers import AuthorSerializer
+from .models import Author, Follows
 from django.utils import timezone
 from django.conf import settings
-from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
+from stream.models import Inbox
+from django.contrib.contenttypes.models import ContentType
+from urllib.parse import unquote
 from posts.models import Post
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
-from .models import Author, Follows
-from .serializers import AuthorSerializer, PostSerializer
+from .serializers import PostSerializer
+
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 
 def create_author(author_data, request, user):
-    """
-    Creates an Author instance linked to the given user.
-    """
     author_id = author_data.get('id', uuid.uuid4())
     host = request.build_absolute_uri('/')[:-1]  
     page_url = reverse('author-detail', kwargs={'pk': author_id}, request=request)
@@ -91,6 +83,7 @@ class LoginView(APIView):
             )  
 class SignUpView:
     http_method_names = ["post"]
+    
     def post(self, request):
         username = request.data.get("username")
         email = request.data.get("email")
@@ -117,7 +110,7 @@ class SignUpView:
                     username=username,
                     email=email,
                     password=password,
-                    is_active=False  # Set to False to require activation
+                    is_active=False  
                 )
                 user.date_joined = timezone.now()
                 user.save()
@@ -161,20 +154,12 @@ class AuthorDetailView(generics.RetrieveAPIView):
 class AuthorProfileView(APIView):
     def get(self, request, pk):
         author = get_object_or_404(Author, pk=pk)
-        
-        # Fetch counts
         friends_count = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()  # Mutual followers logic
         followers_count = Follows.objects.filter(followed_id=author, status='ACCEPTED').count()
         following_count = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
-
-        # Fetch public posts
         public_posts = Post.objects.filter(author_id=author, visibility='PUBLIC').order_by('-published')
-
-        # Serialize data
         author_serializer = AuthorSerializer(author)
         post_serializer = PostSerializer(public_posts, many=True)
-        
-        # Add additional fields to the author profile response
         data = author_serializer.data
         data['friends_count'] = friends_count
         data['followers_count'] = followers_count
