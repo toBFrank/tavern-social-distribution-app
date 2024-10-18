@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics
 from .models import Author
 from .serializers import AuthorSerializer, AuthorEditProfileSerializer
 from django.shortcuts import get_object_or_404
