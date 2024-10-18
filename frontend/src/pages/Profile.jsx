@@ -1,30 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';  // Import useParams to get route parameters
-import { getAuthorProfile } from '../services/profileService';  // Import service
+import { useParams } from 'react-router-dom'; // Import useParams to get route parameters
+import { getAuthorProfile } from '../services/profileService'; // Import service
 import '../styles/pages/Profile.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
   // Get authorId from the URL parameters
-  const { authorId } = useParams();
+  // const { authorId } = useParams();
+  const { userAuthentication } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch profile data when the component mounts
-    getAuthorProfile(authorId)
-      .then(data => {
+    getAuthorProfile(userAuthentication.authorId)
+      .then((data) => {
         setProfileData(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        setLoading(false);  // Stop loading even on error
+        setLoading(false); // Stop loading even on error
       });
-  }, [authorId]);
+  }, [userAuthentication.authorId]);
 
   // Show loading message or an error message if data is not available
   if (loading) {
-    return <p>Loading...</p>;  // Show a loading message while fetching
+    return <p>Loading...</p>; // Show a loading message while fetching
   }
 
   // Check if profileData is still null
@@ -33,13 +35,17 @@ const Profile = () => {
   }
 
   // Determine if the current user is viewing their own profile
-  const isCurrentUser = profileData.id === authorId;
+  const isCurrentUser = profileData.id === userAuthentication.authorId;
 
   return (
     <div className="profile-page">
       {/* Profile Header */}
       <div className="profile-header">
-        <img src={profileData.profileImage} alt={profileData.displayName} className="profile-image" />
+        <img
+          src={profileData.profileImage}
+          alt={profileData.displayName}
+          className="profile-image"
+        />
         <h1>{profileData.displayName}</h1>
 
         <div className="profile-stats">
@@ -59,8 +65,16 @@ const Profile = () => {
 
         {/* Profile Links */}
         <div className="profile-links">
-          <a href={profileData.github} target="_blank" rel="noopener noreferrer">GitHub Profile</a>
-          <a href={profileData.page} target="_blank" rel="noopener noreferrer">Profile Link</a>
+          <a
+            href={profileData.github}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub Profile
+          </a>
+          <a href={profileData.page} target="_blank" rel="noopener noreferrer">
+            Profile Link
+          </a>
         </div>
 
         {/* Follow / Edit Profile Button */}
@@ -77,7 +91,11 @@ const Profile = () => {
           profileData.public_posts.map((post) => (
             <div key={post.id} className="post">
               <div className="post-header">
-                <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
+                <img
+                  src={profileData.profileImage}
+                  alt={profileData.displayName}
+                  className="post-avatar"
+                />
                 <div>
                   <h3>{profileData.displayName}</h3>
                   <p>{new Date(post.published).toLocaleString()}</p>
@@ -94,7 +112,7 @@ const Profile = () => {
             </div>
           ))
         ) : (
-          <p>This user doesn't have any public posts.</p>  // Message when there are no posts
+          <p>This user doesn't have any public posts.</p> // Message when there are no posts
         )}
       </div>
     </div>
