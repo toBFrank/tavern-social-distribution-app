@@ -1,11 +1,15 @@
 from django.shortcuts import render
-from mistyrose.users.models import Author
+from users.models import Author
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from .models import Post, Comment, Like
+from stream.models import Inbox
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
+from django.shortcuts import get_object_or_404
+from django.contrib.contenttypes.models import ContentType
+
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -106,6 +110,56 @@ class PostImageView(APIView):
 #endregion
 
 #region Comment Views
+class CommentedView(APIView):
+    """
+    get, comment on post
+    """
+    def post(self, request, author_serial):
+        #author who created the comment
+        author = get_object_or_404(Author, id=author_serial)
+       
+        comment_data = request.data
+        request_type = comment_data.get('type')
+
+        if request_type != 'comment':
+            return Response({"detail: Must be 'comment' type"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        post_url = comment_data.get("post")
+        if not post_url:
+            return Response({"Error": "Post URL is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        post_id = post_url.rstrip('/').split("/posts/")[-1]
+        post = get_object_or_404(Post, id=post_id)
+
+        #creating the comment object
+        request.data['author_id'] = author_serial
+        request.data['post_id'] = post_id
+        comment_serializer = CommentSerializer(data=request.data)
+        if comment_serializer.is_valid():
+            comment_instance = comment_serializer.save()
+
+            #creating Inbox object to forward to correct inbox
+            post_host = post_url.split("//")[1].split("/")[0]
+            if post_host != request.get_host():
+                # TODO: post not on our host, need to forward it to a remote inbox
+                pass
+            else:
+                # create and add to Inbox of the post's author
+                post_author = post.author_id
+                content_type = ContentType.objects.get_for_model(Comment)
+
+                Inbox.objects.create(
+                    type="comment",
+                    author=post_author,
+                    content_type=content_type,
+                    object_id=comment_instance.id,
+                    content_object=comment_instance,
+                )
+
+            return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
+        else:
+            return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
+
 #endregion
 
 #region Like Views
