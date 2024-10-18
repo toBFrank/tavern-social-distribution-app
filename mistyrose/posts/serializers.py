@@ -10,11 +10,15 @@ class PostSerializer(serializers.ModelSerializer):
             'author_id',
             'title',
             'description',
-            'plain_or_markdown_content',
+            'text_content',
             'image_content',
             'content_type',
             'published',
             'visibility'
+        ]
+        read_only_fields = [
+            'id',
+            'published'
         ]
 #endregion
 

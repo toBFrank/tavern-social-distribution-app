@@ -4,7 +4,7 @@ import uuid
 
 # Create your models here.
 class Post(models.Model):
-    TYPE_CHOICES = ('post', 'Post')
+    TYPE_CHOICES = [('post', 'Post')]
     
     VISIBILITY_CHOICES = [
       ('FRIENDS', 'Friends'),
@@ -22,7 +22,7 @@ class Post(models.Model):
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='post')
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='posts')
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, blank=True, null=True, default='No Title')
     description = models.TextField(blank=True, null=True)
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
     text_content = models.TextField(blank=True, null=True)

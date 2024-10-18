@@ -16,7 +16,7 @@ class PostDetailsView(APIView):
     """
     Retrieve, update or delete a post instance by author ID & post ID.
     """
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
     
     def get(self, request, author_serial, post_serial):
         try:
@@ -53,7 +53,7 @@ class PostDetailsByFqidView(APIView):
     """
     Retrieve post by Fully Qualified ID (URL + ID).
     """
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
     
     def get(self, request, fqid):
         try:
@@ -68,7 +68,7 @@ class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for author.
     """
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
     
     def get(self, request, author_serial):
         posts = Post.objects.filter(author_id=author_serial)
@@ -77,6 +77,7 @@ class AuthorPostsView(APIView):
       
     def post(self, request, author_serial):
         try:
+            print(f"AUTHOR SERIAL: {author_serial}")
             author = Author.objects.get(id=author_serial)
         except Author.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -94,7 +95,7 @@ class PostImageView(APIView):
     """
     Retrieve the image of a post if available.
     """
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, author_serial, post_serial):
         try:

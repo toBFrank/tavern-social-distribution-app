@@ -44,8 +44,9 @@ const Post = () => {
 
   const handlePostClick = async () => {
     const postData = {
+      author_id: userAuthentication.authorSerial,
       title: 'My Post', // TODO: Add title
-      plain_or_markdown_content:
+      text_content:
         selectedOption === 'Plain'
           ? plainText
           : selectedOption === 'Markdown'
@@ -53,12 +54,13 @@ const Post = () => {
             : null,
       image_content: selectedOption === 'Image' ? uploadedImage : null,
       content_type: selectedOption,
-      visibility: visibility
+      visibility: visibility,
     };
 
     try {
       const response = await createPost(
-        userAuthentication.authorSerial,
+        userAuthentication.authorSerial ??
+          '0b61c141-371e-4f34-9b4e-275df8c0e666', // TODO: Add authorSerial (currently FrancoPersonal)
         postData
       );
       console.log(response);
@@ -155,7 +157,9 @@ const Post = () => {
         </label>
       </div>
       <div className="postPage-buttons">
-        <button className="post-button">Post</button>
+        <button className="post-button" onClick={handlePostClick}>
+          Post
+        </button>
         {/* <button className="delete-button">Delete</button> */}
       </div>
     </div>
