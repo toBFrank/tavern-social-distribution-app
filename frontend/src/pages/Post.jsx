@@ -1,17 +1,28 @@
 import React, { useState, useRef } from 'react';
 import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
+import MarkdownEditor from '../components/MarkdownEditor';
+import { useAuth } from '../contexts/AuthContext';
 
 const Post = () => {
+  //#region Properties
+  const { userAuthentication } = useAuth();
+
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
+
+  const options = ['Plain', 'Markdown', 'Image'];
   const [uploadedImage, setUploadedImage] = useState(null);
   const fileInputUpload = useRef(null);
+  const [plainText, setPlainText] = useState('');
+  const [markdown, setMarkdown] = useState('');
 
+  //#endregion
+
+  //#region Event Handlers
   const handleVisibilityChange = (event) => {
     setVisibility(event.target.value);
   };
-
   const handleOptionClick = (option) => {
     setSelectedOption(option);
   };
@@ -19,7 +30,6 @@ const Post = () => {
   const handleImageUploaderClick = () => {
     fileInputUpload.current.click();
   };
-
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -27,39 +37,37 @@ const Post = () => {
       setUploadedImage(imageUrl);
     }
   };
+  const handlePlainTextChange = (event) => {
+    setPlainText(event.target.value);
+  };
+
+  const handlePostClick = () => {
+    // TODO: Implement post click
+  };
+  //#endregion
+
+  //#region Functions
+  //#endregion
+
+  //#region Render
+  const renderOption = (option) => (
+    <h3
+      key={option}
+      className={
+        selectedOption === option ? 'active-option' : 'inactive-option'
+      }
+      onClick={() => handleOptionClick(option)}
+    >
+      {option}
+    </h3>
+  );
+  //#endregion
 
   return (
     <div className="posts-page">
       <div className="top-container">
         <h1>Post</h1>
-        <div className="posts-options">
-          <h3
-            className={
-              selectedOption === 'Plain' ? 'active-option' : 'inactive-option'
-            }
-            onClick={() => handleOptionClick('Plain')}
-          >
-            Plain
-          </h3>
-          <h3
-            className={
-              selectedOption === 'Markdown'
-                ? 'active-option'
-                : 'inactive-option'
-            }
-            onClick={() => handleOptionClick('Markdown')}
-          >
-            Markdown
-          </h3>
-          <h3
-            className={
-              selectedOption === 'Image' ? 'active-option' : 'inactive-option'
-            }
-            onClick={() => handleOptionClick('Image')}
-          >
-            Image
-          </h3>
-        </div>
+        <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
 
       {selectedOption === 'Image' ? (
@@ -84,8 +92,15 @@ const Post = () => {
             onChange={handleFileChange}
           />
         </>
+      ) : selectedOption === 'Plain' ? (
+        <textarea
+          className="plain-textarea"
+          placeholder="Type something here..."
+          value={plainText}
+          onChange={handlePlainTextChange}
+        ></textarea>
       ) : (
-        <textarea placeholder="Type something here..."></textarea>
+        <MarkdownEditor markdown={markdown} setMarkdown={setMarkdown} />
       )}
 
       <div className="visibility-options">
@@ -119,7 +134,7 @@ const Post = () => {
       </div>
       <div className="postPage-buttons">
         <button className="post-button">Post</button>
-        <button className="delete-button">Delete</button>
+        {/* <button className="delete-button">Delete</button> */}
       </div>
     </div>
   );
