@@ -53,8 +53,13 @@ const Post = () => {
             ? markdown
             : null,
       image_content: selectedOption === 'Image' ? uploadedImage : null,
-      content_type: selectedOption,
-      visibility: visibility,
+      content_type:
+        selectedOption === 'Image'
+          ? 'image'
+          : selectedOption === 'Markdown'
+            ? 'text/markdown'
+            : 'text/plain',
+      visibility: visibility.toUpperCase(),
     };
 
     try {
