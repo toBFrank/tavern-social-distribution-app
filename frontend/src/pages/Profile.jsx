@@ -9,6 +9,7 @@ const Profile = () => {
   const { userAuthentication } = useAuth();
   
   const { authorId } = userAuthentication.authorSerial;
+
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
