@@ -163,3 +163,67 @@ class CommentedView(APIView):
 #endregion
 
 #region Like Views
+class LikedView(APIView):
+    """
+    like a post
+    """
+    def post(self, request, author_serial):
+        #author who created the like
+        author = get_object_or_404(Author, id=author_serial)
+       
+        like_data = request.data
+        request_type = like_data.get('type')
+
+        if request_type != 'like':
+            return Response({"detail: Must be 'like' type"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        object_url = like_data.get("object") #object can be either a comment or post
+        if not object_url:
+            return Response({"Error": "object URL is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # determine like was for post or comment
+        if "/posts/" in object_url:
+            # object is a post
+            object_id = object_url.rstrip('/').split("/posts/")[-1]
+            liked_object = get_object_or_404(Post, id=object_id)
+            object_content_type = ContentType.objects.get_for_model(Post)
+        elif "/commented/" in object_url:
+            # object is a comment
+            object_id = object_url.rstrip('/').split("/commented/")[-1]
+            liked_object = get_object_or_404(Comment, id=object_id)
+            object_content_type = ContentType.objects.get_for_model(Comment)
+        else:
+            return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        #creating the like object
+        request.data['author_id'] = author_serial
+        request.data['object_id'] = liked_object.id
+        request.data['content_type'] = object_content_type.id
+
+        like_serializer = LikeSerializer(data=request.data)
+        if like_serializer.is_valid():
+            like_instance = like_serializer.save()
+
+            #creating Inbox object to forward to correct inbox
+            post_host = object_url.split("//")[1].split("/")[0]
+            if post_host != request.get_host():
+                # TODO: post or comment not on our host, need to forward it to a remote inbox
+                pass
+            else:
+                # create and add to Inbox of the post or comment's author
+                object_author = liked_object.author_id
+                content_type = ContentType.objects.get_for_model(Like)
+
+                Inbox.objects.create(
+                    type="like",
+                    author=object_author,
+                    content_type=content_type,
+                    object_id=like_instance.id,
+                    content_object=like_instance,
+                )
+
+            return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
+        else:
+            return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
+#endregion

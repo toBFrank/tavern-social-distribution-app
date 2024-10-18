@@ -23,7 +23,7 @@ class Inbox(models.Model):
     # using generic foreign key so we can have "polymorphic" relationships between the tables (Like, Comment, Follow, Post)
     # https://docs.djangoproject.com/en/5.1/ref/contrib/contenttypes/#generic-relations for setting up generic foreign key 2024-10-14
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE) 
-    object_id = models.CharField(max_length=200) # for storing primary key value of the model itll be relating to
+    object_id = models.UUIDField(max_length=200) # TODO: changed it to UUID, fix errors..... for storing primary key value of the model itll be relating to 
     content_object = GenericForeignKey('content_type', 'object_id') # foreign key to Like or Comment, or Follow or Post
 
     def __str__(self):

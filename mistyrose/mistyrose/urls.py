@@ -22,7 +22,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 from django.conf import settings
-from posts.views import CommentedView
+from posts.views import CommentedView, LikedView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -39,5 +39,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
     path('', include('users.urls')),
-    path('api/authors/<uuid:author_serial>/commented/', CommentedView.as_view(), name='commented')
+    path('api/authors/<uuid:author_serial>/commented/', CommentedView.as_view(), name='commented'),
+    path('api/authors/<uuid:author_serial>/liked/', LikedView.as_view(), name='liked')
 ]
