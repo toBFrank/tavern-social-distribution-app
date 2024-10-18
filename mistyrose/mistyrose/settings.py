@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 CORS_ALLOW_ALL_ORIGINS = True # Change When release
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Add your frontend URL here
+    "http://localhost:3001"
 ]
 
 # Application definition
@@ -74,7 +75,7 @@ ROOT_URLCONF = 'mistyrose.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, '../frontend/build')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -152,9 +153,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-STATICFILES_DIRS =[
-    os.path.join(BASE_DIR, '../frontend/build/static')
-]
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

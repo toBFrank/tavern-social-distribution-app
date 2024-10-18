@@ -13,10 +13,11 @@ import '../styles/components/NavigationBar.css';
 const NavigationBar = () => {
   //#region Variables
   const [expanded, setExpanded] = useState(true);
+  const userId = '763f972e-a60f-4233-af4b-1e3408cb5f5b';
   const pages = [
     ['Home', <CottageOutlined fontSize="inherit" />, '/'],
     ['Post', <AddOutlined fontSize="inherit" />, '/post'],
-    ['Profile', <PersonOutlined fontSize="inherit" />, '/profile'],
+    ['Profile', <PersonOutlined fontSize="inherit" />, `/profile/${userId}`],
     ['Settings', <SettingsOutlined fontSize="inherit" />, '/settings'],
   ];
   const location = useLocation();
