@@ -7,7 +7,7 @@ from .serializers import AuthorSerializer, AuthorEditProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.reverse import reverse
@@ -44,6 +44,7 @@ class LoginView(APIView):
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
+        
         if not username or not password:
             return Response({"message": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -53,21 +54,28 @@ class LoginView(APIView):
                 if user.check_password(password):
                     user.last_login = timezone.now()
                     user.save()
-                    token, created = Token.objects.get_or_create(user=user)
+                    refresh = RefreshToken.for_user(user)
                     author = user.author  
                     serializer = AuthorSerializer(author, context={"request": request})
-                    data = {"token": token.key, "author": serializer.data}
+                    data = {
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                        "author": serializer.data
+                    }
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     return Response({"message": "Wrong password."}, status=status.HTTP_401_UNAUTHORIZED)
             else:
                 return Response({"message": "User is not activated yet."}, status=status.HTTP_403_FORBIDDEN)
         except User.DoesNotExist:
-            return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"message": "User not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )  
 
 class SignUpView(APIView):
     http_method_names = ["post"]
-
+    
     def post(self, request):
         username = request.data.get("username")
         email = request.data.get("email")
@@ -75,37 +83,61 @@ class SignUpView(APIView):
         display_name = request.data.get("displayName")
         github = request.data.get("github", "")
         profile_image = request.data.get("profileImage", DEFAULT_PROFILE_PIC)
-        
+
         if not all([username, email, password, display_name]):
-            return Response({"message": "Username, email, password, and displayName are required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"message": "Username, email, password, and displayName are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         if User.objects.filter(username=username).exists():
-            return Response({"message": "Username already exists."}, status=status.HTTP_409_CONFLICT)
+            return Response(
+                {"message": "Username already exists."},
+                status=status.HTTP_409_CONFLICT
+            )
         
         try:
             with transaction.atomic():
-                user = User.objects.create_user(username=username, email=email, password=password, is_active=False)
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    is_active=False  
+                )
                 user.date_joined = timezone.now()
                 user.save()
-                author_data = {"displayName": display_name, "profileImage": profile_image, "github": github}
+                
+                author_data = {
+                    "displayName": display_name,
+                    "profileImage": profile_image,
+                    "github": github,
+                }
                 author = create_author(author_data, request, user)
                 serializer = AuthorSerializer(author, context={"request": request})
+                
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
-            return Response({"message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  
 
     def post(self, request):
         try:
-            token = Token.objects.get(user=request.user)
-            token.delete()
-            return Response({"message": "Logged out successfully."}, status=status.HTTP_200_OK)
-        except Token.DoesNotExist:
-            return Response({"message": "User is already logged out."}, status=status.HTTP_400_BAD_REQUEST)
+            request.user.tokens().blacklist()
+            return Response(
+                {"message": "Logged out successfully."},
+                status=status.HTTP_200_OK
+            )
         except Exception as e:
-            return Response({"message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class AuthorDetailView(generics.RetrieveAPIView):
     queryset = Author.objects.all()
