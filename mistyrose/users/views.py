@@ -72,6 +72,7 @@ class LoginView(APIView):
                 {"message": "User not found."},
                 status=status.HTTP_404_NOT_FOUND
             )  
+
 class SignUpView(APIView):
     http_method_names = ["post"]
     
@@ -122,17 +123,21 @@ class SignUpView(APIView):
             )
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]  
 
     def post(self, request):
         try:
-            token = Token.objects.get(user=request.user)
-            token.delete()
-            return Response({"message": "Logged out successfully."}, status=status.HTTP_200_OK)
-        except Token.DoesNotExist:
-            return Response({"message": "User is already logged out."}, status=status.HTTP_400_BAD_REQUEST)
+            request.user.tokens().blacklist()
+            return Response(
+                {"message": "Logged out successfully."},
+                status=status.HTTP_200_OK
+            )
         except Exception as e:
-            return Response({"message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 class AuthorDetailView(generics.RetrieveAPIView):
     queryset = Author.objects.all()
