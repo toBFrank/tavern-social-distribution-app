@@ -72,7 +72,7 @@ class LoginView(APIView):
                 {"message": "User not found."},
                 status=status.HTTP_404_NOT_FOUND
             )  
-class SignUpView:
+class SignUpView(APIView):
     http_method_names = ["post"]
     
     def post(self, request):
