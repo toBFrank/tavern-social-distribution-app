@@ -88,53 +88,54 @@ class LoginView(APIView):
             return Response(
                 {"message": "User not found."},
                 status=status.HTTP_404_NOT_FOUND
-            )
-@api_view(['POST'])  
-def signup(request):
-    username = request.data.get("username")
-    email = request.data.get("email")
-    password = request.data.get("password")
-    display_name = request.data.get("displayName")
-    github = request.data.get("github", "")
-    profile_image = request.data.get("profileImage", DEFAULT_PROFILE_PIC)
+            )  
+class SignUpView:
+    http_method_names = ["post"]
+    def post(self, request):
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        display_name = request.data.get("displayName")
+        github = request.data.get("github", "")
+        profile_image = request.data.get("profileImage", DEFAULT_PROFILE_PIC)
 
-    if not all([username, email, password, display_name]):
-        return Response(
-            {"message": "Username, email, password, and displayName are required."},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    
-    if User.objects.filter(username=username).exists():
-        return Response(
-            {"message": "Username already exists."},
-            status=status.HTTP_409_CONFLICT
-        )
-    
-    try:
-        with transaction.atomic():
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                is_active=False  # Set to False to require activation
+        if not all([username, email, password, display_name]):
+            return Response(
+                {"message": "Username, email, password, and displayName are required."},
+                status=status.HTTP_400_BAD_REQUEST
             )
-            user.date_joined = timezone.now()
-            user.save()
-            
-            author_data = {
-                "displayName": display_name,
-                "profileImage": profile_image,
-                "github": github,
-            }
-            author = create_author(author_data, request, user)
-            serializer = AuthorSerializer(author, context={"request": request})
-            
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-    except Exception as e:
-        return Response(
-            {"message": f"An error occurred: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"message": "Username already exists."},
+                status=status.HTTP_409_CONFLICT
+            )
+        
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    is_active=False  # Set to False to require activation
+                )
+                user.date_joined = timezone.now()
+                user.save()
+                
+                author_data = {
+                    "displayName": display_name,
+                    "profileImage": profile_image,
+                    "github": github,
+                }
+                author = create_author(author_data, request, user)
+                serializer = AuthorSerializer(author, context={"request": request})
+                
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {"message": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]  
