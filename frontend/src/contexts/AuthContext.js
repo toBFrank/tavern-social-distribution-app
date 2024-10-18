@@ -1,4 +1,3 @@
-
 import { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext();
@@ -6,8 +5,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   // store both author id and token
   const [userAuthentication, setUserAuthentication] = useState({
-    authorId: null,
-    token: null,
+    authorId: localStorage.getItem('authorId') || null,
+    token: localStorage.getItem('accessToken') || null,
   });
 
   return (

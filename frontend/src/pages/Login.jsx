@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { login } from '../services/loginservice'; 
 import { useNavigate } from 'react-router-dom'; 
@@ -26,9 +25,16 @@ const Login = () => {
     setError('');
 
     try {
-    
       const result = await login(formData);
       console.log('Login successful:', result);
+      
+      // Store tokens securely
+      if (result?.access && result?.refresh && result?.author.id) {
+        localStorage.setItem('accessToken', result.accessToken);
+        localStorage.setItem('refreshToken', result.refreshToken);
+        localStorage.setItem('authorId', result.author.id);
+      }
+
       navigate('/home');
     } catch (err) {
       console.error('Login failed:', err);

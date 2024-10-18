@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';  // Import useParams to get route parameters
 import { getAuthorProfile } from '../services/profileService';  // Import service
 import '../styles/pages/Profile.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
   // Get authorId from the URL parameters
+  const { userAuthentication } = useAuth();
   const { authorId } = useParams();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
