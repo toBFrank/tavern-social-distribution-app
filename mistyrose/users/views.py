@@ -7,15 +7,13 @@ from .serializers import AuthorSerializer, AuthorEditProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status, generics
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.reverse import reverse
 from .models import Author, Follows
 from django.utils import timezone
 from django.conf import settings
-from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
 from stream.models import Inbox
 from django.contrib.contenttypes.models import ContentType
@@ -76,6 +74,7 @@ class LoginView(APIView):
             )  
 class SignUpView:
     http_method_names = ["post"]
+    
     def post(self, request):
         username = request.data.get("username")
         email = request.data.get("email")
@@ -102,7 +101,7 @@ class SignUpView:
                     username=username,
                     email=email,
                     password=password,
-                    is_active=False  # Set to False to require activation
+                    is_active=False  
                 )
                 user.date_joined = timezone.now()
                 user.save()
