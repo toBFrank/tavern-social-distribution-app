@@ -41,7 +41,7 @@ const NavigationBar = () => {
       </div>
       <ul className="navbar-list">
         {pages.map((page, index) => (
-          <Link className="list-link" to={page[2]}>
+          <Link className="list-link" to={page[2]} key={index}>
             <li
               className={`navbar-list-item${location.pathname === page[2] ? ' current' : ''}${expanded ? '' : ' minimized'}`}
               key={index}

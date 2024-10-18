@@ -3,6 +3,7 @@ import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
 import MarkdownEditor from '../components/MarkdownEditor';
 import { useAuth } from '../contexts/AuthContext';
+import { createPost } from '../services/PostsService';
 
 const Post = () => {
   //#region Properties
@@ -41,8 +42,32 @@ const Post = () => {
     setPlainText(event.target.value);
   };
 
-  const handlePostClick = () => {
-    // TODO: Implement post click
+  const handlePostClick = async () => {
+    const postData = {
+      author_id: userAuthentication.authorSerial,
+      title: 'My Post', // TODO: Add title
+      text_content:
+        selectedOption === 'Plain'
+          ? plainText
+          : selectedOption === 'Markdown'
+            ? markdown
+            : null,
+      image_content: selectedOption === 'Image' ? uploadedImage : null,
+      content_type:
+        selectedOption === 'Image'
+          ? 'image'
+          : selectedOption === 'Markdown'
+            ? 'text/markdown'
+            : 'text/plain',
+      visibility: visibility.toUpperCase(),
+    };
+
+    try {
+      const response = await createPost(userAuthentication.authorId, postData);
+      console.log(response);
+    } catch (error) {
+      console.error(error);
+    }
   };
   //#endregion
 
@@ -133,7 +158,9 @@ const Post = () => {
         </label>
       </div>
       <div className="postPage-buttons">
-        <button className="post-button">Post</button>
+        <button className="post-button" onClick={handlePostClick}>
+          Post
+        </button>
         {/* <button className="delete-button">Delete</button> */}
       </div>
     </div>
