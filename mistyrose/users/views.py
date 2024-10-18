@@ -7,13 +7,15 @@ from .serializers import AuthorSerializer, AuthorEditProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
+from rest_framework import status, generics
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.reverse import reverse
 from .models import Author, Follows
 from django.utils import timezone
 from django.conf import settings
+from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
 from stream.models import Inbox
 from django.contrib.contenttypes.models import ContentType
@@ -44,6 +46,7 @@ class LoginView(APIView):
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
+        
         if not username or not password:
             return Response({"message": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -53,10 +56,14 @@ class LoginView(APIView):
                 if user.check_password(password):
                     user.last_login = timezone.now()
                     user.save()
-                    token, created = Token.objects.get_or_create(user=user)
+                    refresh = RefreshToken.for_user(user)
                     author = user.author  
                     serializer = AuthorSerializer(author, context={"request": request})
-                    data = {"token": token.key, "author": serializer.data}
+                    data = {
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                        "author": serializer.data
+                    }
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     return Response({"message": "Wrong password."}, status=status.HTTP_401_UNAUTHORIZED)
