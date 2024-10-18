@@ -1,14 +1,32 @@
-import MDEditor from '@uiw/react-md-editor';
+// src/MarkdownEditor.js
+import React, { useState } from 'react';
+import { marked } from 'marked';
 import '../styles/components/MarkdownEditor.css';
-import { useState } from 'react';
 
-const MarkdownEditor = () => {
-  const [value, setValue] = useState('**Hello world!**');
+const MarkdownEditor = ({markdown, setMarkdown}) => {
+  
+  const handleChange = (event) => {
+    setMarkdown(event.target.value);
+  };
+
+  const getMarkdownText = () => {
+    return { __html: marked(markdown) };
+  };
 
   return (
-    <div className="container">
-      <MDEditor value={value} onChange={setValue} />
-      <MDEditor.Markdown source={value} />
+    <div className="markdown-editor">
+      <textarea
+        className="markdown-textarea"
+        value={markdown}
+        onChange={handleChange}
+        rows={10}
+        style={{ width: '100%', fontSize: '16px' }}
+        placeholder="Type something here..."
+      />
+      <div
+        className="markdown-preview"
+        dangerouslySetInnerHTML={getMarkdownText()}
+      />
     </div>
   );
 };

@@ -23,7 +23,6 @@
   flex-direction: row;
   justify-content: space-between;
   gap: 15px;
-  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
   font-size: 13px;
   cursor: pointer;
 }
@@ -35,31 +34,29 @@
   max-width: 100%;
 }
 
-textarea {
-  font-size: 13px;
-  padding: 20px 20px;
-  width: 845px;
-  height: 350px;
+.plain-textarea {
+  font-size: 18px;
+  padding: 20px;
+  width: 90%;
+  height: 600px;
   outline: none;
   background: #f8e5d3;
-  color: #000000;
-  border: 3px solid #000000;
+  color: black;
+  border: 3px solid black;
   border-radius: 20px;
   box-shadow: 3px 3px 2px 0px #e2e2e2;
   transition: 0.3s ease;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Roboto', sans-serif;
+  resize: none;
+}
+.plain-textarea::-webkit-scrollbar {
+  display: none;
 }
 
-textarea:focus {
-  background: #ffffff;
-  border: 3px solid #9f7b03;
+.plain-textarea:focus {
+  background: white;
+  border: 5px solid black;
   border-radius: 10px;
-}
-
-textarea::placeholder {
-  color: #000000;
-  font-size: 13px;
-  font-family: 'Open Sans', sans-serif;
 }
 
 .visibility-options {
@@ -67,14 +64,16 @@ textarea::placeholder {
   align-items: center;
   gap: 50px;
   margin-top: 15px;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 16px;
   margin-bottom: 50px;
 }
 
 .postPage-buttons {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
+  align-items: center;
   gap: 20px;
 }
 
@@ -82,12 +81,12 @@ textarea::placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 300px;
+  width: 800px;
   height: 50px;
   background-color: #c1ffc7;
   border-radius: 28px;
   cursor: pointer;
-  color: #000000;
+  color: black;
   font-family: Arial, sans-serif;
   font-size: 17px;
   padding: 0 31px;
@@ -98,12 +97,12 @@ textarea::placeholder {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 300px;
+  width: 800px;
   height: 50px;
   background-color: #ffc2c2;
   border-radius: 28px;
   cursor: pointer;
-  color: #000000;
+  color: black;
   font-family: Arial, sans-serif;
   font-size: 17px;
   padding: 0 31px;

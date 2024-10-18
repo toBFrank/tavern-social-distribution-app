@@ -7,10 +7,13 @@ const Post = () => {
   //#region Properties
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
+  
+  const options = ['Plain', 'Markdown', 'Image'];
   const [uploadedImage, setUploadedImage] = useState(null);
   const fileInputUpload = useRef(null);
+  const [plainText, setPlainText] = useState('');
+  const [markdown, setMarkdown] = useState('');
 
-  const options = ['Plain', 'Markdown', 'Image'];
   //#endregion
 
   //#region Event Handlers
@@ -33,6 +36,10 @@ const Post = () => {
       setUploadedImage(imageUrl);
     }
   };
+
+  const handlePlainTextChange = (event) => {
+    setPlainText(event.target.value);
+  }
   //#endregion
 
   //#region Functions
@@ -82,9 +89,14 @@ const Post = () => {
           />
         </>
       ) : selectedOption === 'Plain' ? (
-        <textarea placeholder="Type something here..."></textarea>
+        <textarea
+          className="plain-textarea"
+          placeholder="Type something here..."
+          value={plainText}
+          onChange={handlePlainTextChange}
+        ></textarea>
       ) : (
-        <MarkdownEditor />
+        <MarkdownEditor markdown={markdown} setMarkdown={setMarkdown} />
       )}
 
       <div className="visibility-options">
@@ -118,7 +130,7 @@ const Post = () => {
       </div>
       <div className="postPage-buttons">
         <button className="post-button">Post</button>
-        <button className="delete-button">Delete</button>
+        {/* <button className="delete-button">Delete</button> */}
       </div>
     </div>
   );
