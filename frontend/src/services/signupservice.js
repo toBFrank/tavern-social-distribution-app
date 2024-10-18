@@ -4,7 +4,7 @@ export const signup = async (signupData) => {
     try {
       const response = await api.post('/signup/', signupData, {
         headers: {
-          'Content-Type': 'application/json', 
+          'Content-Type': 'application/json',
         },
       });
       return response.data;

@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.reverse import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import Author, Follows
 from django.utils import timezone
 from django.conf import settings
@@ -41,7 +42,6 @@ def create_author(author_data, request, user):
 
 class LoginView(APIView):
     @csrf_exempt
-
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -75,8 +75,7 @@ class LoginView(APIView):
             )  
 
 class SignUpView(APIView):
-    http_method_names = ["post"]
-    
+    @csrf_exempt
     def post(self, request):
         username = request.data.get("username")
         email = request.data.get("email")

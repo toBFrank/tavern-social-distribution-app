@@ -112,6 +112,7 @@ const Signup = () => {
             onChange={handleChange}
           />
         </div>
+
         <button type="submit" disabled={loading}>
           {loading ? 'Signing Up...' : 'Sign Up'}
         </button>
