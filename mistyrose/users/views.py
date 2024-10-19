@@ -6,6 +6,7 @@ from .models import Author
 from .serializers import AuthorSerializer, AuthorEditProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
@@ -19,6 +20,7 @@ from stream.models import Inbox
 from django.contrib.contenttypes.models import ContentType
 from posts.models import Post
 from .serializers import PostSerializer
+from .pagination import AuthorsPagination
 
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 
@@ -172,6 +174,25 @@ class AuthorEditProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle a collection of model instances AND comes with pagination
+    #asked chatGPT how to get the authors using ListAPIView 2024-10-18
+    # variables that ListAPIView needs
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+    pagination_class = AuthorsPagination
+    def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
+        #retrieve all profiles on the node (paginated)
+        response = super().get(request, *args, **kwargs) #get provided by ListAPIView that queries database, serializes, and handles pagination
+
+        #customize structure of response
+        response.data = {
+        "type": "authors",  
+        "authors": response.data['results']  
+        }
+
+        return response
+
 
 
 class FollowerView(APIView):

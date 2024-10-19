@@ -47,6 +47,7 @@ class LikeSerializer(serializers.ModelSerializer):
             'id',
             'author_id',
             'published',
-            'object_url'
+            'content_type',
+            'object_id',
         ]
 #endregion

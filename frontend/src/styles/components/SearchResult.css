@@ -1,0 +1,10 @@
+/* https://github.com/CodeCompleteYT/react-search-bar/blob/main/src/components/SearchResult.css search result css 2024-10-18, author: CodeCompleteYT */
+
+.search-result {
+    padding: 10px 20px;
+    font-family: 'Fredoka', sans-serif;
+}
+  
+.search-result:hover {
+    background-color: #efefef;
+}

@@ -6,8 +6,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   // store both author id and token
   const [userAuthentication, setUserAuthentication] = useState({
-    authorId: '0b61c141-371e-4f34-9b4e-275df8c0e666',  // TODO: Remove hardcoded author id (FrancoPersonal)
-    token: 'ee1bd22bd866a1d0e6e3db9ae3a1ef6094224e4b',  // TODO: Remove hardcoded token (FrancoPersonal)
+    authorId: '1d6dfebf-63a6-47a9-8e88-5cda73675db5', //TODO: remove hardcoded id
+    token: '7e31046a8413002b920bdc8dd0232bad6c482e1e', //TODO: remove hardcoded token
   });
 
   return (
