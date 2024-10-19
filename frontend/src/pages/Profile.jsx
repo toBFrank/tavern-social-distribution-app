@@ -66,7 +66,7 @@ const Profile = () => {
 
         {/* Follow / Edit Profile Button */}
         {isCurrentUser ? (
-          <button onClick={() => navigate(`/authors/${authorId}/profile/edit`)}>Edit Profile</button>
+          <button onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
         ) : (
           <button>Follow</button>
         )}
