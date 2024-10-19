@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService';  // Import service
 import '../styles/pages/Profile.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
   // Get authorId from the URL parameters
-  
-  const { authorId } = localStorage.getItem("authorId");
-  const { token } = localStorage.getItem("accessToken");
+  const { userAuthentication } = useAuth();
+  const { authorId } = userAuthentication.authorSerial;
+  const { token } = userAuthentication.tokenSerial;
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 

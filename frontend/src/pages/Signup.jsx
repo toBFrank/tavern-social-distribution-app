@@ -47,6 +47,8 @@ const Signup = () => {
   return (
     <div className="signup-container">
       <h2>Sign Up</h2>
+
+      {/* Show error message if there is one */}
       {error && <div className="error-message">{error}</div>}
 
       <form onSubmit={handleSubmit}>
@@ -113,6 +115,7 @@ const Signup = () => {
           />
         </div>
 
+        {/* Submit button is disabled when loading */}
         <button type="submit" disabled={loading}>
           {loading ? 'Signing Up...' : 'Sign Up'}
         </button>

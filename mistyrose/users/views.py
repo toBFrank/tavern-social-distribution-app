@@ -8,11 +8,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.reverse import reverse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from .models import Author, Follows
 from django.utils import timezone
 from django.conf import settings
@@ -41,7 +41,8 @@ def create_author(author_data, request, user):
     return author
 
 class LoginView(APIView):
-    @csrf_exempt
+    http_method_names = ["post"]
+    @csrf_exempt 
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -75,6 +76,7 @@ class LoginView(APIView):
             )  
 
 class SignUpView(APIView):
+    http_method_names = ["post"]
     @csrf_exempt
     def post(self, request):
         username = request.data.get("username")
@@ -123,13 +125,19 @@ class SignUpView(APIView):
             )
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]  
+    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can log out
 
     def post(self, request):
         try:
-            request.user.tokens().blacklist()
+            # Get all outstanding (active) refresh tokens for the user
+            tokens = OutstandingToken.objects.filter(user=request.user)
+
+            # Loop through the tokens and blacklist each one
+            for token in tokens:
+                _, _ = BlacklistedToken.objects.get_or_create(token=token)
+
             return Response(
-                {"message": "Logged out successfully."},
+                {"message": "Logged out successfully. All tokens have been invalidated."},
                 status=status.HTTP_200_OK
             )
         except Exception as e:
@@ -137,6 +145,29 @@ class LogoutView(APIView):
                 {"message": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can log out
+
+    def post(self, request):
+        try:
+            # Get all outstanding (active) refresh tokens for the user
+            tokens = OutstandingToken.objects.filter(user=request.user)
+
+            # Loop through the tokens and blacklist each one
+            for token in tokens:
+                _, _ = BlacklistedToken.objects.get_or_create(token=token)
+
+            return Response(
+                {"message": "Logged out successfully. All tokens have been invalidated."},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {"message": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 
 class AuthorDetailView(generics.RetrieveAPIView):
