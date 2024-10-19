@@ -6,6 +6,7 @@ from .models import Author
 from .serializers import AuthorSerializer, AuthorEditProfileSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
@@ -20,6 +21,7 @@ from django.contrib.contenttypes.models import ContentType
 from urllib.parse import unquote
 from posts.models import Post
 from .serializers import PostSerializer
+from .pagination import AuthorsPagination
 
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 
@@ -142,12 +144,32 @@ class AuthorEditProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle a collection of model instances AND comes with pagination
+    #asked chatGPT how to get the authors using ListAPIView 2024-10-18
+    # variables that ListAPIView needs
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+    pagination_class = AuthorsPagination
+    def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
+        #retrieve all profiles on the node (paginated)
+        response = super().get(request, *args, **kwargs) #get provided by ListAPIView that queries database, serializes, and handles pagination
+
+        #customize structure of response
+        response.data = {
+        "type": "authors",  
+        "authors": response.data['results']  
+        }
+
+        return response
+
+        
 @api_view(['POST'])
 def send_follow_request(request, AUTHOR_SERIAL):
     object_author = get_object_or_404(Author, id=AUTHOR_SERIAL)
     actor_data = request.data.get('actor')
     actor_id = actor_data.get('id')
     actor_author = get_object_or_404(Author, id=actor_id)
+    #TODO: redirect to the right inbox
     follow_request = Follows.objects.create(local_follower_id=actor_author, followed_id=object_author, status='PENDING')
     Inbox.objects.create(type='follow', author=object_author, content_type=ContentType.objects.get_for_model(Follows), object_id=follow_request.id, content_object=follow_request)
     response_data = {

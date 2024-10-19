@@ -1,0 +1,13 @@
+/* https://github.com/CodeCompleteYT/react-search-bar/blob/main/src/components/SearchResultsList.css search results list css 2024-10-18, author: CodeCompleteYT */
+
+.results-list {
+    width: 100%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0px 0px 8px #ddd;
+    border-radius: 10px;
+    margin-top: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+  }
