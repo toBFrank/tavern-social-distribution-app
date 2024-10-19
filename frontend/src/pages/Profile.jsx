@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // Import useParams to get route parameters
 import { getAuthorProfile } from '../services/profileService'; // Import service
 import '../styles/pages/Profile.css';
-import { useAuth } from '../contexts/AuthContext';
+import Cookies from 'js-cookie';
 
 const Profile = () => {
   // Get authorId from the URL parameters
   // const { authorId } = useParams();
-  const { userAuthentication } = useAuth();
+  const authorId = Cookies.get('author_id');
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch profile data when the component mounts
-    getAuthorProfile(userAuthentication.authorId)
+    getAuthorProfile(authorId)
       .then((data) => {
         setProfileData(data);
         setLoading(false);
@@ -22,7 +21,7 @@ const Profile = () => {
         console.error(err);
         setLoading(false); // Stop loading even on error
       });
-  }, [userAuthentication.authorId]);
+  }, [authorId]);
 
   // Show loading message or an error message if data is not available
   if (loading) {
@@ -35,7 +34,7 @@ const Profile = () => {
   }
 
   // Determine if the current user is viewing their own profile
-  const isCurrentUser = profileData.id === userAuthentication.authorId;
+  const isCurrentUser = profileData.id === authorId;
 
   return (
     <div className="profile-page">
