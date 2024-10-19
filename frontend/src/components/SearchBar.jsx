@@ -10,6 +10,7 @@ const SearchBar = ({ setResults }) => {
   const [input, setInput] = useState("");
   const token = '7e31046a8413002b920bdc8dd0232bad6c482e1e';
 
+  //TODO: ONLY RETURN AUTHORS THAT ARENT THE AUTHOR SEARCHING IT UP
   const fetchData = (value) => {
     fetch("http://localhost:8000/api/authors/", {
         method: 'GET',

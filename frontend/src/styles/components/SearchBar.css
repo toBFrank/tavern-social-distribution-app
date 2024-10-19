@@ -13,19 +13,19 @@
 }
   
 input {
-background-color: transparent;
-border: none;
-height: 100%;
-font-size: 1.25rem;
-font-family: 'Fredoka', sans-serif;
-width: 100%;
-margin-left: 5px;
+    background-color: transparent;
+    border: none;
+    height: 100%;
+    font-size: 1.25rem;
+    font-family: 'Fredoka', sans-serif;
+    width: 100%;
+    margin-left: 5px;
 }
 
 input:focus {
-outline: none;
+    outline: none;
 }
 
 #search-icon {
-color: grey;
+    color: grey;
 }
