@@ -1,17 +1,17 @@
 import './styles/App.css';
 import NavigationBar from './components/NavigationBar';
 import AppRoutes from './routes/AppRoutes';
-import Cookie from 'js-cookie';
+import Cookies from 'js-cookie';
 import { useState, useEffect } from 'react';
 
 function App() {
   const [authorIdExists, setAuthorIdExists] = useState(
-    !!Cookie.get('author_id')
+    !!Cookies.get('author_id')
   );
 
   useEffect(() => {
     const checkCookie = () => {
-      setAuthorIdExists(!!Cookie.get('author_id'));
+      setAuthorIdExists(!!Cookies.get('author_id'));
     };
 
     // Initial check
