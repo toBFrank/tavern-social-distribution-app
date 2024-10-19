@@ -1,0 +1,28 @@
+.home-container {
+    display: flex;
+    width: 100%;
+}
+
+.main-container {
+    flex: 1; /* takes up remaining space */
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* prevent overflow*/
+    margin: 1rem;
+    padding-right: 21.5rem;
+    padding-left: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.follow-request-container {
+    width: 15rem;
+    background-color: #f8e5d3;
+    padding: 20px;
+    border-radius: 20px;
+    position: fixed;
+    right: 1rem;
+    top: 1rem;
+    bottom: 1rem;
+    border: 0.15rem solid black;
+}

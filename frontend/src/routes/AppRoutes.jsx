@@ -4,6 +4,7 @@ import Home from '../pages/Home';
 import Post from '../pages/Post';
 import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
+import EditProfile from '../components/EditProfile';
 import Signup from '../pages/Signup';
 import Login from '../pages/Login';
 import ProtectedRoute from './ProtectedRoute';
@@ -40,6 +41,13 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+       <Route
+        path="/authors/:authorId/profile/edit"
+        element={
+          <ProtectedRoute>
+            <EditProfile />
+          </ProtectedRoute>
+        }
       <Route
         path="/settings"
         element={

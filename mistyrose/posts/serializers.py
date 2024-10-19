@@ -16,6 +16,8 @@ class PostSerializer(serializers.ModelSerializer):
             'published',
             'visibility'
         ]
+   
+        
         read_only_fields = [
             'id',
             'published'
@@ -45,6 +47,7 @@ class LikeSerializer(serializers.ModelSerializer):
             'id',
             'author_id',
             'published',
-            'object_url'
+            'content_type',
+            'object_id',
         ]
 #endregion

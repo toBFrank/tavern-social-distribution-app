@@ -14,7 +14,7 @@ import Cookies from 'js-cookie';
 const NavigationBar = () => {
   //#region Variables
   const [expanded, setExpanded] = useState(true);
-  const userId = '763f972e-a60f-4233-af4b-1e3408cb5f5b';
+  const userId = '1d6dfebf-63a6-47a9-8e88-5cda73675db5';
   const pages = [
     ['Home', <CottageOutlined fontSize="inherit" />, '/'],
     ['Post', <AddOutlined fontSize="inherit" />, '/post'],

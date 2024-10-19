@@ -56,6 +56,7 @@ class InboxView(APIView):
             return Response(serializer.errors, status=400)
         
 #local only TODO: need to document this is a new one for local use only
+#TODO: only geting PENDING requests, and unique requests...
 @api_view(['GET'])
 def get_follow_requests(request, author_id):
     author = get_object_or_404(Author, id=author_id)

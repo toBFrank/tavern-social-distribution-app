@@ -1,0 +1,36 @@
+/* https://github.com/CodeCompleteYT/react-search-bar/blob/main/src/components/SearchBar.css search bar css 2024-10-18, author: CodeCompleteYT */
+
+.input-wrapper {
+    width: 100%;
+    height: 2.5rem;
+    border: 0.15rem solid black;
+    border-radius: 1.5rem;
+    padding: 0 15px;
+    box-shadow: 0px 0px 10px #999999;
+    background-color: white;
+    display: flex;
+    align-items: center;
+}
+  
+input {
+    background-color: transparent;
+    border: none;
+    height: 100%;
+    font-size: 1.25rem;
+    font-family: 'Fredoka', sans-serif;
+    width: 100%;
+    margin-left: 5px;
+}
+
+/* css input styling from a different file is affecting the input styling on the home page, override it  */
+.input-wrapper input {
+    border: none !important;
+  }
+
+input:focus {
+    outline: none;
+}
+
+#search-icon {
+    color: grey;
+}
