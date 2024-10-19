@@ -142,21 +142,21 @@ class AuthorEditProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
-def send_follow_request(request, AUTHOR_SERIAL):
-    object_author = get_object_or_404(Author, id=AUTHOR_SERIAL)
-    actor_data = request.data.get('actor')
-    actor_id = actor_data.get('id')
-    actor_author = get_object_or_404(Author, id=actor_id)
-    follow_request = Follows.objects.create(local_follower_id=actor_author, followed_id=object_author, status='PENDING')
-    Inbox.objects.create(type='follow', author=object_author, content_type=ContentType.objects.get_for_model(Follows), object_id=follow_request.id, content_object=follow_request)
-    response_data = {
-        "type": "follow",
-        "summary": f"{actor_author.display_name} wants to follow {object_author.display_name}",
-        "actor": {"type": "author", "id": str(actor_author.id), "host": actor_author.host, "displayName": actor_author.display_name, "github": actor_author.github, "profileImage": actor_author.profile_image},
-        "object": {"type": "author", "id": str(object_author.id), "host": object_author.host, "displayName": object_author.display_name, "github": object_author.github, "profileImage": object_author.profile_image}
-    }
-    return Response(response_data, status=201)
+# @api_view(['POST'])
+# def send_follow_request(request, AUTHOR_SERIAL):
+#     object_author = get_object_or_404(Author, id=AUTHOR_SERIAL)
+#     actor_data = request.data.get('actor')
+#     actor_id = actor_data.get('id')
+#     actor_author = get_object_or_404(Author, id=actor_id)
+#     follow_request = Follows.objects.create(local_follower_id=actor_author, followed_id=object_author, status='PENDING')
+#     Inbox.objects.create(type='follow', author=object_author, content_type=ContentType.objects.get_for_model(Follows), object_id=follow_request.id, content_object=follow_request)
+#     response_data = {
+#         "type": "follow",
+#         "summary": f"{actor_author.display_name} wants to follow {object_author.display_name}",
+#         "actor": {"type": "author", "id": str(actor_author.id), "host": actor_author.host, "displayName": actor_author.display_name, "github": actor_author.github, "profileImage": actor_author.profile_image},
+#         "object": {"type": "author", "id": str(object_author.id), "host": object_author.host, "displayName": object_author.display_name, "github": object_author.github, "profileImage": object_author.profile_image}
+#     }
+#     return Response(response_data, status=201)
 
 @api_view(['PUT', 'DELETE'])
 def manage_follow_request(request, AUTHOR_SERIAL, FOREIGN_AUTHOR_FQID):
