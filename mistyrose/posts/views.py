@@ -171,10 +171,9 @@ class CommentedView(APIView):
         post = get_object_or_404(Post, id=post_id, author_id=author_serial)
 
         comments = post.comments.all()
-        serialized_comments = CommentSerializer(comments, many=True).data
-        pass
-
-
+        serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
+        return Response(serializer.data)
+    #TODO: return "type": "comments" format as specified in the project description, right now just returning a list of comments for ease
            
 
 #endregion
@@ -182,7 +181,7 @@ class CommentedView(APIView):
 #region Like Views
 class LikedView(APIView):
     """
-    like a post
+    get or like a post
     """
     def post(self, request, author_serial):
         #author who created the like
@@ -242,5 +241,17 @@ class LikedView(APIView):
             return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
         else:
             return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+        
+    def get(self, request, author_serial, post_id):
+        """
+        Get likes on a post
+        """
+        post = get_object_or_404(Post, id=post_id, author_id=author_serial)
+
+        likes = post.likes.all()
+        serializer = LikeSerializer(likes, many=True) # many=True specifies that input is not just a single like
+        return Response(serializer.data)
+        #TODO: return "type": "likes" format as specified in the project description, right now just returning a list of likes for ease
+
 
 #endregion

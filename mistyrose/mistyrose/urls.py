@@ -44,4 +44,5 @@ urlpatterns = [
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
     path('', include('users.urls')),
     path('api/authors/<uuid:author_serial>/liked/', LikedView.as_view(), name='liked'),
+    path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/likes/', LikedView.as_view(), name='post_likes'),
 ]
