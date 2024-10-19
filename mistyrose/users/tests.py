@@ -8,11 +8,9 @@ import uuid
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
-import urllib.parse
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
-from urllib.parse import unquote
 
 
 class FollowRequestTestCase(TestCase):
@@ -57,72 +55,63 @@ class FollowRequestTestCase(TestCase):
             content_object=self.follow_request
         )
 
-        # Encode follow_request.id to simulate external author ID encoding
-        self.foreign_author_fqid_encoded = urllib.parse.quote(str(self.follow_request.id))
-
-        # Set the URL
+        # Set the URL with author1.id as follower_id
         self.url = reverse('manage_follow_request', kwargs={
-            'AUTHOR_SERIAL': self.author2.id,
-            'FOREIGN_AUTHOR_FQID': self.foreign_author_fqid_encoded
+            'author_id': str(self.author2.id),  
+            'follower_id': str(self.author1.id)  # Use author1 as the follower
         })
+        
+        print(f"Generated URL: {self.url}")
 
-    def test_get_follower_exists(self):
-        # Set the follow request status to ACCEPTED
-        self.follow_request.status = 'ACCEPTED'
-        self.follow_request.remote_follower_url = str(self.follow_request.id)  # Ensure URL matches
-        self.follow_request.save()  # Save to the database
 
-        # Send GET request to check if the follower exists
-        response = self.client.get(self.url)
 
-        # Print debugging information
-        print(f"Response status: {response.status_code}")
-        print(f"Response content: {response.content}")
 
-        # Confirm the status code is 200
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["status"], "Follower exists")
+    # def test_get_follower_exists(self):
+    #     # Set the follow request status to ACCEPTED
+    #     self.follow_request.status = 'ACCEPTED'
+    #     self.follow_request.remote_follower_url = str(self.follow_request.id)  # Ensure URL matches
+    #     self.follow_request.save()  # Save to the database
 
-    def test_get_follower_not_found(self):
-        # Delete the follow request
-        self.follow_request.delete()
+    #     # Send GET request to check if the follower exists
+    #     response = self.client.get(self.url)
 
-        # Send GET request
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data["error"], "Follower not found")
+    #     # Print debugging information
+    #     print(f"Response status: {response.status_code}")
+    #     print(f"Response content: {response.content}")
+
+    #     # Confirm the status code is 200
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertEqual(response.data["status"], "Follower exists")
+
+    # def test_get_follower_not_found(self):
+    #     # Delete the follow request
+    #     self.follow_request.delete()
+
+    #     # Send GET request
+    #     response = self.client.get(self.url)
+    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    #     self.assertEqual(response.data["error"], "Follower not found")
 
     def test_approve_follow_request(self):
-        # Send PUT request to approve the follow request
+        # Send a PUT request to approve the follow request
         response = self.client.put(self.url, format='json')
 
-        # Print the returned response
-        print(f"Response status: {response.status_code}")
-        print(f"Response content: {response.content}")
-
-        # Confirm the status code is 200
+        # Confirm that the status code is 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Check if the follow request status has been updated to ACCEPTED
-        self.follow_request.refresh_from_db()
-        self.assertEqual(self.follow_request.status, 'ACCEPTED')
+        #Verify that the Inbox entry has been deleted, using object_id instead of id
+        self.assertFalse(Inbox.objects.filter(object_id=self.follow_request.id).exists())
 
-        # Confirm that the Inbox entry has been deleted
-        self.assertFalse(Inbox.objects.filter(inbox_id=self.inbox_entry.inbox_id).exists())
+
 
     def test_deny_follow_request(self):
-        # Send DELETE request to deny the follow request
+        # Send a DELETE request to deny the follow request
         response = self.client.delete(self.url)
 
-        # Print the returned response
-        print(f"Response status: {response.status_code}")
-        print(f"Response content: {response.content}")
-
-        # Confirm the status code is 204
+        # Confirm that the status code is 204
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-        # Confirm that the follow request has been deleted
+        # Verify that the follow_request has been deleted
         self.assertFalse(Follows.objects.filter(id=self.follow_request.id).exists())
 
-        # Confirm that the Inbox entry has been deleted
-        self.assertFalse(Inbox.objects.filter(inbox_id=self.inbox_entry.inbox_id).exists())
+

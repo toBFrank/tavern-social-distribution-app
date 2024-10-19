@@ -17,7 +17,6 @@ from django.conf import settings
 import uuid
 from stream.models import Inbox
 from django.contrib.contenttypes.models import ContentType
-from urllib.parse import unquote
 from posts.models import Post
 from .serializers import PostSerializer
 
@@ -145,69 +144,78 @@ class AuthorEditProfileView(APIView):
 
 class FollowerView(APIView):
     
-    def get(self, request, AUTHOR_SERIAL, FOREIGN_AUTHOR_FQID):
-        """
-        Check if FOREIGN_AUTHOR_FQID is a follower of AUTHOR_SERIAL
-        """
-        author = get_object_or_404(Author, id=AUTHOR_SERIAL)
-        follower_url_decoded = unquote(FOREIGN_AUTHOR_FQID)
+    # def get(self, request, author_id, follower_id):
+    #     """
+    #     Check if follower_id is a follower of author_id
+    #     """
+    #     author = get_object_or_404(Author, id=author_id)
 
-        # print(f"Decoded FOREIGN_AUTHOR_FQID: {follower_url_decoded}")
-        # print(f"Author being followed: {author}")
+    #     # Check follow status using the remote URL
+    #     follow_status = Follows.objects.filter(remote_follower_url=follower_id, followed_id=author, status='ACCEPTED').exists()
 
-        # Check follow status using the remote URL
-        follow_status = Follows.objects.filter(remote_follower_url=follower_url_decoded, followed_id=author, status='ACCEPTED').exists()
-
-        if follow_status:
-            print("Follower exists")
-            return Response({"status": "Follower exists"}, status=status.HTTP_200_OK)
-        print("Follower not found")
-        return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
+    #     if follow_status:
+    #         print("Follower exists")
+    #         return Response({"status": "Follower exists"}, status=status.HTTP_200_OK)
+    #     print("Follower not found")
+    #     return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
-    def put(self, request, AUTHOR_SERIAL, FOREIGN_AUTHOR_FQID):
-        """
-        Accept a follow request from FOREIGN_AUTHOR_FQID to AUTHOR_SERIAL
-        """
-        # Decode the foreign author URL
-        foreign_author_fqid_decoded = unquote(FOREIGN_AUTHOR_FQID)
-        author = get_object_or_404(Author, id=AUTHOR_SERIAL)
-
-        # Get the content type for the Follows model
-        content_type = ContentType.objects.get_for_model(Follows)
-        inbox_entry = Inbox.objects.filter(author=author, object_id=foreign_author_fqid_decoded, content_type=content_type).first()
-
-        if not inbox_entry:
+    def put(self, request, author_id, follower_id):
+        print(f"Received Author ID: {author_id}, Received Follower ID: {follower_id}")
+        
+        # get follow_request
+        follow_request = Follows.objects.filter(followed_id=author_id, local_follower_id=follower_id).first()
+        
+        if not follow_request:
+            print("Follow request not found in database for PUT")
             return Response({"error": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Update the follow request status to "ACCEPTED"
-        follow_request = inbox_entry.content_object
+        
+        # update status to "ACCEPTED"
         follow_request.status = 'ACCEPTED'
         follow_request.save()
-
-        # Optionally remove the entry from the inbox if it is handled
-        inbox_entry.delete()
-
+        
+        # delete corresponding inbox_entry
+        content_type = ContentType.objects.get_for_model(Follows)
+        inbox_entry = Inbox.objects.filter(author__id=author_id, object_id=follow_request.id, content_type=content_type).first()
+        
+        if inbox_entry:
+            print(f"Deleting Inbox entry: {inbox_entry}")
+            inbox_entry.delete()
+        else:
+            print("Inbox entry not found")
+        
         return Response({"status": "Follow request accepted"}, status=status.HTTP_200_OK)
 
-    def delete(self, request, AUTHOR_SERIAL, FOREIGN_AUTHOR_FQID):
-        """
-        Decline a follow request from FOREIGN_AUTHOR_FQID to AUTHOR_SERIAL
-        """
-        # Decode the foreign author URL
-        foreign_author_fqid_decoded = unquote(FOREIGN_AUTHOR_FQID)
-        author = get_object_or_404(Author, id=AUTHOR_SERIAL)
 
-        # Get the content type for the Follows model
-        content_type = ContentType.objects.get_for_model(Follows)
-        inbox_entry = Inbox.objects.filter(author=author, object_id=foreign_author_fqid_decoded, content_type=content_type).first()
 
-        if not inbox_entry:
+    def delete(self, request, author_id, follower_id):
+        print(f"Received Author ID: {author_id}, Received Follower ID: {follower_id}")
+        
+        # get follow_request
+        follow_request = Follows.objects.filter(followed_id=author_id, local_follower_id=follower_id).first()
+
+        if not follow_request:
+            print("Follow request not found in database")
             return Response({"error": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Delete the follow request and remove from inbox
-        follow_request = inbox_entry.content_object
+        # delete inbox_entry
+        content_type = ContentType.objects.get_for_model(Follows)
+        inbox_entry = Inbox.objects.filter(author__id=author_id, object_id=follow_request.id, content_type=content_type).first()
+
+        if inbox_entry:
+            print(f"Found Inbox entry: {inbox_entry}")
+            inbox_entry.delete()
+
+        print(f"Deleting Follow Request: {follow_request.id}")
+        
+        # delete follow_request
         follow_request.delete()
-        inbox_entry.delete()
+
+        # second confirm whether the request has been deleted
+        if Follows.objects.filter(id=follow_request.id).exists():
+            print("Error: Follow request was not deleted!")
+        else:
+            print("Follow request deleted successfully")
 
         return Response({"status": "Follow request denied"}, status=status.HTTP_204_NO_CONTENT)
+
