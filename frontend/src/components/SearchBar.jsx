@@ -47,7 +47,7 @@ const SearchBar = ({ setResults }) => {
     <div className="input-wrapper">
       <Search id="search-icon" />
       <input
-        placeholder="Type to search..."
+        placeholder="Search for authors..."
         value={input}
         onChange={(e) => handleChange(e.target.value)} // whenever change is made to text, the fetch is called
       />

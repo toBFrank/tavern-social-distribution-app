@@ -29,7 +29,7 @@ const FollowRequests = () => {
     }, []);
 
     return (
-        <div className="follow-requests-column">
+        <div>
             <div className="requests-title">Requests</div>
             {followRequests.map((followRequest, index) => (
                 <div key={index} className="follow-request-box">

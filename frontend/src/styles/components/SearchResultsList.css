@@ -10,4 +10,6 @@
     margin-top: 1rem;
     max-height: 300px;
     overflow-y: auto;
+    position: absolute; /*dont want it to push down the content when search list appears */
+    top: 2.5rem; /* so that its displayed under the search bar which is set to 2.5 height*/
   }

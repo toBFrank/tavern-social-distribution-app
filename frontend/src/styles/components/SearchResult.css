@@ -2,8 +2,9 @@
 
 .search-result {
     padding: 10px 20px;
+    font-family: 'Fredoka', sans-serif;
   }
   
-  .search-result:hover {
+.search-result:hover {
     background-color: #efefef;
   }
