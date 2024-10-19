@@ -8,22 +8,35 @@ import "../styles/components/SearchBar.css";
 
 const SearchBar = ({ setResults }) => {
   const [input, setInput] = useState("");
+  const token = '7e31046a8413002b920bdc8dd0232bad6c482e1e';
 
   const fetchData = (value) => {
-    fetch("https://jsonplaceholder.typicode.com/users") //fetch is asynchronous and returns a result later on, need to call then to await for result to perform actions on it
-      .then((response) => response.json())
-      .then((json) => {
-        const results = json.filter((user) => {
-          return (
-            value &&
-            user &&
-            user.name &&
-            user.name.toLowerCase().includes(value)
-          );
-        });
-        setResults(results);
-      });
-  };
+    fetch("http://localhost:8000/api/authors/", {
+        method: 'GET',
+        headers: {
+            'Authorization': `Token ${token}`, 
+            'Content-Type': 'application/json',
+        },
+    }) //fetch is asynchronous and returns a result later on, need to call then to await for result to perform actions on it
+    .then((response) => response.json())
+    .then((json) => {
+        const authorsArray = json.authors; // need to get authors
+
+        if (Array.isArray(authorsArray)) {
+            const results = authorsArray.filter((author) => {
+                return (
+                  value && //check that they've entered value into search bar --> if value is empy --> wont render anything
+                  author && //check that user exists
+                  author.displayName && //check that user has a display name
+                  author.displayName.toLowerCase().includes(value) //check if lowercase of authors name includes value entered into search bar
+                );
+              });
+              setResults(results);
+        }
+        else {
+            console.error("Expected authors to be an array, but got:", authorsArray);
+        }
+    })};
 
   const handleChange = (value) => {
     setInput(value);
