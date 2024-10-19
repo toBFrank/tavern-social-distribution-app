@@ -16,6 +16,8 @@ api.interceptors.request.use(
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+    } else {
+      delete config.headers.Authorization;
     }
 
     return config;

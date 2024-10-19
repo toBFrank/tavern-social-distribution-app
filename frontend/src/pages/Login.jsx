@@ -24,6 +24,7 @@ const Login = () => {
     try {
       setLoading(true);
       const response = await login(loginData);
+      console.log(response);
       const { refresh_token, access_token, author_id } = response;
 
       Cookies.set('author_id', author_id);
