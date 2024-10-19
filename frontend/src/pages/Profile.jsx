@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';  // Import useParams to get route parameters
+import { useParams, useNavigate } from 'react-router-dom';  // Import useParams to get route parameters
 import { getAuthorProfile } from '../services/profileService';  // Import service
 import '../styles/pages/Profile.css';
 
 const Profile = () => {
   // Get authorId from the URL parameters
   const { authorId } = useParams();
+  const navigate = useNavigate();  // Initialize useNavigate
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,28 +45,28 @@ const Profile = () => {
 
         <div className="profile-stats">
           <div>
-            <h2>{profileData.friends_count}</h2>
+            <h2>{profileData.friends_count || 0}</h2>
             <p>Friends</p>
           </div>
           <div>
-            <h2>{profileData.followers_count}</h2>
+            <h2>{profileData.followers_count || 0}</h2>
             <p>Followers</p>
           </div>
           <div>
-            <h2>{profileData.following_count}</h2>
+            <h2>{profileData.following_count || 0}</h2>
             <p>Following</p>
           </div>
         </div>
 
         {/* Profile Links */}
         <div className="profile-links">
-          <a href={profileData.github} target="_blank" rel="noopener noreferrer">GitHub Profile</a>
-          <a href={profileData.page} target="_blank" rel="noopener noreferrer">Profile Link</a>
+          <p>GitHub Profile: <a href={profileData.github} target="_blank" rel="noopener noreferrer">{profileData.github}</a></p>
+          <p>Profile Link: <a href={profileData.page} target="_blank" rel="noopener noreferrer">{profileData.page}</a></p>
         </div>
 
         {/* Follow / Edit Profile Button */}
         {isCurrentUser ? (
-          <button>Edit Profile</button>
+          <button onClick={() => navigate(`/authors/${authorId}/profile/edit`)}>Edit Profile</button>
         ) : (
           <button>Follow</button>
         )}
@@ -84,12 +85,11 @@ const Profile = () => {
                 </div>
               </div>
               <div className="post-content">
-                <p>{post.content}</p>
+                <p>{post.description}</p> {/* Updated to display description */}
               </div>
               <div className="post-footer">
-                <p>{post.like_count} Likes</p>
-                <p>{post.comment_count} Comments</p>
-                <p>Share</p>
+                <p>{profileData.likes_count || 0} Likes</p>  {/* Display likes count */}
+                <p>{profileData.comments_count || 0} Comments</p>  {/* Display comments count */}
               </div>
             </div>
           ))

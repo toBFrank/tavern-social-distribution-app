@@ -13,7 +13,7 @@ import '../styles/components/NavigationBar.css';
 const NavigationBar = () => {
   //#region Variables
   const [expanded, setExpanded] = useState(true);
-  const userId = '763f972e-a60f-4233-af4b-1e3408cb5f5b';
+  const userId = '96fbbb50-7442-401d-991c-b16f3e407a77';
   const pages = [
     ['Home', <CottageOutlined fontSize="inherit" />, '/'],
     ['Post', <AddOutlined fontSize="inherit" />, '/post'],
