@@ -1,25 +1,34 @@
 import './styles/App.css';
 import NavigationBar from './components/NavigationBar';
 import AppRoutes from './routes/AppRoutes';
-import { useAuth } from './contexts/AuthContext';
-import { useEffect } from 'react';
-import api from './services/axios';
+import Cookie from 'js-cookie';
+import { useState, useEffect } from 'react';
 
 function App() {
-  const { userAuthentication } = useAuth();
+  const [authorIdExists, setAuthorIdExists] = useState(
+    !!Cookie.get('author_id')
+  );
 
   useEffect(() => {
-    if (userAuthentication.token) {
-      api.defaults.headers.common['Authorization'] =
-        `Token ${userAuthentication.token}`;
-    } else {
-      delete api.defaults.headers.common['Authorization'];
-    }
-  }, [userAuthentication]);
+    const checkCookie = () => {
+      setAuthorIdExists(!!Cookie.get('author_id'));
+    };
+
+    // Initial check
+    checkCookie();
+
+    // Set interval to check for changes every second (1000 ms)
+    const intervalId = setInterval(checkCookie, 1000);
+
+    // Cleanup function to clear the interval
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
 
   return (
     <div className="App">
-      <NavigationBar />
+      {authorIdExists && <NavigationBar />}
       <AppRoutes />
     </div>
   );

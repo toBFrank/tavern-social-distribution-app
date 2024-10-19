@@ -37,7 +37,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('api/posts/', include('posts.urls')),
     path('api/authors/<uuid:author_id>/inbox/', include('stream.urls')),
-    path('', include('users.urls')),
+    path('api/users/', include('users.urls')),
     path('api/authors/<uuid:author_serial>/commented/', CommentedView.as_view(), name='commented'),
     path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/comments/', CommentedView.as_view(), name='post_comments'),
     path('admin/', admin.site.urls),

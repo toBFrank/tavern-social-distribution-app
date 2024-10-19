@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   MenuOutlined,
@@ -9,6 +9,7 @@ import {
   MeetingRoomOutlined,
 } from '@mui/icons-material';
 import '../styles/components/NavigationBar.css';
+import Cookies from 'js-cookie';
 
 const NavigationBar = () => {
   //#region Variables
@@ -27,8 +28,15 @@ const NavigationBar = () => {
   const changeExpanded = () => {
     setExpanded(!expanded);
   };
+
+  const handleLogout = () => {
+    Cookies.remove('author_id');
+    Cookies.remove('access_token');
+    Cookies.remove('refresh_token');
+  };
   //#endregion
 
+  // hide navigation bar if user is not authenticated
   return (
     <nav className="navbar-menu" style={{ width: expanded ? 300 : 150 }}>
       <div className={`navbar-header${expanded ? '' : ' minimized'}`}>
@@ -52,7 +60,7 @@ const NavigationBar = () => {
           </Link>
         ))}
       </ul>
-      <div className="navbar-footer">
+      <div className="navbar-footer" onClick={handleLogout}>
         <div className="navbar-icon">
           <MeetingRoomOutlined fontSize="inherit" />
         </div>

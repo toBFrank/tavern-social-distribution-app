@@ -2,12 +2,12 @@ import React, { useState, useRef } from 'react';
 import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
 import MarkdownEditor from '../components/MarkdownEditor';
-import { useAuth } from '../contexts/AuthContext';
 import { createPost } from '../services/PostsService';
+import Cookies from 'js-cookie';
 
 const Post = () => {
   //#region Properties
-  const { userAuthentication } = useAuth();
+  const authorId = Cookies.get('author_id');
 
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
@@ -44,7 +44,7 @@ const Post = () => {
 
   const handlePostClick = async () => {
     const postData = {
-      author_id: userAuthentication.authorSerial,
+      author_id: authorId,
       title: 'My Post', // TODO: Add title
       text_content:
         selectedOption === 'Plain'
@@ -63,7 +63,7 @@ const Post = () => {
     };
 
     try {
-      const response = await createPost(userAuthentication.authorId, postData);
+      const response = await createPost(authorId, postData);
       console.log(response);
     } catch (error) {
       console.error(error);
