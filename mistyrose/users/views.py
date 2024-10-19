@@ -142,36 +142,72 @@ class AuthorEditProfileView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# @api_view(['POST'])
-# def send_follow_request(request, AUTHOR_SERIAL):
-#     object_author = get_object_or_404(Author, id=AUTHOR_SERIAL)
-#     actor_data = request.data.get('actor')
-#     actor_id = actor_data.get('id')
-#     actor_author = get_object_or_404(Author, id=actor_id)
-#     follow_request = Follows.objects.create(local_follower_id=actor_author, followed_id=object_author, status='PENDING')
-#     Inbox.objects.create(type='follow', author=object_author, content_type=ContentType.objects.get_for_model(Follows), object_id=follow_request.id, content_object=follow_request)
-#     response_data = {
-#         "type": "follow",
-#         "summary": f"{actor_author.display_name} wants to follow {object_author.display_name}",
-#         "actor": {"type": "author", "id": str(actor_author.id), "host": actor_author.host, "displayName": actor_author.display_name, "github": actor_author.github, "profileImage": actor_author.profile_image},
-#         "object": {"type": "author", "id": str(object_author.id), "host": object_author.host, "displayName": object_author.display_name, "github": object_author.github, "profileImage": object_author.profile_image}
-#     }
-#     return Response(response_data, status=201)
 
-@api_view(['PUT', 'DELETE'])
-def manage_follow_request(request, AUTHOR_SERIAL, FOREIGN_AUTHOR_FQID):
-    foreign_author_fqid_decoded = unquote(FOREIGN_AUTHOR_FQID)
-    author = get_object_or_404(Author, id=AUTHOR_SERIAL)
-    content_type = ContentType.objects.get_for_model(Follows)
-    inbox_entry = Inbox.objects.filter(author=author, object_id=foreign_author_fqid_decoded, content_type=content_type).first()
-    if not inbox_entry:
-        return Response({"error": "Follow request not found"}, status=404)
-    follow_request = inbox_entry.content_object
-    if request.method == 'PUT':
+class FollowerView(APIView):
+    
+    def get(self, request, AUTHOR_SERIAL, FOREIGN_AUTHOR_FQID):
+        """
+        Check if FOREIGN_AUTHOR_FQID is a follower of AUTHOR_SERIAL
+        """
+        author = get_object_or_404(Author, id=AUTHOR_SERIAL)
+        follower_url_decoded = unquote(FOREIGN_AUTHOR_FQID)
+
+        # print(f"Decoded FOREIGN_AUTHOR_FQID: {follower_url_decoded}")
+        # print(f"Author being followed: {author}")
+
+        # Check follow status using the remote URL
+        follow_status = Follows.objects.filter(remote_follower_url=follower_url_decoded, followed_id=author, status='ACCEPTED').exists()
+
+        if follow_status:
+            print("Follower exists")
+            return Response({"status": "Follower exists"}, status=status.HTTP_200_OK)
+        print("Follower not found")
+        return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+    def put(self, request, AUTHOR_SERIAL, FOREIGN_AUTHOR_FQID):
+        """
+        Accept a follow request from FOREIGN_AUTHOR_FQID to AUTHOR_SERIAL
+        """
+        # Decode the foreign author URL
+        foreign_author_fqid_decoded = unquote(FOREIGN_AUTHOR_FQID)
+        author = get_object_or_404(Author, id=AUTHOR_SERIAL)
+
+        # Get the content type for the Follows model
+        content_type = ContentType.objects.get_for_model(Follows)
+        inbox_entry = Inbox.objects.filter(author=author, object_id=foreign_author_fqid_decoded, content_type=content_type).first()
+
+        if not inbox_entry:
+            return Response({"error": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Update the follow request status to "ACCEPTED"
+        follow_request = inbox_entry.content_object
         follow_request.status = 'ACCEPTED'
         follow_request.save()
-        return Response({"status": "Follow request accepted"}, status=200)
-    elif request.method == 'DELETE':
+
+        # Optionally remove the entry from the inbox if it is handled
+        inbox_entry.delete()
+
+        return Response({"status": "Follow request accepted"}, status=status.HTTP_200_OK)
+
+    def delete(self, request, AUTHOR_SERIAL, FOREIGN_AUTHOR_FQID):
+        """
+        Decline a follow request from FOREIGN_AUTHOR_FQID to AUTHOR_SERIAL
+        """
+        # Decode the foreign author URL
+        foreign_author_fqid_decoded = unquote(FOREIGN_AUTHOR_FQID)
+        author = get_object_or_404(Author, id=AUTHOR_SERIAL)
+
+        # Get the content type for the Follows model
+        content_type = ContentType.objects.get_for_model(Follows)
+        inbox_entry = Inbox.objects.filter(author=author, object_id=foreign_author_fqid_decoded, content_type=content_type).first()
+
+        if not inbox_entry:
+            return Response({"error": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Delete the follow request and remove from inbox
+        follow_request = inbox_entry.content_object
         follow_request.delete()
         inbox_entry.delete()
-        return Response({"status": "Follow request denied"}, status=204)
+
+        return Response({"status": "Follow request denied"}, status=status.HTTP_204_NO_CONTENT)
