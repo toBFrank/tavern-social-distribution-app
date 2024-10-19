@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -42,7 +41,7 @@ def create_author(author_data, request, user):
 
 class LoginView(APIView):
     http_method_names = ["post"]
-    @csrf_exempt 
+
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -77,7 +76,7 @@ class LoginView(APIView):
 
 class SignUpView(APIView):
     http_method_names = ["post"]
-    @csrf_exempt
+    
     def post(self, request):
         username = request.data.get("username")
         email = request.data.get("email")

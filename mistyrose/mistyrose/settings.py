@@ -28,7 +28,6 @@ SECRET_KEY = 'django-insecure-m$0+uvp+z$hltiosb1m0xz4h+0xq8c5bp#w!788p2cart9(4!3
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # Add your frontend URL here
