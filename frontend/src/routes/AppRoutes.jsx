@@ -4,6 +4,8 @@ import Home from '../pages/Home';
 import Post from '../pages/Post';
 import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
+import Signup from '../pages/Signup';
+import Login from '../pages/Login';
 
 const AppRoutes = () => {
   return (
@@ -12,6 +14,8 @@ const AppRoutes = () => {
       <Route path="/post" element={<Post />} />
       <Route path="/profile/:authorId" element={<Profile />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={<Login />} />
     </Routes>
   );
 };

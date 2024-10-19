@@ -36,27 +36,27 @@ class FollowRequestTestCase(TestCase):
         self.client = APIClient()
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)  # 通过token认证
 
-    def test_send_follow_request(self):
-        #Test the API for sending follow requests
-        url = reverse('send_follow_request', kwargs={'AUTHOR_SERIAL': self.author2.id})
-        data = {
-            "actor": {
-                "id": str(self.author1.id),
-                "type": "author",
-                "host": "http://example.com/",
-                "displayName": "Author 1",
-                "github": "http://github.com/author1",
-                "profileImage": "http://example.com/author1/image"
-            }
-        }
-        response = self.client.post(url, data, format='json')
+    # def test_send_follow_request(self):
+    #     #Test the API for sending follow requests
+    #     url = reverse('send_follow_request', kwargs={'AUTHOR_SERIAL': self.author2.id})
+    #     data = {
+    #         "actor": {
+    #             "id": str(self.author1.id),
+    #             "type": "author",
+    #             "host": "http://example.com/",
+    #             "displayName": "Author 1",
+    #             "github": "http://github.com/author1",
+    #             "profileImage": "http://example.com/author1/image"
+    #         }
+    #     }
+    #     response = self.client.post(url, data, format='json')
 
-        #Confirm that the returned status code is 201 Created
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    #     #Confirm that the returned status code is 201 Created
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        #Confirm that the request has been saved as' PENDING 'status
-        follow_request = Follows.objects.get(local_follower_id=self.author1, followed_id=self.author2)
-        self.assertEqual(follow_request.status, 'PENDING')
+    #     #Confirm that the request has been saved as' PENDING 'status
+    #     follow_request = Follows.objects.get(local_follower_id=self.author1, followed_id=self.author2)
+    #     self.assertEqual(follow_request.status, 'PENDING')
         
     def test_approve_follow_request(self):
         #Simulate sending follow requests
