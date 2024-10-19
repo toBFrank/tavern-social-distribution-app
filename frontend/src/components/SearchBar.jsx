@@ -1,4 +1,4 @@
-// https://github.com/CodeCompleteYT/react-search-bar/blob/main/src/components/SearchBar.jsx search bar logic 2024-10-18, author: CodeCompleteYT
+// https://github.com/CodeCompleteYT/react-search-bar/blob/main/src/components/SearchBar.jsx search bar logic 2024-10-18, author: CodeCompleteYT from youtube tutorial https://www.youtube.com/watch?v=sWVgMcz8Q44
  
 
 import { useState } from "react";
