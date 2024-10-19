@@ -15,12 +15,12 @@ const Home = () => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        const data = await response.json(); 
-        setPosts(data);  
+        const data = await response.json(); // Parse JSON response
+        setPosts(data); // Set the state with fetched posts
       } catch (error) {
-        setError(error.message);  
+        setError(error.message); // Set error if fetching fails
       } finally {
-        setLoading(false);  
+        setLoading(false); // Set loading to false after request is complete
       }
     };
 
@@ -28,64 +28,73 @@ const Home = () => {
   }, []);
 
   const handleFilterClick = (filter) => {
-    setSelectedFilter(filter); 
+    setSelectedFilter(filter); // Set the selected filter based on user click
   };
 
+  // Sort posts by most recent date
+  const filteredPosts = posts.slice().sort((a, b) => new Date(b.published) - new Date(a.published));
+
   if (loading) {
-    return <p>Loading...</p>;  // Will show while the page is loading
+    return <p>Loading...</p>; // Will show while the page is loading
   }
 
   if (error) {
-    return <p>Error: {error}</p>;  // Display error message
+    return <p>Error: {error}</p>; // Display error message
   }
 
   return (
     <div className='home-page-container'>
       <FollowRequests />
       <div className='home-container'>
-          <div className='home-texts'>
-            <h1>Feeds</h1>
-            <div className='home-filter-options'>
-              <h3
-                onClick={() => handleFilterClick('Public')}
-                style={{
-                  opacity: selectedFilter === 'Public' ? '100%' : '50%',
-                  cursor: 'pointer',
-                }}
-              >
-                Public
-              </h3>
-              <h3
-                onClick={() => handleFilterClick('Following')}
-                style={{
-                  opacity: selectedFilter === 'Following' ? '100%' : '50%',
-                  cursor: 'pointer',
-                }}
-              >
-                Following
-              </h3>
+        <div className='home-texts'>
+          <h1>Feeds</h1>
+          <div className='home-filter-options'>
+            <h3
+              onClick={() => handleFilterClick('Public')}
+              style={{
+                opacity: selectedFilter === 'Public' ? '100%' : '50%',
+                cursor: 'pointer',
+              }}
+            >
+              Public
+            </h3>
+            <h3
+              onClick={() => handleFilterClick('Following')}
+              style={{
+                opacity: selectedFilter === 'Following' ? '100%' : '50%',
+                cursor: 'pointer',
+              }}
+            >
+              Following
+            </h3>
           </div>
         </div>
         <div className='posts-container'>
-          <div className='posts-list'>
-            {posts.length > 0 ? (
-              <ul>
-                {posts.map((post) => (
-                  <li key={post.author_id}> {/* To do: Change this to author name!*/}
-                    <h3>{post.id}</h3>
-                    <h4>{post.title}</h4>
-                    <p>{post.text_content}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No public posts available.</p>  // No posts found
-            )}
-          </div>
+          {/* Sorted Public Posts Section */}
+          {filteredPosts.length > 0 ? (
+            filteredPosts.map((post) => (
+              <div key={post.id} className="post">
+                <div className="post-header">
+                  <img
+                    src={post.profileImage} // Assuming each post contains profileImage
+                    alt={post.displayName}
+                    className="post-avatar"
+                  />
+                  <div>
+                    <h3>{post.displayName}</h3> {/* Author's display name */}
+                    <p>{new Date(post.published).toLocaleString()}</p> {/* Post published date */}
+                  </div>
+                </div>
+                <div className="post-content">
+                  <p>{post.text_content}</p> {/* Post content */}
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No public posts available.</p> // No posts found
+          )}
         </div>
       </div>
-      
-      
     </div>
   );
 };

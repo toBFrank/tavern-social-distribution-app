@@ -34,13 +34,17 @@ class PostDetailsView(APIView):
             post = Post.objects.get(id=post_serial, author_id=author_serial)
         except Post.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
+        print("request data:", request.data)  # Log the request data
         serializer = PostSerializer(post, data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-          
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            print("serializer errors:", serializer.errors)  # Log validation errors here
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
       
     def delete(self, request, author_serial, post_serial):
         try:

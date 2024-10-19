@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom'; // Import useParams to get route parameters
-import { getAuthorProfile } from '../services/profileService'; // Import service
+import { getAuthorProfile } from '../services/profileService'; 
 import '../styles/pages/Profile.css';
 import { useAuth } from '../contexts/AuthContext';
+import editIcon from '../assets/editIcon.png';
+import { updatePost } from '../services/PostsService';
 
 const Profile = () => {
   // Get authorId from the URL parameters
@@ -10,6 +11,10 @@ const Profile = () => {
   const { userAuthentication } = useAuth();
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Editing posts 
+  const [editPost, setEditPost] = useState(null); 
+  const [editedContent, setEditedContent] = useState(''); 
+
 
   useEffect(() => {
     // Fetch profile data when the component mounts
@@ -37,6 +42,42 @@ const Profile = () => {
   // Determine if the current user is viewing their own profile
   const isCurrentUser = profileData.id === userAuthentication.authorId;
 
+  const postTestEdit= (post) => {
+    setEditPost(post.id); 
+    setEditedContent(post.text_content); 
+  };
+
+  const saveEditPost = async (postId) => {
+    try {
+      const postToUpdate = profileData.public_posts.find(post => post.id === postId);
+  
+      const updatedData = {
+        id: postId,  
+        author_id: userAuthentication.authorId, 
+        title: postToUpdate.title || "None",  
+        description: postToUpdate.description || "",  
+        text_content: editedContent,  
+        image_content: postToUpdate.image_content || null,  
+        content_type: postToUpdate.content_type || 'text/plain', 
+        visibility: postToUpdate.visibility || 'PUBLIC',  
+      };
+  
+      await updatePost(userAuthentication.authorId, postId, updatedData);
+  
+      setProfileData((prevData) => ({
+        ...prevData,
+        public_posts: prevData.public_posts.map((post) =>
+          post.id === postId ? { ...post, text_content: editedContent } : post
+        ),
+      }));
+  
+      setEditPost(null);  // Exit edit mode
+    } catch (err) {
+      console.error('Error saving the post:', err);
+    }
+  };
+  
+  
   return (
     <div className="profile-page">
       {/* Profile Header */}
@@ -100,11 +141,28 @@ const Profile = () => {
                   <h3>{profileData.displayName}</h3>
                   <p>{new Date(post.published).toLocaleString()}</p>
                 </div>
+               <img
+                  className="edit-Icon"
+                  src={editIcon}
+                  alt="edit"
+                  onClick={() => postTestEdit(post)} 
+                />
               </div>
               <div className="post-content">
-                <h4>{post.title}</h4>
-                <p>{post.text_content}</p>
-              </div>
+              {editPost === post.id ? (
+                <>
+                  <textarea
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)} // edit the post
+                    className="edit-textarea"
+                  />
+                  <button onClick={() => saveEditPost(post.id)}>Save</button> 
+                </>
+              ) : (
+                <p>{post.text_content}</p> 
+              )}
+            </div>
+
               <div className="post-footer">
                 <p>{post.like_count} Likes</p>
                 <p>{post.comment_count} Comments</p>
