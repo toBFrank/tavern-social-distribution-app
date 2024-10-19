@@ -15,6 +15,7 @@ class PostSerializer(serializers.ModelSerializer):
             'published',
             'visibility'
         ]
+   
         
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
