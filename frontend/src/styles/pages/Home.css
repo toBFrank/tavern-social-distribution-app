@@ -12,6 +12,7 @@
     padding-right: 21.5rem;
     padding-left: 2rem;
     position: relative;
+    overflow: hidden;
 }
 
 .follow-request-container {
