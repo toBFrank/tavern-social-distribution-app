@@ -5,6 +5,8 @@ import Post from '../pages/Post';
 import Profile from '../pages/Profile';
 import Settings from '../pages/Settings';
 import EditProfile from '../components/EditProfile';
+import Signup from '../pages/Signup';
+import Login from '../pages/Login';
 
 const AppRoutes = () => {
   return (
@@ -14,6 +16,8 @@ const AppRoutes = () => {
       <Route path="/profile/:authorId" element={<Profile />} />
       <Route path="/authors/:authorId/profile/edit" component={<EditProfile/>} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={<Login />} />
     </Routes>
   );
 };

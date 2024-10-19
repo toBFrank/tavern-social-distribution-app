@@ -1,10 +1,9 @@
 // src/MarkdownEditor.js
-import React, { useState } from 'react';
+import React from 'react';
 import { marked } from 'marked';
 import '../styles/components/MarkdownEditor.css';
 
-const MarkdownEditor = ({markdown, setMarkdown}) => {
-  
+const MarkdownEditor = ({ markdown, setMarkdown }) => {
   const handleChange = (event) => {
     setMarkdown(event.target.value);
   };
