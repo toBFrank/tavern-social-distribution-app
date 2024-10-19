@@ -16,6 +16,7 @@ const Post = () => {
   const [uploadedImage, setUploadedImage] = useState(null);
   const fileInputUpload = useRef(null);
   const [plainText, setPlainText] = useState('');
+  const [title, setTitle] = useState('');
   const [markdown, setMarkdown] = useState('');
 
   //#endregion
@@ -41,11 +42,13 @@ const Post = () => {
   const handlePlainTextChange = (event) => {
     setPlainText(event.target.value);
   };
-
+  const handleTitleChange = (event) => { 
+    setTitle(event.target.value);
+  };
   const handlePostClick = async () => {
     const postData = {
       author_id: userAuthentication.authorSerial,
-      title: 'My Post', // TODO: Add title
+      title: title,
       text_content:
         selectedOption === 'Plain'
           ? plainText
@@ -94,6 +97,12 @@ const Post = () => {
         <h1>Post</h1>
         <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
+      <textarea
+        className="title-textarea"
+        placeholder="Title"
+        value={title}
+        onChange={handleTitleChange}
+      ></textarea>
 
       {selectedOption === 'Image' ? (
         <>
@@ -118,6 +127,7 @@ const Post = () => {
           />
         </>
       ) : selectedOption === 'Plain' ? (
+        
         <textarea
           className="plain-textarea"
           placeholder="Type something here..."

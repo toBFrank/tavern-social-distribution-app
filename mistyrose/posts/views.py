@@ -9,6 +9,8 @@ from stream.models import Inbox
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
+from .models import Post
+
 
 
 #region Post Views
@@ -164,3 +166,11 @@ class CommentedView(APIView):
 #endregion
 
 #region Like Views
+
+# Get all the public posts locally 
+class PublicPostsView(APIView):
+    def get(self, request):
+        public_posts = Post.objects.filter(visibility='PUBLIC')
+        print(public_posts) # testing
+        serializer = PostSerializer(public_posts, many=True)
+        return Response(serializer.data)
