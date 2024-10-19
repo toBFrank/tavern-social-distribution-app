@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService'; // Import service
 import '../styles/pages/Profile.css';
 import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
   // Get authorId from the URL parameters
@@ -9,6 +10,8 @@ const Profile = () => {
   const authorId = Cookies.get('author_id');
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch profile data when the component mounts

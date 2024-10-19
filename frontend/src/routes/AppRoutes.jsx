@@ -47,7 +47,7 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <EditProfile />
           </ProtectedRoute>
-        }
+        } />
       <Route
         path="/settings"
         element={
