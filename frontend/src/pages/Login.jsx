@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { login } from '../services/loginservice'; 
-import { useNavigate } from 'react-router-dom'; 
-import { useAuth } from '../contexts/AuthContext';
-
+import Cookies from 'js-cookie';
+import { login } from '../services/loginservice';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const {setUserAuthentication} = useAuth();
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -29,18 +28,13 @@ const Login = () => {
     setError('');
 
     try {
-      const result = await login(formData);
-      console.log('Login successful:', result);
-      // Store tokens securely
-      if (result?.access && result?.author.id) {
-        setUserAuthentication({
-            authorId: result.author.id,
-            token: result.access,
-        });
+      setLoading(true);
+      const response = await login(loginData);
 
-        // localStorage.setItem('accessToken', result.access);
-        // localStorage.setItem('authorId', result.author.id);
-      }
+
+      Cookies.set('author_id', response.author_id);
+      Cookies.set('access_token', response.access_token);
+      Cookies.set('refresh_token', response.refresh_token);
 
       navigate('/home');
     } catch (err) {

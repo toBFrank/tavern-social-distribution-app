@@ -40,5 +40,11 @@ urlpatterns = [
     path('api/', include('users.urls')),
     path('api/authors/<uuid:author_serial>/commented/', CommentedView.as_view(), name='commented'),
     path('admin/', admin.site.urls),
+<<<<<<< Updated upstream
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger")
+=======
+    path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
+    path('api/authors/<uuid:author_serial>/liked/', LikedView.as_view(), name='liked'),
+    path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/likes/', LikedView.as_view(), name='post_likes'),
+>>>>>>> Stashed changes
 ]

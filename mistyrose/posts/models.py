@@ -36,15 +36,27 @@ class Post(models.Model):
     class Meta:
         ordering = ['-published']
       
+
 class Like(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='likes') 
-    published = models.DateTimeField(null=True, auto_now_add=True)
+    published = models.DateTimeField(auto_now_add=True)  # auto_now_add sets the time of creation automatically
     object_url = models.URLField(null=True, blank=True)  # can be a URL to a post or comment
+<<<<<<< Updated upstream
     
     def __str__(self):
       return f'{self.author_id} liked {self.object_url}'
     
+=======
+
+    # generic foreign key to attach like to Post or Comment
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()  # No need for max_length
+    content_object = GenericForeignKey('content_type', 'object_id')  # foreign key to a Comment or Post
+
+    def __str__(self):
+        return f'{self.author_id} like'
+>>>>>>> Stashed changes
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='comments') 

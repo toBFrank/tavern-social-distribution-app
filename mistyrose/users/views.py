@@ -75,7 +75,7 @@ class LoginView(APIView):
             )  
 
 class SignUpView(APIView):
-    http_method_names = ["post"]
+    permission_classes = [AllowAny]
     
     def post(self, request):
         username = request.data.get("username")

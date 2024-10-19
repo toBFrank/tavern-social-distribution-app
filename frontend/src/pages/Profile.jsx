@@ -5,16 +5,17 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
   // Get authorId from the URL parameters
-  const { userAuthentication } = useAuth();
-  const { authorId } = userAuthentication.authorSerial;
-  const { token } = userAuthentication.tokenSerial;
+
+  // const { authorId } = useParams();
+  const authorId = Cookies.get('author_id');
+  const token = Cookies.get('access_token');
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch profile data when the component mounts
     getAuthorProfile(authorId, token)
-      .then(data => {
+      .then((data) => {
         setProfileData(data);
         setLoading(false);
       })
