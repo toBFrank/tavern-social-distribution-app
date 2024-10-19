@@ -22,6 +22,11 @@ input {
     margin-left: 5px;
 }
 
+/* css input styling from a different file is affecting the input styling on the home page, override it  */
+.input-wrapper input {
+    border: none !important;
+  }
+
 input:focus {
     outline: none;
 }

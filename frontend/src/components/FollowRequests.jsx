@@ -5,10 +5,10 @@ import { transformFollowData } from "../utils/transformer";
 
 const FollowRequests = () => {
     const [followRequests, setFollowRequests] = useState([]);
-    const token = '1efe67a71074809a52cf8e680e4bd764eb07a39f';
+    const token = '7e31046a8413002b920bdc8dd0232bad6c482e1e';
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/authors/73d430ba-6f7f-46fa-ba1e-03156c16bed9/inbox/follow_requests/', {
+        fetch('http://localhost:8000/api/authors/1d6dfebf-63a6-47a9-8e88-5cda73675db5/inbox/follow_requests/', {
             method: 'GET',
             headers: {
                 'Authorization': `Token ${token}`,
