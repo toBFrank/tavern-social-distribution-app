@@ -150,13 +150,21 @@ class AuthorProfileView(APIView):
         followers_count = Follows.objects.filter(followed_id=author, status='ACCEPTED').count()
         following_count = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
         public_posts = Post.objects.filter(author_id=author, visibility='PUBLIC').order_by('-published')
+        friends_posts = Post.objects.filter(author_id=author, visibility='FRIENDS').order_by('-published')
+        unlisted_posts = Post.objects.filter(author_id=author, visibility='UNLISTED').order_by('-published')
         author_serializer = AuthorSerializer(author)
-        post_serializer = PostSerializer(public_posts, many=True)
+        # Serialize posts
+        public_post_serializer = PostSerializer(public_posts, many=True)
+        friends_post_serializer = PostSerializer(friends_posts, many=True)
+        unlisted_post_serializer = PostSerializer(unlisted_posts, many=True)
+        # Prepare the response data
         data = author_serializer.data
         data['friends_count'] = friends_count
         data['followers_count'] = followers_count
         data['following_count'] = following_count
-        data['public_posts'] = post_serializer.data
+        data['public_posts'] = public_post_serializer.data
+        data['friends_posts'] = friends_post_serializer.data
+        data['unlisted_posts'] = unlisted_post_serializer.data
         return Response(data)
 
 class AuthorEditProfileView(APIView):
