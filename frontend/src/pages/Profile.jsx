@@ -81,7 +81,9 @@ const Profile = () => {
 
         {/* Follow / Edit Profile Button */}
         {isCurrentUser ? (
-          <button onClick={() => navigate(`/authors/${authorId}/profile/edit`)}>Edit Profile</button>
+          <button onClick={() => navigate(`/authors/${authorId}/profile/edit`)}>
+            Edit Profile
+          </button>
         ) : (
           <button>Follow</button>
         )}
@@ -107,8 +109,10 @@ const Profile = () => {
                 <p>{post.description}</p> {/* Updated to display description */}
               </div>
               <div className="post-footer">
-                <p>{profileData.likes_count || 0} Likes</p>  {/* Display likes count */}
-                <p>{profileData.comments_count || 0} Comments</p>  {/* Display comments count */}
+                <p>{profileData.likes_count || 0} Likes</p>{' '}
+                {/* Display likes count */}
+                <p>{profileData.comments_count || 0} Comments</p>{' '}
+                {/* Display comments count */}
               </div>
             </div>
           ))
