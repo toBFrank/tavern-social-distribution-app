@@ -116,6 +116,9 @@ class CommentedView(APIView):
     get, comment on post
     """
     def post(self, request, author_serial):
+        """
+        Comment on a post
+        """
         #author who created the comment
         author = get_object_or_404(Author, id=author_serial)
        
@@ -159,7 +162,20 @@ class CommentedView(APIView):
 
             return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
         else:
-            return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
+            return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+        
+    def get(self, request, author_serial, post_id):
+        """ 
+        Get comments on a post
+        """
+        post = get_object_or_404(Post, id=post_id, author_id=author_serial)
+
+        comments = post.comments.all()
+        serialized_comments = CommentSerializer(comments, many=True).data
+        pass
+
+
+           
 
 #endregion
 
