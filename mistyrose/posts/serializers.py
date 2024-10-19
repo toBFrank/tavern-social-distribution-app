@@ -16,6 +16,8 @@ class PostSerializer(serializers.ModelSerializer):
             'published',
             'visibility'
         ]
+   
+        
         read_only_fields = [
             'id',
             'published'
