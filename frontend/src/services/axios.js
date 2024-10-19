@@ -13,6 +13,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const accessToken = Cookies.get('access_token');
+    console.log(`Access Token UWU: ${accessToken}`);
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;

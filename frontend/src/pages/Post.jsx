@@ -63,6 +63,8 @@ const Post = () => {
     };
 
     try {
+      // print all cookies
+      console.log(Cookies.get());
       const response = await createPost(authorId, postData);
       console.log(response);
     } catch (error) {
