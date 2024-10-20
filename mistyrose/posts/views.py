@@ -180,6 +180,7 @@ class CommentedView(APIView):
 
 #region Like Views
 class LikedView(APIView):
+    #TODO: ASK IF WE ARE SUPPOSED TO BE ABLE TO UNLIKE A POST
     """
     get or like a post
     """
