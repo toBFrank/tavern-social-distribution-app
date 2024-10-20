@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   MenuOutlined,
@@ -9,11 +9,12 @@ import {
   MeetingRoomOutlined,
 } from '@mui/icons-material';
 import '../styles/components/NavigationBar.css';
+import Cookies from 'js-cookie';
 
 const NavigationBar = () => {
   //#region Variables
   const [expanded, setExpanded] = useState(true);
-  const userId = '763f972e-a60f-4233-af4b-1e3408cb5f5b';
+  const userId = '1d6dfebf-63a6-47a9-8e88-5cda73675db5';
   const pages = [
     ['Home', <CottageOutlined fontSize="inherit" />, '/'],
     ['Post', <AddOutlined fontSize="inherit" />, '/post'],
@@ -27,8 +28,15 @@ const NavigationBar = () => {
   const changeExpanded = () => {
     setExpanded(!expanded);
   };
+
+  const handleLogout = () => {
+    Cookies.remove('author_id');
+    Cookies.remove('access_token');
+    Cookies.remove('refresh_token');
+  };
   //#endregion
 
+  // hide navigation bar if user is not authenticated
   return (
     <nav className="navbar-menu" style={{ width: expanded ? 300 : 150 }}>
       <div className={`navbar-header${expanded ? '' : ' minimized'}`}>
@@ -41,7 +49,7 @@ const NavigationBar = () => {
       </div>
       <ul className="navbar-list">
         {pages.map((page, index) => (
-          <Link className="list-link" to={page[2]}>
+          <Link className="list-link" to={page[2]} key={index}>
             <li
               className={`navbar-list-item${location.pathname === page[2] ? ' current' : ''}${expanded ? '' : ' minimized'}`}
               key={index}
@@ -52,7 +60,7 @@ const NavigationBar = () => {
           </Link>
         ))}
       </ul>
-      <div className="navbar-footer">
+      <div className="navbar-footer" onClick={handleLogout}>
         <div className="navbar-icon">
           <MeetingRoomOutlined fontSize="inherit" />
         </div>

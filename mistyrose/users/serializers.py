@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from posts.serializers import PostSerializer
 from users.models import Author,Follows
-from posts.models import Post
+from posts.models import Post,Like,Comment
 
 class AuthorSerializer(serializers.Serializer):
     type = serializers.CharField(default='author', read_only=True)
@@ -16,6 +16,8 @@ class AuthorSerializer(serializers.Serializer):
     public_posts = serializers.SerializerMethodField(required=False)
     followers_count = serializers.SerializerMethodField(required=False)
     following_count = serializers.SerializerMethodField(required=False)
+    likes_count = serializers.SerializerMethodField(required=False)
+    comments_count = serializers.SerializerMethodField(required=False)
 
 
      # Get public posts for the author
@@ -30,6 +32,16 @@ class AuthorSerializer(serializers.Serializer):
     # Get count of authors the user is following
     def get_following_count(self, author):
         return Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
+    
+    # Get the count of likes on all posts by the author
+    def get_likes_count(self, author):
+        # Find all posts by the author, then count likes related to those posts
+        return Like.objects.filter(object_url__in=author.posts.values_list('id', flat=True)).count()
+
+    # Get count of comments on all posts by the author
+    def get_comments_count(self, author):
+        # Find all posts by the author, then count comments related to those posts
+        return Comment.objects.filter(post_id__in=author.posts.values_list('id', flat=True)).count()
 
 
     # https://dev.to/amanbothra/understanding-the-torepresentation-and-tointernalvalue-methods-in-the-django-rest-framework-naa 
@@ -60,4 +72,7 @@ class AuthorEditProfileSerializer(serializers.ModelSerializer):
         instance.save()  # Save the updated instance to the database
         return instance
 
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
     

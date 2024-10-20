@@ -27,26 +27,21 @@
 }
 
 .profile-links {
-    display: flex;
+    display: block;
     justify-content: center;
     margin: 20px 0;
     /* Spacing above and below links */
 }
 
 .profile-links a {
-    margin: 0 15px;
-    /* Space between links */
-    color: #da0f0f;
-    /* Link color matching your theme */
-    text-decoration: none;
-    /* Remove underline */
-    font-weight: bold;
-    /* Bold text for emphasis */
-}
-
-.profile-links a:hover {
+    display: block;
+    /* Make each link appear on a new line */
+    color: blue;
+    /* Set link color to blue */
     text-decoration: underline;
-    /* Underline on hover for better visibility */
+    /* Underline the link for a clickable appearance */
+    margin: 10px 0;
+    /* Add spacing between each link */
 }
 
 .profile-stats {

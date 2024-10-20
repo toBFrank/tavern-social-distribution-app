@@ -1,30 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';  // Import useParams to get route parameters
-import { getAuthorProfile } from '../services/profileService';  // Import service
+import { getAuthorProfile } from '../services/profileService'; // Import service
 import '../styles/pages/Profile.css';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
   // Get authorId from the URL parameters
-  const { authorId } = useParams();
+  // const { authorId } = useParams();
+  const authorId = Cookies.get('author_id');
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch profile data when the component mounts
     getAuthorProfile(authorId)
-      .then(data => {
+      .then((data) => {
         setProfileData(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        setLoading(false);  // Stop loading even on error
+        setLoading(false); // Stop loading even on error
       });
   }, [authorId]);
 
   // Show loading message or an error message if data is not available
   if (loading) {
-    return <p>Loading...</p>;  // Show a loading message while fetching
+    return <p>Loading...</p>; // Show a loading message while fetching
   }
 
   // Check if profileData is still null
@@ -39,33 +43,47 @@ const Profile = () => {
     <div className="profile-page">
       {/* Profile Header */}
       <div className="profile-header">
-        <img src={profileData.profileImage} alt={profileData.displayName} className="profile-image" />
+        <img
+          src={profileData.profileImage}
+          alt={profileData.displayName}
+          className="profile-image"
+        />
         <h1>{profileData.displayName}</h1>
 
         <div className="profile-stats">
           <div>
-            <h2>{profileData.friends_count}</h2>
+            <h2>{profileData.friends_count || 0}</h2>
             <p>Friends</p>
           </div>
           <div>
-            <h2>{profileData.followers_count}</h2>
+            <h2>{profileData.followers_count || 0}</h2>
             <p>Followers</p>
           </div>
           <div>
-            <h2>{profileData.following_count}</h2>
+            <h2>{profileData.following_count || 0}</h2>
             <p>Following</p>
           </div>
         </div>
 
         {/* Profile Links */}
         <div className="profile-links">
-          <a href={profileData.github} target="_blank" rel="noopener noreferrer">GitHub Profile</a>
-          <a href={profileData.page} target="_blank" rel="noopener noreferrer">Profile Link</a>
+          <a
+            href={profileData.github}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub Profile
+          </a>
+          <a href={profileData.page} target="_blank" rel="noopener noreferrer">
+            Profile Link
+          </a>
         </div>
 
         {/* Follow / Edit Profile Button */}
         {isCurrentUser ? (
-          <button>Edit Profile</button>
+          <button onClick={() => navigate(`/authors/${authorId}/profile/edit`)}>
+            Edit Profile
+          </button>
         ) : (
           <button>Follow</button>
         )}
@@ -77,24 +95,29 @@ const Profile = () => {
           profileData.public_posts.map((post) => (
             <div key={post.id} className="post">
               <div className="post-header">
-                <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
+                <img
+                  src={profileData.profileImage}
+                  alt={profileData.displayName}
+                  className="post-avatar"
+                />
                 <div>
                   <h3>{profileData.displayName}</h3>
                   <p>{new Date(post.published).toLocaleString()}</p>
                 </div>
               </div>
               <div className="post-content">
-                <p>{post.content}</p>
+                <p>{post.description}</p> {/* Updated to display description */}
               </div>
               <div className="post-footer">
-                <p>{post.like_count} Likes</p>
-                <p>{post.comment_count} Comments</p>
-                <p>Share</p>
+                <p>{profileData.likes_count || 0} Likes</p>{' '}
+                {/* Display likes count */}
+                <p>{profileData.comments_count || 0} Comments</p>{' '}
+                {/* Display comments count */}
               </div>
             </div>
           ))
         ) : (
-          <p>This user doesn't have any public posts.</p>  // Message when there are no posts
+          <p>This user doesn't have any public posts.</p> // Message when there are no posts
         )}
       </div>
     </div>

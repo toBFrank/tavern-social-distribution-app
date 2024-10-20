@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Post, Comment, Like
 
+#region Post Serializers
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
@@ -9,13 +10,21 @@ class PostSerializer(serializers.ModelSerializer):
             'author_id',
             'title',
             'description',
-            'plain_or_markdown_content',
+            'text_content',
             'image_content',
             'content_type',
             'published',
             'visibility'
         ]
+   
         
+        read_only_fields = [
+            'id',
+            'published'
+        ]
+#endregion
+
+#region Comment Serializers        
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -28,7 +37,9 @@ class CommentSerializer(serializers.ModelSerializer):
             'content_type',
             'page'
         ]
+#endregion
         
+#region Like Serializers
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
@@ -36,5 +47,7 @@ class LikeSerializer(serializers.ModelSerializer):
             'id',
             'author_id',
             'published',
-            'object_url'
+            'content_type',
+            'object_id',
         ]
+#endregion
