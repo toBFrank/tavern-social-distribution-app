@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService'; // Import service
+import { createFollowRequest } from '../services/FollowService';
 import '../styles/pages/Profile.css';
 import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -8,6 +9,7 @@ const Profile = () => {
   const { authorId } = useParams();  // Get the authorId from the URL parameters
   const currentUserId = Cookies.get('author_id');  // Get the current user's ID from cookies
   const [profileData, setProfileData] = useState(null);
+  const [currentProfileData, setCurrentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -25,6 +27,16 @@ const Profile = () => {
       });
   }, [authorId]);
 
+  useEffect(() => {
+    getAuthorProfile(currentUserId)
+      .then((data) => {
+        setCurrentProfileData(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+  }, []) //empty dependency list so that its only called once when component mounts
+
   // Show loading message or an error message if data is not available
   if (loading) {
     return <p>Loading...</p>; // Show a loading message while fetching
@@ -41,6 +53,23 @@ const Profile = () => {
   const publicPosts = profileData.public_posts || [];
   const friendsPosts = profileData.friends_posts || [];
   const unlistedPosts = profileData.unlisted_posts || [];
+
+  const handleFollow = async () => {
+    const followRequestData = {
+      type: 'follow',
+      summary: `${currentUserId} wants to follow ${authorId}`,
+      actor: currentProfileData,
+      object: profileData, //author you want to follow
+    };
+
+    console.log(followRequestData);
+
+    try {
+      const requestFollowResponse = await createFollowRequest(authorId, followRequestData);
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   return (
     <div className="profile-page">
@@ -88,7 +117,7 @@ const Profile = () => {
         {isCurrentUser ? (
           <button onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
         ) : (
-          <button>Follow</button>
+          <button onClick={handleFollow}>Follow</button>
         )}
       </div>
 

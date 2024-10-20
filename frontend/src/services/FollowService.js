@@ -17,7 +17,7 @@ export const getFollowRequests = async (authorSerial) => {
 export const createFollowRequest = async (authorSerial, followRequestData) => {
     try {
       const response = await api.post(
-        `/authors/${authorSerial}/inbox`,
+        `/authors/${authorSerial}/inbox/`,
         followRequestData
       );
       return response.data;
