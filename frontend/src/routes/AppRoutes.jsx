@@ -12,11 +12,6 @@ import ProtectedRoute from './ProtectedRoute';
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/post" element={<Post />} />
-      <Route path="/profile/:id/edit" element={<EditProfile />} />
-      <Route path="/profile/:authorId" element={<Profile />} />
-      <Route path="/settings" element={<Settings />} />
       {/* Public Routes */}
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
@@ -43,6 +38,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/:authorId/edit"
+        element={
+          <ProtectedRoute>
+            <EditProfile />
           </ProtectedRoute>
         }
       />

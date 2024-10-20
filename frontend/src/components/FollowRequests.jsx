@@ -3,6 +3,7 @@ import { Check, Clear } from "@mui/icons-material";
 import React, { useState, useEffect } from 'react';
 import { transformFollowData } from "../utils/transformer";
 import { getFollowRequests } from '../services/FollowService';
+import { acceptFollowRequest, rejectFollowRequest } from '../services/FollowService';
 import Cookies from 'js-cookie';
 
 const FollowRequests = () => {
@@ -10,7 +11,8 @@ const FollowRequests = () => {
     const authorId = Cookies.get('author_id');
 
     useEffect(() => {
-        const fetchFollowRequests = async () => { //make request for follow requests for author
+        const fetchFollowRequests = async () => {
+            // Fetch follow requests for the author
             try {
                 const response = await getFollowRequests(authorId);
                 setFollowRequests(transformFollowData(response));
@@ -22,15 +24,24 @@ const FollowRequests = () => {
         fetchFollowRequests();
     }, [authorId]);
 
-    const handleReject = (id) => {
-        // reject following request
-        setFollowRequests(prevRequests => prevRequests.filter(request => request.id !== id));
+    const handleAccept = async (followerId) => {
+        // Accept follow request
+        try {
+            await acceptFollowRequest(authorId, followerId);
+            setFollowRequests(prevRequests => prevRequests.filter(request => request.actor.id !== followerId));
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    const handleAccept = (id) => {
-        // accept following request
-        setFollowRequests(prevRequests => prevRequests.filter(request => request.id !== id));
-        console.log(`Accepted request with id: ${id}`);
+    const handleReject = async (followerId) => {
+        // Deny follow request
+        try {
+            await rejectFollowRequest(authorId, followerId);
+            setFollowRequests(prevRequests => prevRequests.filter(request => request.actor.id !== followerId));
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (
@@ -40,10 +51,10 @@ const FollowRequests = () => {
                 <div key={index} className="follow-request-box">
                     <div className="follower-name">{followRequest.actor.displayName}</div>
                     <div className="btns">
-                        <button className="reject-button" onClick={() => handleReject(followRequest.id)}>
+                        <button className="reject-button" onClick={() => handleReject(followRequest.actor.id)}>
                             <Clear className="icon"/> {/* 'x' button */}
                         </button>
-                        <button className="accept-button" onClick={() => handleAccept(followRequest.id)}>
+                        <button className="accept-button" onClick={() => handleAccept(followRequest.actor.id)}>
                             <Check className="icon"/> {/* check button */}
                         </button>
                     </div>
