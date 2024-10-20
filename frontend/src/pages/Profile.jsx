@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService'; // Import service
+import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
 import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -8,6 +9,7 @@ const Profile = () => {
   const { authorId } = useParams();  // Get the authorId from the URL parameters
   const currentUserId = Cookies.get('author_id');  // Get the current user's ID from cookies
   const [profileData, setProfileData] = useState(null);
+  const [currentProfileData, setCurrentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -24,6 +26,16 @@ const Profile = () => {
         setLoading(false); // Stop loading even on error
       });
   }, [authorId]);
+
+  useEffect(() => {
+    getAuthorProfile(currentUserId)
+      .then((data) => {
+        setCurrentProfileData(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+  }, []) //empty dependency list so that its only called once when component mounts
 
   // Show loading message or an error message if data is not available
   if (loading) {
@@ -88,7 +100,12 @@ const Profile = () => {
         {isCurrentUser ? (
           <button onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
         ) : (
-          <button>Follow</button>
+          <FollowButton 
+            authorId={authorId} 
+            currentUserId={currentUserId} 
+            currentProfileData={currentProfileData} 
+            profileData={profileData}
+          />
         )}
       </div>
 
