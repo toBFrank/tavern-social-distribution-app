@@ -9,7 +9,6 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -67,58 +66,6 @@ class LoginView(APIView):
             "refresh_token": str(refresh),
             "access_token": access_token
         }, status.HTTP_200_OK)
-    
-    # http_method_names = ["post"]
-
-    # def post(self, request):
-    #     # Deserialize and validate input data
-    #     serializer = LoginSerializer(data=request.data)
-    #     if not serializer.is_valid():
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    #     username = serializer.validated_data.get("username")
-    #     password = serializer.validated_data.get("password")
-        
-    #     try:
-    #         user = User.objects.get(username=username)
-    #         if user.is_active:
-    #             if user.check_password(password):
-    #                 user.last_login = timezone.now()
-    #                 user.save()
-                    
-    #                 # Generate JWT tokens
-    #                 refresh = RefreshToken.for_user(user)
-    #                 access_token = str(refresh.access_token)
-
-    #                 # Set cookies
-    #                 response = Response({
-    #                     "author_id": Author.objects.get(user=user).id,  # Assuming Author model exists
-    #                 }, status=status.HTTP_200_OK)
-
-    #                 response.set_cookie(
-    #                     'access_token',
-    #                     access_token,
-    #                     httponly=True,
-    #                     secure=True,  # Set to True in production
-    #                     samesite='Lax',
-    #                 )
-    #                 response.set_cookie(
-    #                     'refresh_token',
-    #                     str(refresh),
-    #                     httponly=True,
-    #                     secure=True,  # Set to True in production
-    #                     samesite='Lax',
-    #                 )
-
-    #                 return response
-    #             else:
-    #                 return Response({"message": "Wrong password."}, status=status.HTTP_401_UNAUTHORIZED)
-    #         else:
-    #             return Response({"message": "User is not activated yet."}, status=status.HTTP_403_FORBIDDEN)
-    #     except User.DoesNotExist:
-    #         return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
-    #     except Exception as e:
-    #         return Response({"message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class SignUpView(APIView):
     http_method_names = ["post"]
     
@@ -183,26 +130,6 @@ class LogoutView(APIView):
                 {"message": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-class CustomTokenRefreshView(TokenRefreshView):
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-
-        if response.status_code != 200:
-            return Response({'error': 'Refresh token is invalid or expired'}, status=response.status_code)
-
-        new_access_token = response.data.get('access')
-
-        if new_access_token:
-            response.set_cookie(
-                'access_token',
-                new_access_token,
-                httponly=True,
-                secure=True,
-                samesite='Lax',
-            )
-
-        return response
 
 class VerifyTokenView(APIView):
     authentication_classes = [JWTAuthentication]

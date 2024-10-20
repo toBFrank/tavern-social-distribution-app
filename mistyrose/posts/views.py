@@ -77,13 +77,11 @@ class AuthorPostsView(APIView):
       
     def post(self, request, author_serial):
         try:
-            print(f"AUTHOR SERIAL: {author_serial}")
             author = Author.objects.get(id=author_serial)
         except Author.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         
-        request.data['author_id'] = author_serial
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

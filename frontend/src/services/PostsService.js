@@ -1,4 +1,4 @@
-import api from "./axios";
+import api from './axios';
 
 // URL: ://service/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}
 export const getPost = async (authorSerial, postSerial) => {
@@ -6,9 +6,9 @@ export const getPost = async (authorSerial, postSerial) => {
     const response = await api.get(
       `posts/authors/${authorSerial}/posts/${postSerial}/`
     );
-    return response.data;
+    return response;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
 export const deletePost = async (authorSerial, postSerial) => {
@@ -16,9 +16,9 @@ export const deletePost = async (authorSerial, postSerial) => {
     const response = await api.delete(
       `posts/authors/${authorSerial}/posts/${postSerial}/`
     );
-    return response.data;
+    return response;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
 export const updatePost = async (authorSerial, postSerial, postData) => {
@@ -27,9 +27,9 @@ export const updatePost = async (authorSerial, postSerial, postData) => {
       `posts/authors/${authorSerial}/posts/${postSerial}/`,
       postData
     );
-    return response.data;
+    return response;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
 
@@ -37,9 +37,9 @@ export const updatePost = async (authorSerial, postSerial, postData) => {
 export const getPostByFqid = async (postFqid) => {
   try {
     const response = await api.get(`posts/${postFqid}/`);
-    return response.data;
+    return response;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
 
@@ -47,9 +47,9 @@ export const getPostByFqid = async (postFqid) => {
 export const getAllPosts = async (authorSerial) => {
   try {
     const response = await api.get(`posts/authors/${authorSerial}/posts/`);
-    return response.data;
+    return response;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
 export const createPost = async (authorSerial, postData) => {
@@ -58,9 +58,9 @@ export const createPost = async (authorSerial, postData) => {
       `posts/authors/${authorSerial}/posts/`,
       postData
     );
-    return response.data;
+    return response;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
 
@@ -70,8 +70,8 @@ export const getPostImage = async (authorSerial, postSerial) => {
     const response = await api.get(
       `posts/authors/${authorSerial}/posts/${postSerial}/image/`
     );
-    return response.data;
+    return response;
   } catch (error) {
-    console.error(error);
+    throw error;
   }
 };
