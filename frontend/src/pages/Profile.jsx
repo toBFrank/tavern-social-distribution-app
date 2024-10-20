@@ -70,15 +70,17 @@ const Profile = () => {
 
         {/* Profile Links */}
         <div className="profile-links">
+          <p>GitHub Profile:</p>
           <a
             href={profileData.github}
             target="_blank"
             rel="noopener noreferrer"
           >
-            GitHub Profile
+            {profileData.github || 'GitHub Profile'}
           </a>
+          <p>Profile Link:</p>
           <a href={profileData.page} target="_blank" rel="noopener noreferrer">
-            Profile Link
+            {profileData.page || 'Profile Link'}
           </a>
         </div>
 
@@ -108,7 +110,8 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="post-content">
-                    <p>{post.description}</p>
+                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
@@ -133,7 +136,8 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="post-content">
-                    <p>{post.description}</p>
+                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
@@ -158,7 +162,8 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="post-content">
-                    <p>{post.description}</p>
+                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
@@ -185,7 +190,8 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="post-content">
-                    <p>{post.description}</p>
+                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>

@@ -58,6 +58,7 @@ input {
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    background-color: #fdf7f4;
 }
 
 input:focus {
