@@ -2,18 +2,22 @@ import React, { useState, useRef } from 'react';
 import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
 import MarkdownEditor from '../components/MarkdownEditor';
-import { useAuth } from '../contexts/AuthContext';
-import { createPost } from '../services/PostsService';
+import { createPost, deletePost } from '../services/PostsService';
+import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
-const Post = () => {
+const Post = ({ postId }) => {
   //#region Properties
-  const { userAuthentication } = useAuth();
+  const authorId = Cookies.get('author_id');
 
+  const navigate = useNavigate();
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
 
   const options = ['Plain', 'Markdown', 'Image'];
+  const [title, setTitle] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [imgFile, setImgFile] = useState(null);
   const fileInputUpload = useRef(null);
   const [plainText, setPlainText] = useState('');
   const [title, setTitle] = useState('');
@@ -37,6 +41,7 @@ const Post = () => {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setUploadedImage(imageUrl);
+      setImgFile(file);
     }
   };
   const handlePlainTextChange = (event) => {
@@ -46,30 +51,81 @@ const Post = () => {
     setTitle(event.target.value);
   };
   const handlePostClick = async () => {
-    const postData = {
-      author_id: userAuthentication.authorSerial,
-      title: title,
-      text_content:
-        selectedOption === 'Plain'
-          ? plainText
-          : selectedOption === 'Markdown'
-            ? markdown
-            : null,
-      image_content: selectedOption === 'Image' ? uploadedImage : null,
-      content_type:
-        selectedOption === 'Image'
-          ? 'image'
-          : selectedOption === 'Markdown'
-            ? 'text/markdown'
-            : 'text/plain',
-      visibility: visibility.toUpperCase(),
-    };
+    const postData = new FormData(); // Use FormData to handle file uploads
+    // Add necessary fields to the FormData object
+    postData.append('author_id', authorId);
+    postData.append('title', title || 'New Post');
+    postData.append(
+      'text_content',
+      selectedOption === 'Plain'
+        ? plainText
+        : selectedOption === 'Markdown'
+          ? markdown
+          : ''
+    );
+    postData.append(
+      'content_type',
+      selectedOption === 'Image'
+        ? 'image'
+        : selectedOption === 'Markdown'
+          ? 'text/markdown'
+          : 'text/plain'
+    );
+    postData.append('visibility', visibility.toUpperCase());
+
+    // If an image file is selected, add it to the FormData
+    if (selectedOption === 'Image' && imgFile) {
+      postData.append('image_content', imgFile); // 'image_content' should match your Django model field name
+    }
 
     try {
-      const response = await createPost(userAuthentication.authorId, postData);
-      console.log(response);
+      await createPost(authorId, postData);
+      navigate('/');
     } catch (error) {
-      console.error(error);
+      // TODO: Handle error
+    }
+  };
+
+  // const handlePostClick = async () => {
+  //   const postData = {
+  //     author_id: authorId,
+  //     title: title || 'New Post',
+  //     text_content:
+  //       selectedOption === 'Plain'
+  //         ? plainText
+  //         : selectedOption === 'Markdown'
+  //           ? markdown
+  //           : null,
+  //     image_content: selectedOption === 'Image' ? imgFile : null,
+  //     content_type:
+  //       selectedOption === 'Image'
+  //         ? 'image'
+  //         : selectedOption === 'Markdown'
+  //           ? 'text/markdown'
+  //           : 'text/plain',
+  //     visibility: visibility.toUpperCase(),
+  //   };
+
+  //   try {
+  //     // print all cookies
+  //     console.log(Cookies.get());
+  //     await createPost(authorId, postData);
+  //     navigate('/');
+  //   } catch (error) {
+  //     // TODO: Handle error
+  //   }
+  // };
+
+  const handleDeleteClick = async () => {
+    try {
+      const response = await deletePost(authorId, postId);
+
+      if (!response.status === 204) {
+        throw new Error('Failed to delete post.');
+      }
+      navigate('/');
+    } catch (error) {
+      // TODO: Handle error
     }
   };
   //#endregion
@@ -94,7 +150,7 @@ const Post = () => {
   return (
     <div className="posts-page">
       <div className="top-container">
-        <h1>Post</h1>
+        <h1>{postId ? 'Edit' : 'Create'} Post</h1>
         <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
       <textarea
@@ -104,20 +160,33 @@ const Post = () => {
         onChange={handleTitleChange}
       ></textarea>
 
+      {/* <textarea
+        id="title-textarea"
+        placeholder="Title"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+      ></textarea> */}
+      <input
+        type="text"
+        id="title-input"
+        placeholder="Title"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+      ></input>
+
       {selectedOption === 'Image' ? (
-        <>
+        <div id="image-selection-container" onClick={handleImageUploaderClick}>
           {uploadedImage ? (
             <img
               src={uploadedImage}
               alt="Uploaded"
               className="uploaded-image"
-              onClick={handleImageUploaderClick}
             />
           ) : (
-            <ImageUploader
-              className="image-uploader-svg"
-              onClick={handleImageUploaderClick}
-            />
+            <>
+              <ImageUploader className="image-uploader-svg" />
+              <p id="image-selection-hint">Click to upload an image</p>
+            </>
           )}
           <input
             type="file"
@@ -125,11 +194,11 @@ const Post = () => {
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
-        </>
+        </div>
       ) : selectedOption === 'Plain' ? (
         
         <textarea
-          className="plain-textarea"
+          id="plain-textarea"
           placeholder="Type something here..."
           value={plainText}
           onChange={handlePlainTextChange}
@@ -171,7 +240,11 @@ const Post = () => {
         <button className="post-button" onClick={handlePostClick}>
           Post
         </button>
-        {/* <button className="delete-button">Delete</button> */}
+        {postId && (
+          <button className="delete-button" onClick={handleDeleteClick}>
+            Delete
+          </button>
+        )}
       </div>
     </div>
   );

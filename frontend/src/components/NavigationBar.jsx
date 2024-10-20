@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   MenuOutlined,
@@ -9,15 +9,16 @@ import {
   MeetingRoomOutlined,
 } from '@mui/icons-material';
 import '../styles/components/NavigationBar.css';
+import Cookies from 'js-cookie';
 
 const NavigationBar = () => {
   //#region Variables
   const [expanded, setExpanded] = useState(true);
-  const userId = '763f972e-a60f-4233-af4b-1e3408cb5f5b';
+  const authorId = Cookies.get('author_id');
   const pages = [
     ['Home', <CottageOutlined fontSize="inherit" />, '/'],
     ['Post', <AddOutlined fontSize="inherit" />, '/post'],
-    ['Profile', <PersonOutlined fontSize="inherit" />, `/profile/${userId}`],
+    ['Profile', <PersonOutlined fontSize="inherit" />, `/profile/${authorId}`],
     ['Settings', <SettingsOutlined fontSize="inherit" />, '/settings'],
   ];
   const location = useLocation();
@@ -26,6 +27,12 @@ const NavigationBar = () => {
   //#region Functions
   const changeExpanded = () => {
     setExpanded(!expanded);
+  };
+
+  const handleLogout = () => {
+    Cookies.remove('author_id');
+    Cookies.remove('access_token');
+    Cookies.remove('refresh_token');
   };
   //#endregion
 
@@ -52,7 +59,7 @@ const NavigationBar = () => {
           </Link>
         ))}
       </ul>
-      <div className="navbar-footer">
+      <div className="navbar-footer" onClick={handleLogout}>
         <div className="navbar-icon">
           <MeetingRoomOutlined fontSize="inherit" />
         </div>

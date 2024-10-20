@@ -15,7 +15,7 @@ const MarkdownEditor = ({ markdown, setMarkdown }) => {
   return (
     <div className="markdown-editor">
       <textarea
-        className="markdown-textarea"
+        id="markdown-textarea"
         value={markdown}
         onChange={handleChange}
         rows={10}

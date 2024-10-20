@@ -2,6 +2,11 @@
   display: flex;
   flex-direction: row;
   background-color: #fff7ef;
+  margin-left: 300px;
+  padding-left: 5%;
+  padding-right: 5%;
+  padding-top: 2%;
+  padding-bottom: 2%;
 }
 
 h1,
@@ -12,4 +17,28 @@ h5,
 h6 {
   font-family: 'Fredoka', sans-serif;
   font-weight: 600;
+}
+
+textarea {
+  font-size: large;
+  padding: 20px;
+  outline: none;
+  background: #f8e5d3;
+  color: black;
+  border: 3px solid black;
+  border-radius: 20px;
+  box-shadow: 5px 5px 0px 0px black;
+  transition: 0.3s ease;
+  font-family: 'Roboto', sans-serif;
+  resize: none;
+}
+textarea::-webkit-scrollbar {
+  display: none;
+}
+
+textarea:focus {
+  background: white;
+  border: 5px solid black;
+  border-radius: 10px;
+  box-shadow: 10px 10px 0px 0px black;
 }

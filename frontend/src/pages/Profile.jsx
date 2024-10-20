@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService'; 
 import '../styles/pages/Profile.css';
-import { useAuth } from '../contexts/AuthContext';
 import editIcon from '../assets/editIcon.png';
 import { updatePost } from '../services/PostsService';
+import Cookies from 'js-cookie';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const Profile = () => {
-  // Get authorId from the URL parameters
-  // const { authorId } = useParams();
-  const { userAuthentication } = useAuth();
+  const { authorId } = useParams();  // Get the authorId from the URL parameters
+  const currentUserId = Cookies.get('author_id');  // Get the current user's ID from cookies
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   // Editing posts 
@@ -16,9 +16,11 @@ const Profile = () => {
   const [editedContent, setEditedContent] = useState(''); 
 
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     // Fetch profile data when the component mounts
-    getAuthorProfile(userAuthentication.authorId)
+    getAuthorProfile(authorId)
       .then((data) => {
         setProfileData(data);
         setLoading(false);
@@ -34,18 +36,22 @@ const Profile = () => {
     return <p>Loading...</p>; // Show a loading message while fetching
   }
 
-  // Check if profileData is still null
   if (!profileData) {
     return <p>Error loading profile data.</p>; // Show an error message if data is null
   }
 
   // Determine if the current user is viewing their own profile
-  const isCurrentUser = profileData.id === userAuthentication.authorId;
-
   const postTestEdit= (post) => {
     setEditPost(post.id); 
     setEditedContent(post.text_content); 
   };
+  
+  const isCurrentUser = currentUserId === authorId;
+
+  // Filter posts based on visibility
+  const publicPosts = profileData.public_posts || [];
+  const friendsPosts = profileData.friends_posts || [];
+  const unlistedPosts = profileData.unlisted_posts || [];
 
   const saveEditPost = async (postId) => {
     try {
@@ -91,87 +97,154 @@ const Profile = () => {
 
         <div className="profile-stats">
           <div>
-            <h2>{profileData.friends_count}</h2>
+            <h2>{profileData.friends_count || 0}</h2>
             <p>Friends</p>
           </div>
           <div>
-            <h2>{profileData.followers_count}</h2>
+            <h2>{profileData.followers_count || 0}</h2>
             <p>Followers</p>
           </div>
           <div>
-            <h2>{profileData.following_count}</h2>
+            <h2>{profileData.following_count || 0}</h2>
             <p>Following</p>
           </div>
         </div>
 
         {/* Profile Links */}
         <div className="profile-links">
+          <p>GitHub Profile:</p>
           <a
             href={profileData.github}
             target="_blank"
             rel="noopener noreferrer"
           >
-            GitHub Profile
+            {profileData.github || 'GitHub Profile'}
           </a>
+          <p>Profile Link:</p>
           <a href={profileData.page} target="_blank" rel="noopener noreferrer">
-            Profile Link
+            {profileData.page || 'Profile Link'}
           </a>
         </div>
 
         {/* Follow / Edit Profile Button */}
         {isCurrentUser ? (
-          <button>Edit Profile</button>
+          <button onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
         ) : (
           <button>Follow</button>
         )}
       </div>
 
-      {/* Public Posts Section */}
+      {/* Post Sections */}
       <div className="posts-section">
-        {profileData.public_posts && profileData.public_posts.length > 0 ? (
-          profileData.public_posts.map((post) => (
-            <div key={post.id} className="post">
-              <div className="post-header">
-                <img
-                  src={profileData.profileImage}
-                  alt={profileData.displayName}
-                  className="post-avatar"
-                />
-                <div>
-                  <h3>{profileData.displayName}</h3>
-                  <p>{new Date(post.published).toLocaleString()}</p>
+        {/* If it's the current user's profile, show all post sections (Public, Friends, Unlisted) */}
+        {isCurrentUser ? (
+          <>
+            {/* Public Posts */}
+            <h2>Public Posts</h2>
+            {publicPosts.length > 0 ? (
+              publicPosts.map((post) => (
+                <div key={post.id} className="post">
+                  <div className="post-header">
+                    <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
+                    <div>
+                      <h3>{profileData.displayName}</h3>
+                      <p>{new Date(post.published).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="post-content">
+                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                  </div>
+                  <div className="post-footer">
+                    <p>{post.likes_count} Likes</p>
+                    <p>{post.comments_count} Comments</p>
+                  </div>
                 </div>
-               <img
-                  className="edit-Icon"
-                  src={editIcon}
-                  alt="edit"
-                  onClick={() => postTestEdit(post)} 
-                />
-              </div>
-              <div className="post-content">
-              {editPost === post.id ? (
-                <>
-                  <textarea
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)} // edit the post
-                    className="edit-textarea"
-                  />
-                  <button onClick={() => saveEditPost(post.id)}>Save</button> 
-                </>
-              ) : (
-                <p>{post.text_content}</p> 
-              )}
-            </div>
+              ))
+            ) : (
+              <p>No public posts available.</p>
+            )}
 
-              <div className="post-footer">
-                <p>{post.like_count} Likes</p>
-                <p>{post.comment_count} Comments</p>
-                <p>Share</p>
-              </div>
-            </div>
-          ))
+            {/* Friends Posts */}
+            <h2>Friends Posts</h2>
+            {friendsPosts.length > 0 ? (
+              friendsPosts.map((post) => (
+                <div key={post.id} className="post">
+                  <div className="post-header">
+                    <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
+                    <div>
+                      <h3>{profileData.displayName}</h3>
+                      <p>{new Date(post.published).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="post-content">
+                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                  </div>
+                  <div className="post-footer">
+                    <p>{post.likes_count} Likes</p>
+                    <p>{post.comments_count} Comments</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No friends posts available.</p>
+            )}
+
+            {/* Unlisted Posts */}
+            <h2>Unlisted Posts</h2>
+            {unlistedPosts.length > 0 ? (
+              unlistedPosts.map((post) => (
+                <div key={post.id} className="post">
+                  <div className="post-header">
+                    <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
+                    <div>
+                      <h3>{profileData.displayName}</h3>
+                      <p>{new Date(post.published).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="post-content">
+                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                  </div>
+                  <div className="post-footer">
+                    <p>{post.likes_count} Likes</p>
+                    <p>{post.comments_count} Comments</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No unlisted posts available.</p>
+            )}
+          </>
         ) : (
-          <p>This user doesn't have any public posts.</p> // Message when there are no posts
+          <>
+            {/* Only Public Posts if it's someone else's profile */}
+            <h2>Public Posts</h2>
+            {publicPosts.length > 0 ? (
+              publicPosts.map((post) => (
+                <div key={post.id} className="post">
+                  <div className="post-header">
+                    <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
+                    <div>
+                      <h3>{profileData.displayName}</h3>
+                      <p>{new Date(post.published).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="post-content">
+                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                  </div>
+                  <div className="post-footer">
+                    <p>{post.likes_count} Likes</p>
+                    <p>{post.comments_count} Comments</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>This user doesn't have any public posts.</p>
+            )}
+          </>
         )}
       </div>
     </div>

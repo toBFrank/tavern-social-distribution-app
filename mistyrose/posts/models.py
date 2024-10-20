@@ -1,6 +1,11 @@
 import uuid
 from django.db import models
 import uuid
+from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+def get_upload_path(instance, filename):
+    return f'posts/{instance.author_id}/{instance.id}/{filename}'
 
 # Create your models here.
 class Post(models.Model):
@@ -26,9 +31,13 @@ class Post(models.Model):
     description = models.TextField(blank=True, null=True)
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
     text_content = models.TextField(blank=True, null=True)
-    image_content = models.ImageField(upload_to='images/', blank=True, null=True)
+    # put image content to user's media folder media/posts/author_id/post_id/image_content_name
+    image_content = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='PUBLIC')
+
+    # generic relation for reverse lookup for 'Like' objects on the post - because we are using generic foreign key in the like
+    likes = GenericRelation('Like')
 
     def __str__(self):
         return self.title
@@ -41,9 +50,15 @@ class Like(models.Model):
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='likes') 
     published = models.DateTimeField(null=True, auto_now_add=True)
     object_url = models.URLField(null=True, blank=True)  # can be a URL to a post or comment
-    
+
+    # generic foreign key to attach like to Post or Comment
+    # set default value to post content type
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, default=ContentType.objects.get_for_model(Post).id)
+    object_id = models.UUIDField(max_length=200, null=True, blank=True) # for storing primary key value of the model itll be relating to
+    content_object = GenericForeignKey('content_type', 'object_id') # foreign key to a Comment or Post
+
     def __str__(self):
-      return f'{self.author_id} liked {self.object_url}'
+      return f'{self.author_id} like'
     
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -53,6 +68,9 @@ class Comment(models.Model):
     post_id = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     content_type = models.CharField(max_length=50, blank=True, null=True)
     page = models.URLField(blank=True, null=True)
+
+    # generic relation for reverse lookup for 'Like' objects on the post - because we are using generic foreign key in the like
+    likes = GenericRelation('Like')
     
     def __str__(self):
       return f'{self.author_id} commented on {self.post_id}'

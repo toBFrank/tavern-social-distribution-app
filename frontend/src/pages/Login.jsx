@@ -1,72 +1,71 @@
-
 import React, { useState } from 'react';
-import { login } from '../services/loginservice'; 
-import { useNavigate } from 'react-router-dom'; 
+import Cookies from 'js-cookie';
+import { login } from '../services/loginservice';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  });
-
-  const [error, setError] = useState('');
+  //#region Properties
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); 
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value, 
-    });
-  };
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
+  const navigate = useNavigate();
+  //#endregion
+
+  //#region Event Handlers
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
-    setLoading(true);
-    setError('');
+    e.preventDefault();
+    const loginData = {
+      username: username,
+      password: password,
+    };
 
     try {
-    
-      const result = await login(formData);
-      console.log('Login successful:', result);
-      navigate('/home');
-    } catch (err) {
-      console.error('Login failed:', err);
-      setError(err.message || 'Login failed. Please try again.');
-    } finally {
-      setLoading(false); 
+      setLoading(true);
+      const response = await login(loginData);
+      if (!response) {
+        throw new Error('Login failed: No response');
+      }
+      const { refresh_token, access_token, author_id } = response;
+
+      Cookies.set('author_id', author_id);
+      Cookies.set('access_token', access_token);
+      Cookies.set('refresh_token', refresh_token);
+
+      setLoading(false);
+      navigate('/');
+      console.log('Login successful:', response);
+    } catch (error) {
+      console.error('Login failed:', error);
     }
   };
+  //#endregion
 
   return (
     <div className="login-container">
       <h2>Login</h2>
-      {error && <div className="error-message">{error}</div>}
-
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} method="post">
         <div className="form-group">
           <label>Username</label>
           <input
             type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
-
         <div className="form-group">
           <label>Password</label>
           <input
             type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Logging In...' : 'Log In'}
+          Login
         </button>
       </form>
     </div>

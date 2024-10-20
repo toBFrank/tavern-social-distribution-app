@@ -3,6 +3,8 @@ from .models import Post, Comment, Like
 
 #region Post Serializers
 class PostSerializer(serializers.ModelSerializer):
+    likes_count = serializers.SerializerMethodField()  # Add likes count
+    comments_count = serializers.SerializerMethodField()  # Add comments count
     class Meta:
         model = Post
         fields = [
@@ -14,12 +16,25 @@ class PostSerializer(serializers.ModelSerializer):
             'image_content',
             'content_type',
             'published',
-            'visibility'
+            'visibility',
+            'likes_count', 
+            'comments_count'  
         ]
+   
+        
         read_only_fields = [
             'id',
             'published'
         ]
+        # Method to get likes count for a post
+    def get_likes_count(self, post):
+        return Like.objects.filter(object_url=post.id).count()
+
+    # Method to get comments count for a post
+    def get_comments_count(self, post):
+        return Comment.objects.filter(post_id=post.id).count()
+
+
 #endregion
 
 #region Comment Serializers        
@@ -45,6 +60,7 @@ class LikeSerializer(serializers.ModelSerializer):
             'id',
             'author_id',
             'published',
-            'object_url'
+            'content_type',
+            'object_id',
         ]
 #endregion

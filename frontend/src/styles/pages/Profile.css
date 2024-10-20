@@ -1,15 +1,14 @@
+/* Profile page container */
 .profile-page {
     width: 80%;
     margin: 0 auto;
     padding: 20px;
     background-color: #f4f4f4;
-    /* Light gray background for contrast */
     border-radius: 10px;
-    /* Rounded corners for the entire profile */
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    /* Subtle shadow for depth */
 }
 
+/* Profile header */
 .profile-header {
     display: flex;
     flex-direction: column;
@@ -18,41 +17,32 @@
     margin-bottom: 20px;
 }
 
+/* Profile image */
 .profile-image {
     width: 150px;
     height: 150px;
     border-radius: 50%;
     border: 3px solid #da0f0f;
-    /* Border color matching your theme */
 }
 
+/* Profile links */
 .profile-links {
-    display: flex;
+    display: block;
     justify-content: center;
     margin: 20px 0;
-    /* Spacing above and below links */
 }
 
 .profile-links a {
-    margin: 0 15px;
-    /* Space between links */
-    color: #da0f0f;
-    /* Link color matching your theme */
-    text-decoration: none;
-    /* Remove underline */
-    font-weight: bold;
-    /* Bold text for emphasis */
-}
-
-.profile-links a:hover {
+    display: block;
+    color: blue;
     text-decoration: underline;
-    /* Underline on hover for better visibility */
+    margin: 10px 0;
 }
 
+/* Profile stats */
 .profile-stats {
     display: flex;
     justify-content: space-around;
-    /* Space evenly between items */
     width: 50%;
     margin: 20px 0;
 }
@@ -63,33 +53,28 @@
 
 .profile-stats h2 {
     margin: 0;
-    /* Remove default margin */
     font-size: 24px;
-    /* Larger font size for counts */
     color: #333;
-    /* Darker text for visibility */
 }
 
 .profile-stats p {
     margin: 0;
-    /* Remove default margin */
     color: #777;
-    /* Lighter color for text */
 }
 
+/* Posts section */
 .posts-section {
     margin-top: 30px;
 }
 
+/* Each post card */
 .post {
     background-color: white;
-    /* White background for each post */
     border: 1px solid #ccc;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    /* Light shadow for posts */
 }
 
 .post-header {
@@ -114,18 +99,14 @@
     justify-content: space-between;
     margin-top: 10px;
     font-size: 14px;
-    /* Smaller font size for footer */
     color: #777;
-    /* Lighter color for footer text */
 }
 
+/* No posts message */
 .no-posts-message {
     font-size: 18px;
-    /* Slightly larger font for visibility */
     color: #555;
-    /* Darker gray for contrast */
     text-align: center;
-    /* Center the message */
     margin-top: 20px;
     /* Spacing above the message */
 }
@@ -153,5 +134,64 @@
     font-size: 16px; 
     resize: vertical; 
     margin-bottom: 10px; 
-  }
-  
+}
+
+/* New CSS for Friends and Unlisted Posts */
+/* Friends posts section */
+.friends-posts-section {
+    margin-top: 30px;
+}
+
+/* Unlisted posts section */
+.unlisted-posts-section {
+    margin-top: 30px;
+}
+
+/* Friends and unlisted posts styles, same as public posts */
+.friends-post,
+.unlisted-post {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.friends-post-header,
+.unlisted-post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.friends-post-avatar,
+.unlisted-post-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.friends-post-content,
+.unlisted-post-content {
+    margin-top: 10px;
+}
+
+.friends-post-footer,
+.unlisted-post-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #777;
+}
+
+/* No posts message for Friends and Unlisted sections */
+.no-friends-posts-message,
+.no-unlisted-posts-message {
+    font-size: 18px;
+    color: #555;
+    text-align: center;
+    margin-top: 20px;
+}
