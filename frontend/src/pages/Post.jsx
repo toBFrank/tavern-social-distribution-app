@@ -17,6 +17,7 @@ const Post = ({ postId }) => {
   const options = ['Plain', 'Markdown', 'Image'];
   const [title, setTitle] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [imgFile, setImgFile] = useState(null);
   const fileInputUpload = useRef(null);
   const [plainText, setPlainText] = useState('');
   const [markdown, setMarkdown] = useState('');
@@ -39,6 +40,7 @@ const Post = ({ postId }) => {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setUploadedImage(imageUrl);
+      setImgFile(file);
     }
   };
   const handlePlainTextChange = (event) => {
@@ -46,34 +48,71 @@ const Post = ({ postId }) => {
   };
 
   const handlePostClick = async () => {
-    const postData = {
-      author_id: authorId,
-      title: title || 'New Post',
-      text_content:
-        selectedOption === 'Plain'
-          ? plainText
-          : selectedOption === 'Markdown'
-            ? markdown
-            : null,
-      image_content: selectedOption === 'Image' ? uploadedImage : null,
-      content_type:
-        selectedOption === 'Image'
-          ? 'image'
-          : selectedOption === 'Markdown'
-            ? 'text/markdown'
-            : 'text/plain',
-      visibility: visibility.toUpperCase(),
-    };
+    const postData = new FormData(); // Use FormData to handle file uploads
+
+    // Add necessary fields to the FormData object
+    postData.append('author_id', authorId);
+    postData.append('title', title || 'New Post');
+    postData.append(
+      'text_content',
+      selectedOption === 'Plain'
+        ? plainText
+        : selectedOption === 'Markdown'
+          ? markdown
+          : ''
+    );
+    postData.append(
+      'content_type',
+      selectedOption === 'Image'
+        ? 'image'
+        : selectedOption === 'Markdown'
+          ? 'text/markdown'
+          : 'text/plain'
+    );
+    postData.append('visibility', visibility.toUpperCase());
+
+    // If an image file is selected, add it to the FormData
+    if (selectedOption === 'Image' && imgFile) {
+      postData.append('image_content', imgFile); // 'image_content' should match your Django model field name
+    }
 
     try {
-      // print all cookies
-      console.log(Cookies.get());
       await createPost(authorId, postData);
       navigate('/');
     } catch (error) {
       // TODO: Handle error
     }
   };
+
+  // const handlePostClick = async () => {
+  //   const postData = {
+  //     author_id: authorId,
+  //     title: title || 'New Post',
+  //     text_content:
+  //       selectedOption === 'Plain'
+  //         ? plainText
+  //         : selectedOption === 'Markdown'
+  //           ? markdown
+  //           : null,
+  //     image_content: selectedOption === 'Image' ? imgFile : null,
+  //     content_type:
+  //       selectedOption === 'Image'
+  //         ? 'image'
+  //         : selectedOption === 'Markdown'
+  //           ? 'text/markdown'
+  //           : 'text/plain',
+  //     visibility: visibility.toUpperCase(),
+  //   };
+
+  //   try {
+  //     // print all cookies
+  //     console.log(Cookies.get());
+  //     await createPost(authorId, postData);
+  //     navigate('/');
+  //   } catch (error) {
+  //     // TODO: Handle error
+  //   }
+  // };
 
   const handleDeleteClick = async () => {
     try {
@@ -136,10 +175,10 @@ const Post = ({ postId }) => {
               className="uploaded-image"
             />
           ) : (
-            <><ImageUploader
-              className="image-uploader-svg"
-            />
-          <p id="image-selection-hint">Click to upload an image</p></>
+            <>
+              <ImageUploader className="image-uploader-svg" />
+              <p id="image-selection-hint">Click to upload an image</p>
+            </>
           )}
           <input
             type="file"

@@ -5,19 +5,22 @@ import Cookies from 'js-cookie';
 const api = axios.create({
   baseURL: 'http://localhost:8000/api/',
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 api.interceptors.request.use(
   (config) => {
     const accessToken = Cookies.get('access_token');
 
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    if (config.data instanceof FormData) {
+      // config.headers['Content-Type'] = 'multipart/form-data';
     } else {
-      delete config.headers.Authorization;
+      config.headers['Content-Type'] = 'application/json';
+    }
+
+    if (accessToken) {
+      config.headers['Authorization'] = `Bearer ${accessToken}`;
+    } else {
+      delete config.headers['Authorization'];
     }
 
     return config;

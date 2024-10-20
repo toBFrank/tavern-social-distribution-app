@@ -14,11 +14,11 @@ import Cookies from 'js-cookie';
 const NavigationBar = () => {
   //#region Variables
   const [expanded, setExpanded] = useState(true);
-  const userId = '1d6dfebf-63a6-47a9-8e88-5cda73675db5';
+  const authorId = Cookies.get('author_id');
   const pages = [
     ['Home', <CottageOutlined fontSize="inherit" />, '/'],
     ['Post', <AddOutlined fontSize="inherit" />, '/post'],
-    ['Profile', <PersonOutlined fontSize="inherit" />, `/profile/${userId}`],
+    ['Profile', <PersonOutlined fontSize="inherit" />, `/profile/${authorId}`],
     ['Settings', <SettingsOutlined fontSize="inherit" />, '/settings'],
   ];
   const location = useLocation();
@@ -36,7 +36,6 @@ const NavigationBar = () => {
   };
   //#endregion
 
-  // hide navigation bar if user is not authenticated
   return (
     <nav className="navbar-menu" style={{ width: expanded ? 300 : 150 }}>
       <div className={`navbar-header${expanded ? '' : ' minimized'}`}>

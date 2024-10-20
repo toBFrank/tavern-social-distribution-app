@@ -82,7 +82,6 @@ class AuthorPostsView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         
-        request.data['author_id'] = author_serial
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
