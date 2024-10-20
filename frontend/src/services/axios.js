@@ -43,12 +43,12 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           const response = await axios.post(
-            'http://localhost:8000/api/token/refresh/',
+            'http://localhost:8000/api/users/token/refresh/',
             {
               refresh: refreshToken,
             }
           );
-          const accessToken = response.data.access;
+          const accessToken = response.data['access'];
           console.log(`New Access Token UWU: ${accessToken}`);
 
           Cookies.set('access_token', accessToken, { sameSite: 'strict' });
