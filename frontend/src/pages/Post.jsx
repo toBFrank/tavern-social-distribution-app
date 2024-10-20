@@ -2,21 +2,25 @@ import React, { useState, useRef } from 'react';
 import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
 import MarkdownEditor from '../components/MarkdownEditor';
-import { createPost } from '../services/PostsService';
+import { createPost, deletePost } from '../services/PostsService';
 import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
-const Post = () => {
+const Post = ({postId}) => {
   //#region Properties
   const authorId = Cookies.get('author_id');
-
+  
+  const navigate = useNavigate();
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
 
   const options = ['Plain', 'Markdown', 'Image'];
+  const [title, setTitle] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
   const fileInputUpload = useRef(null);
   const [plainText, setPlainText] = useState('');
   const [markdown, setMarkdown] = useState('');
+
 
   //#endregion
 
@@ -65,12 +69,25 @@ const Post = () => {
     try {
       // print all cookies
       console.log(Cookies.get());
-      const response = await createPost(authorId, postData);
-      console.log(response);
+      await createPost(authorId, postData);
+      navigate('/');
     } catch (error) {
-      console.error(error);
+      // TODO: Handle error
     }
   };
+
+  const handleDeleteClick = async () => {
+    try {
+      const response = await deletePost(authorId, postId);
+
+      if (!response.status === 204) {
+        throw new Error('Failed to delete post.');
+      }
+      navigate('/');
+    } catch (error) {
+      // TODO: Handle error
+    }
+  }
   //#endregion
 
   //#region Functions
@@ -93,7 +110,7 @@ const Post = () => {
   return (
     <div className="posts-page">
       <div className="top-container">
-        <h1>Post</h1>
+        <h1>{postId ? "Edit" : "Create"} Post</h1>
         <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
 
@@ -121,7 +138,8 @@ const Post = () => {
         </>
       ) : selectedOption === 'Plain' ? (
         <textarea
-          className="plain-textarea"
+
+          id="plain-textarea"
           placeholder="Type something here..."
           value={plainText}
           onChange={handlePlainTextChange}
@@ -163,7 +181,7 @@ const Post = () => {
         <button className="post-button" onClick={handlePostClick}>
           Post
         </button>
-        {/* <button className="delete-button">Delete</button> */}
+        {postId && <button className="delete-button" onClick={handleDeleteClick}>Delete</button>}
       </div>
     </div>
   );

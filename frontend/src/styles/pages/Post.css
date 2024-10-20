@@ -34,29 +34,9 @@
   max-width: 100%;
 }
 
-.plain-textarea {
-  font-size: 18px;
-  padding: 20px;
+#plain-textarea {
   width: 90%;
   height: 600px;
-  outline: none;
-  background: #f8e5d3;
-  color: black;
-  border: 3px solid black;
-  border-radius: 20px;
-  box-shadow: 3px 3px 2px 0px #e2e2e2;
-  transition: 0.3s ease;
-  font-family: 'Roboto', sans-serif;
-  resize: none;
-}
-.plain-textarea::-webkit-scrollbar {
-  display: none;
-}
-
-.plain-textarea:focus {
-  background: white;
-  border: 5px solid black;
-  border-radius: 10px;
 }
 
 .visibility-options {
