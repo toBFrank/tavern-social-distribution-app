@@ -3,6 +3,10 @@
   flex-direction: row;
   background-color: #fff7ef;
   margin-left: 300px;
+  padding-left: 5%;
+  padding-right: 5%;
+  padding-top: 2%;
+  padding-bottom: 2%;
 }
 
 h1,
@@ -16,7 +20,7 @@ h6 {
 }
 
 textarea {
-  font-size: 18px;
+  font-size: large;
   padding: 20px;
   outline: none;
   background: #f8e5d3;
@@ -28,11 +32,11 @@ textarea {
   font-family: 'Roboto', sans-serif;
   resize: none;
 }
-.plain-textarea::-webkit-scrollbar {
+textarea::-webkit-scrollbar {
   display: none;
 }
 
-.plain-textarea:focus {
+textarea:focus {
   background: white;
   border: 5px solid black;
   border-radius: 10px;

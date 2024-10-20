@@ -6,10 +6,10 @@ import { createPost, deletePost } from '../services/PostsService';
 import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 
-const Post = ({postId}) => {
+const Post = ({ postId }) => {
   //#region Properties
   const authorId = Cookies.get('author_id');
-  
+
   const navigate = useNavigate();
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
@@ -20,7 +20,6 @@ const Post = ({postId}) => {
   const fileInputUpload = useRef(null);
   const [plainText, setPlainText] = useState('');
   const [markdown, setMarkdown] = useState('');
-
 
   //#endregion
 
@@ -49,7 +48,7 @@ const Post = ({postId}) => {
   const handlePostClick = async () => {
     const postData = {
       author_id: authorId,
-      title: 'My Post', // TODO: Add title
+      title: title || 'New Post',
       text_content:
         selectedOption === 'Plain'
           ? plainText
@@ -87,7 +86,7 @@ const Post = ({postId}) => {
     } catch (error) {
       // TODO: Handle error
     }
-  }
+  };
   //#endregion
 
   //#region Functions
@@ -110,24 +109,37 @@ const Post = ({postId}) => {
   return (
     <div className="posts-page">
       <div className="top-container">
-        <h1>{postId ? "Edit" : "Create"} Post</h1>
+        <h1>{postId ? 'Edit' : 'Create'} Post</h1>
         <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
 
+      {/* <textarea
+        id="title-textarea"
+        placeholder="Title"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+      ></textarea> */}
+      <input
+        type="text"
+        id="title-input"
+        placeholder="Title"
+        value={title}
+        onChange={(event) => setTitle(event.target.value)}
+      ></input>
+
       {selectedOption === 'Image' ? (
-        <>
+        <div id="image-selection-container" onClick={handleImageUploaderClick}>
           {uploadedImage ? (
             <img
               src={uploadedImage}
               alt="Uploaded"
               className="uploaded-image"
-              onClick={handleImageUploaderClick}
             />
           ) : (
-            <ImageUploader
+            <><ImageUploader
               className="image-uploader-svg"
-              onClick={handleImageUploaderClick}
             />
+          <p id="image-selection-hint">Click to upload an image</p></>
           )}
           <input
             type="file"
@@ -135,10 +147,9 @@ const Post = ({postId}) => {
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
-        </>
+        </div>
       ) : selectedOption === 'Plain' ? (
         <textarea
-
           id="plain-textarea"
           placeholder="Type something here..."
           value={plainText}
@@ -181,7 +192,11 @@ const Post = ({postId}) => {
         <button className="post-button" onClick={handlePostClick}>
           Post
         </button>
-        {postId && <button className="delete-button" onClick={handleDeleteClick}>Delete</button>}
+        {postId && (
+          <button className="delete-button" onClick={handleDeleteClick}>
+            Delete
+          </button>
+        )}
       </div>
     </div>
   );
