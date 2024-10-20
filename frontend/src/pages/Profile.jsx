@@ -29,7 +29,7 @@ const Profile = () => {
         console.error(err);
         setLoading(false); // Stop loading even on error
       });
-  }, [userAuthentication.authorId]);
+  }, [[currentUserId]]);
 
   // Show loading message or an error message if data is not available
   if (loading) {
@@ -59,7 +59,7 @@ const Profile = () => {
   
       const updatedData = {
         id: postId,  
-        author_id: userAuthentication.authorId, 
+        author_id: currentUserId,
         title: postToUpdate.title || "None",  
         description: postToUpdate.description || "",  
         text_content: editedContent,  
@@ -68,7 +68,7 @@ const Profile = () => {
         visibility: postToUpdate.visibility || 'PUBLIC',  
       };
   
-      await updatePost(userAuthentication.authorId, postId, updatedData);
+      await updatePost(currentUserId, postId, updatedData);
   
       setProfileData((prevData) => ({
         ...prevData,

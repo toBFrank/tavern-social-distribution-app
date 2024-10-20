@@ -15,7 +15,6 @@ const Post = ({ postId }) => {
   const [selectedOption, setSelectedOption] = useState('Plain');
 
   const options = ['Plain', 'Markdown', 'Image'];
-  const [title, setTitle] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
   const [imgFile, setImgFile] = useState(null);
   const fileInputUpload = useRef(null);
