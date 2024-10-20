@@ -20,7 +20,19 @@ export const createFollowRequest = async (authorSerial, followRequestData) => {
         `/authors/${authorSerial}/inbox/`,
         followRequestData
       );
-      return response.data;
+      return response;
+    } catch (error) {
+      console.error(error);
+    }
+};
+
+// URL: service/api/authors/<str:author_id>/followers/<str:follower_id>/
+export const checkIfFollowing = async (authorId, followerId) => {
+    // Check if followerId is a follower of authorId
+    try {
+      const response = await api.get(
+        `http://localhost:8000/service/api/authors/${authorId}/followers/${followerId}/`);
+      return response;
     } catch (error) {
       console.error(error);
     }

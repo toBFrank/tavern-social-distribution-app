@@ -300,21 +300,32 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
 
 class FollowerView(APIView):
     
-    # def get(self, request, author_id, follower_id):
-    #     """
-    #     Check if follower_id is a follower of author_id
-    #     """
-    #     author = get_object_or_404(Author, id=author_id)
+    def get(self, request, author_id, follower_id):
+        """
+        Check if follower_id is a follower of author_id
+        return 200 if following (accepted)
+        return 202 if follow request pending (202 to indicate request is still in progress)
+        return 404 if not following or requested
+        """
+        author = get_object_or_404(Author, id=author_id)
 
-    #     # Check follow status using the remote URL
-    #     follow_status = Follows.objects.filter(remote_follower_url=follower_id, followed_id=author, status='ACCEPTED').exists()
+         # Check if the follow request is accepted
+        is_accepted = Follows.objects.filter(
+            local_follower_id=follower_id, followed_id=author, status='ACCEPTED'
+        ).exists()
 
-    #     if follow_status:
-    #         print("Follower exists")
-    #         return Response({"status": "Follower exists"}, status=status.HTTP_200_OK)
-    #     print("Follower not found")
-    #     return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Check if there's a pending follow request
+        is_pending = Follows.objects.filter(
+            local_follower_id=follower_id, followed_id=author, status='PENDING'
+        ).exists()
 
+        if is_accepted:
+            return Response({"status": "Following"}, status=status.HTTP_200_OK)
+
+        if is_pending:
+            return Response({"status": "Follow request pending"}, status=status.HTTP_202_ACCEPTED)
+
+        return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, author_id, follower_id):
         print(f"Received Author ID: {author_id}, Received Follower ID: {follower_id}")
