@@ -3,41 +3,38 @@
 
 import { useState } from "react";
 import { Search } from "@mui/icons-material";
+import { getAuthors } from '../services/AuthorsService';
 
 import "../styles/components/SearchBar.css";
 
 const SearchBar = ({ setResults }) => {
   const [input, setInput] = useState("");
-  const token = '7e31046a8413002b920bdc8dd0232bad6c482e1e';
 
   //TODO: ONLY RETURN AUTHORS THAT ARENT THE AUTHOR SEARCHING IT UP
-  const fetchData = (value) => {
-    fetch("http://localhost:8000/api/authors/", {
-        method: 'GET',
-        headers: {
-            'Authorization': `Token ${token}`, 
-            'Content-Type': 'application/json',
-        },
-    }) //fetch is asynchronous and returns a result later on, need to call then to await for result to perform actions on it
-    .then((response) => response.json())
-    .then((json) => {
-        const authorsArray = json.authors; // need to get authors
+  const fetchData = async (value) => {
+    try {
+      const authorsData = await getAuthors();
+      const authorsArray = authorsData.authors;
 
-        if (Array.isArray(authorsArray)) {
-            const results = authorsArray.filter((author) => {
-                return (
-                  value && //check that they've entered value into search bar --> if value is empy --> wont render anything
-                  author && //check that user exists
-                  author.displayName && //check that user has a display name
-                  author.displayName.toLowerCase().includes(value) //check if lowercase of authors name includes value entered into search bar
-                );
-              });
-              setResults(results);
-        }
-        else {
-            console.error("Expected authors to be an array, but got:", authorsArray);
-        }
-    })};
+      if (Array.isArray(authorsArray)) {
+        const results = authorsArray.filter((author) => {
+            return (
+              value && //check that they've entered value into search bar --> if value is empy --> wont render anything
+              author && //check that user exists
+              author.displayName && //check that user has a display name
+              author.displayName.toLowerCase().includes(value) //check if lowercase of authors name includes value entered into search bar
+            );
+          });
+          
+          setResults(results);
+      } else {
+        console.error("Expected authors to be an array, but got:", authorsArray);
+      }
+    } catch (error) {
+      console.error('Error fetching authors:', error); 
+    }
+    
+  };
 
   const handleChange = (value) => {
     setInput(value);

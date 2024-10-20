@@ -2,28 +2,25 @@ import "../styles/components/FollowRequests.css";
 import { Check, Clear } from "@mui/icons-material";
 import React, { useState, useEffect } from 'react';
 import { transformFollowData } from "../utils/transformer";
+import { getFollowRequests } from '../services/FollowService';
+import Cookies from 'js-cookie';
 
 const FollowRequests = () => {
     const [followRequests, setFollowRequests] = useState([]);
-    const token = '7e31046a8413002b920bdc8dd0232bad6c482e1e';
+    const authorId = Cookies.get('author_id');
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/authors/1d6dfebf-63a6-47a9-8e88-5cda73675db5/inbox/follow_requests/', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Token ${token}`,
-                'Content-Type': 'application/json',
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+        const fetchFollowRequests = async () => { //make request for follow requests for author
+            try {
+                const response = await getFollowRequests(authorId);
+                setFollowRequests(transformFollowData(response));
+            } catch (error) {
+                console.error(error);
             }
-            return response.json();
-        })
-        .then(json => setFollowRequests(transformFollowData(json)))
-        .catch(error => console.error('Fetch error:', error));
-    }, []);
+        };
+
+        fetchFollowRequests();
+    }, [authorId]);
 
     const handleReject = (id) => {
         // reject following request

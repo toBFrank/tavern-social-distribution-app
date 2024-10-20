@@ -10,13 +10,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 
 
-
 # Create your views here.
 class InboxView(APIView):
     # after creating the necessary follow/like/comment/post object, Inbox object will also be created with a generic foreign key to keep track of whats in the inbox
-    def post(self, request, author_id):
+    def post(self, request, author_id): #author id of the person's Inbox 
         object_type = request.data.get('type')
-        author = get_object_or_404(Author, id=author_id)
+        author = get_object_or_404(Author, id=author_id) 
 
         #TODO: FILL IN FOR NECESSARY PARTS
         # if object_type == "post":
@@ -40,6 +39,22 @@ class InboxView(APIView):
         else:
             return Response({"Error":"Object type does not exist"}, status=400)
         
+        #want to return 200 if they already request, but don't create another follow request
+        actor_data = request.data.get('actor')
+        object_data = request.data.get('object')
+        actor_id = actor_data['id'].rstrip('/').split('/')[-1] 
+        object_id = object_data['id'].rstrip('/').split('/')[-1] 
+
+        #asked chatGPT how to filter for a table 2024-10-19
+        existing_follow = Follows.objects.filter(
+            local_follower_id=actor_id,
+            followed_id=object_id
+        ).first()
+
+        if existing_follow:
+            return Response(FollowSerializer(existing_follow).data, status=200)
+        
+        #if no follow request created already, create entry
         if serializer.is_valid():
             object_instance = serializer.save()
             
@@ -56,18 +71,21 @@ class InboxView(APIView):
             return Response(serializer.errors, status=400)
         
 #local only TODO: need to document this is a new one for local use only
-#TODO: only geting PENDING requests, and unique requests...
+#TODO: only unique requests...
 @api_view(['GET'])
 def get_follow_requests(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     follow_content_type = ContentType.objects.get_for_model(Follows)
 
-    inbox_entries = Inbox.objects.filter(author=author, content_type=follow_content_type)
+    inbox_entries = Inbox.objects.filter(
+        author=author, 
+        content_type=follow_content_type,
+        #asked chatGPT how to filter for PENDING status follow requests only 2024-10-19
+        object_id__in=Follows.objects.filter(status='PENDING').values_list('id', flat=True))
 
     serialized_data = []
     for entry in inbox_entries:
         follow_data = FollowSerializer(entry.content_object).data
         follow_data['type'] = 'follow'
         serialized_data.append(follow_data)
-        #TODO: Where the request is pending --> 
     return Response(serialized_data, status=200)
