@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Cookies from 'js-cookie';
-import { login } from '../services/LoginService';
+import { login } from '../services/loginservice';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
