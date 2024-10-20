@@ -14,16 +14,27 @@ class AuthorSerializer(serializers.Serializer):
 
     # Optional fields for public posts, followers, and following
     public_posts = serializers.SerializerMethodField(required=False)
+    friends_posts = serializers.SerializerMethodField(required=False)
+    unlisted_posts = serializers.SerializerMethodField(required=False)
     followers_count = serializers.SerializerMethodField(required=False)
     following_count = serializers.SerializerMethodField(required=False)
-    likes_count = serializers.SerializerMethodField(required=False)
-    comments_count = serializers.SerializerMethodField(required=False)
+    #likes_count = serializers.SerializerMethodField(required=False)
+    #comments_count = serializers.SerializerMethodField(required=False)
 
 
      # Get public posts for the author
     def get_public_posts(self, author):
         # Retrieve only public posts
         return PostSerializer(author.posts.filter(visibility='PUBLIC').order_by('-published'), many=True).data
+    
+    # Get all friends posts for the author
+    def get_friends_posts(self, author):
+        return PostSerializer(author.posts.filter(visibility='FRIENDS').order_by('-published'), many=True).data
+
+    # Get all unlisted posts for the author
+    def get_unlisted_posts(self, author):
+        return PostSerializer(author.posts.filter(visibility='UNLISTED').order_by('-published'), many=True).data
+
 
     # Get count of followers for the author
     def get_followers_count(self, author):
@@ -34,14 +45,14 @@ class AuthorSerializer(serializers.Serializer):
         return Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
     
     # Get the count of likes on all posts by the author
-    def get_likes_count(self, author):
+    #def get_likes_count(self, author):
         # Find all posts by the author, then count likes related to those posts
-        return Like.objects.filter(object_url__in=author.posts.values_list('id', flat=True)).count()
+        #return Like.objects.filter(object_url__in=author.posts.values_list('id', flat=True)).count()
 
     # Get count of comments on all posts by the author
-    def get_comments_count(self, author):
+    #def get_comments_count(self, author):
         # Find all posts by the author, then count comments related to those posts
-        return Comment.objects.filter(post_id__in=author.posts.values_list('id', flat=True)).count()
+        #return Comment.objects.filter(post_id__in=author.posts.values_list('id', flat=True)).count()
 
 
     # https://dev.to/amanbothra/understanding-the-torepresentation-and-tointernalvalue-methods-in-the-django-rest-framework-naa 

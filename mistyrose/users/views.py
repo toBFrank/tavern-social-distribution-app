@@ -9,7 +9,6 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -63,11 +62,40 @@ class LoginView(APIView):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         
-        return Response({
+        response=Response({
             "author_id": author_id,
             "refresh_token": str(refresh),
             "access_token": access_token
         }, status.HTTP_200_OK)
+
+        response.set_cookie(
+            'author_id', 
+            author_id, 
+            httponly=True, 
+            secure=False,  # Set this to True in production if using HTTPS
+            samesite='None',
+            path='/'
+        )
+
+        response.set_cookie(
+            'access_token', 
+            access_token, 
+            httponly=True, 
+            secure=False,  # Set this to True in production if using HTTPS
+            samesite='None',
+            path='/'
+        )
+
+        response.set_cookie(
+            'refresh_token', 
+            str(refresh), 
+            httponly=True, 
+            secure=False,  # Set this to True in production if using HTTPS
+            samesite='None',
+            path='/'
+        )
+
+        return response
     
     # http_method_names = ["post"]
 
@@ -122,6 +150,7 @@ class LoginView(APIView):
     #         return Response({"message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class SignUpView(APIView):
     http_method_names = ["post"]
+    permission_classes = [AllowAny]  # Allow any user to access this view
     
     def post(self, request):
         username = request.data.get("username")
@@ -149,7 +178,7 @@ class SignUpView(APIView):
                     username=username,
                     email=email,
                     password=password,
-                    is_active=False  
+                    is_active=True  
                 )
                 user.date_joined = timezone.now()
                 user.save()
@@ -162,7 +191,18 @@ class SignUpView(APIView):
                 author = create_author(author_data, request, user)
                 serializer = AuthorSerializer(author, context={"request": request})
                 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                response=Response(serializer.data, status=status.HTTP_201_CREATED)
+                # Set author_id in cookies
+                response.set_cookie(
+                    'author_id', 
+                    str(author.id), 
+                    httponly=True,  # Secure HTTP-only cookie
+                    secure=False,    # Enable only in production (HTTPS)
+                    samesite='None',
+                    path='/'
+                )
+
+                return response
         except Exception as e:
             return Response(
                 {"message": f"An error occurred: {str(e)}"},
@@ -184,26 +224,6 @@ class LogoutView(APIView):
                 {"message": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-class CustomTokenRefreshView(TokenRefreshView):
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-
-        if response.status_code != 200:
-            return Response({'error': 'Refresh token is invalid or expired'}, status=response.status_code)
-
-        new_access_token = response.data.get('access')
-
-        if new_access_token:
-            response.set_cookie(
-                'access_token',
-                new_access_token,
-                httponly=True,
-                secure=True,
-                samesite='Lax',
-            )
-
-        return response
 
 class VerifyTokenView(APIView):
     authentication_classes = [JWTAuthentication]
@@ -228,13 +248,21 @@ class AuthorProfileView(APIView):
         followers_count = Follows.objects.filter(followed_id=author, status='ACCEPTED').count()
         following_count = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
         public_posts = Post.objects.filter(author_id=author, visibility='PUBLIC').order_by('-published')
+        friends_posts = Post.objects.filter(author_id=author, visibility='FRIENDS').order_by('-published')
+        unlisted_posts = Post.objects.filter(author_id=author, visibility='UNLISTED').order_by('-published')
         author_serializer = AuthorSerializer(author)
-        post_serializer = PostSerializer(public_posts, many=True)
+        # Serialize posts
+        public_post_serializer = PostSerializer(public_posts, many=True)
+        friends_post_serializer = PostSerializer(friends_posts, many=True)
+        unlisted_post_serializer = PostSerializer(unlisted_posts, many=True)
+        # Prepare the response data
         data = author_serializer.data
         data['friends_count'] = friends_count
         data['followers_count'] = followers_count
         data['following_count'] = following_count
-        data['public_posts'] = post_serializer.data
+        data['public_posts'] = public_post_serializer.data
+        data['friends_posts'] = friends_post_serializer.data
+        data['unlisted_posts'] = unlisted_post_serializer.data
         return Response(data)
 
 class AuthorEditProfileView(APIView):
