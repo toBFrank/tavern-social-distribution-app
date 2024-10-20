@@ -48,8 +48,8 @@ class Like(models.Model):
     object_url = models.URLField(null=True, blank=True)  # can be a URL to a post or comment
 
     # generic foreign key to attach like to Post or Comment
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE) 
-    object_id = models.UUIDField(max_length=200) # for storing primary key value of the model itll be relating to
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE,null=True) 
+    object_id = models.UUIDField(max_length=200,null=True) # for storing primary key value of the model itll be relating to
     content_object = GenericForeignKey('content_type', 'object_id') # foreign key to a Comment or Post
 
     def __str__(self):

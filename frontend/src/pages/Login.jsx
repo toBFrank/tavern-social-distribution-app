@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Cookies from 'js-cookie';
-import { login } from '../services/LoginService';
+import { login } from '../services/loginservice';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -24,6 +24,9 @@ const Login = () => {
     try {
       setLoading(true);
       const response = await login(loginData);
+      if (!response) {
+        throw new Error('Login failed: No response');
+      }
       const { refresh_token, access_token, author_id } = response;
 
       Cookies.set('author_id', author_id);
@@ -37,6 +40,7 @@ const Login = () => {
       console.error('Login failed:', error);
     }
   };
+  //#endregion
 
   return (
     <div className="login-container">

@@ -121,6 +121,7 @@ class LoginView(APIView):
     #         return Response({"message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class SignUpView(APIView):
     http_method_names = ["post"]
+    permission_classes = [AllowAny]  # Allow any user to access this view
     
     def post(self, request):
         username = request.data.get("username")

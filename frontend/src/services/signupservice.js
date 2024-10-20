@@ -2,7 +2,7 @@ import api from './axios';
 
 export const signup = async (signupData) => {
     try {
-      const response = await api.post('/signup/', signupData, {
+      const response = await api.post('http://localhost:8000/signup/', signupData, {
         headers: {
           'Content-Type': 'application/json', 
         },
