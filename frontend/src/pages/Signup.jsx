@@ -35,7 +35,7 @@ const Signup = () => {
       console.log('Signup successful:', result);
 
       
-      navigate('/home');
+      navigate('/');
     } catch (err) {
       console.error('Signup failed:', err);
       setError(err.message || 'Signup failed. Please try again.');

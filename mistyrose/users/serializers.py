@@ -83,4 +83,7 @@ class AuthorEditProfileSerializer(serializers.ModelSerializer):
         instance.save()  # Save the updated instance to the database
         return instance
 
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
     

@@ -3,11 +3,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, generics
 from .models import Author
-from .serializers import AuthorSerializer, AuthorEditProfileSerializer
+from .serializers import AuthorSerializer, AuthorEditProfileSerializer, LoginSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import ListAPIView 
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework.reverse import reverse
@@ -18,6 +21,9 @@ import uuid
 from stream.models import Inbox
 from django.contrib.contenttypes.models import ContentType
 from posts.models import Post
+from django.middleware.csrf import get_token
+from django.contrib.auth import authenticate
+from .pagination import AuthorsPagination
 from .serializers import PostSerializer
 
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -38,40 +44,81 @@ def create_author(author_data, request, user):
     return author
 
 class LoginView(APIView):
-    http_method_names = ["post"]
-
+    permission_classes = [AllowAny]
+    
     def post(self, request):
-        username = request.data.get("username")
-        password = request.data.get("password")
+        serializer = LoginSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({"error": "Invalid username or password"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if not username or not password:
-            return Response({"message": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+        username = serializer.validated_data.get("username")
+        password = serializer.validated_data.get("password")
         
-        try:
-            user = User.objects.get(username=username)
-            if user.is_active:
-                if user.check_password(password):
-                    user.last_login = timezone.now()
-                    user.save()
-                    refresh = RefreshToken.for_user(user)
-                    author = user.author  
-                    serializer = AuthorSerializer(author, context={"request": request})
-                    data = {
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
-                        "author": serializer.data
-                    }
-                    return Response(data, status=status.HTTP_200_OK)
-                else:
-                    return Response({"message": "Wrong password."}, status=status.HTTP_401_UNAUTHORIZED)
-            else:
-                return Response({"message": "User is not activated yet."}, status=status.HTTP_403_FORBIDDEN)
-        except User.DoesNotExist:
-            return Response(
-                {"message": "User not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )  
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        author_id = Author.objects.get(user=user).id
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        
+        return Response({
+            "author_id": author_id,
+            "refresh_token": str(refresh),
+            "access_token": access_token
+        }, status.HTTP_200_OK)
+    
+    # http_method_names = ["post"]
 
+    # def post(self, request):
+    #     # Deserialize and validate input data
+    #     serializer = LoginSerializer(data=request.data)
+    #     if not serializer.is_valid():
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    #     username = serializer.validated_data.get("username")
+    #     password = serializer.validated_data.get("password")
+        
+    #     try:
+    #         user = User.objects.get(username=username)
+    #         if user.is_active:
+    #             if user.check_password(password):
+    #                 user.last_login = timezone.now()
+    #                 user.save()
+                    
+    #                 # Generate JWT tokens
+    #                 refresh = RefreshToken.for_user(user)
+    #                 access_token = str(refresh.access_token)
+
+    #                 # Set cookies
+    #                 response = Response({
+    #                     "author_id": Author.objects.get(user=user).id,  # Assuming Author model exists
+    #                 }, status=status.HTTP_200_OK)
+
+    #                 response.set_cookie(
+    #                     'access_token',
+    #                     access_token,
+    #                     httponly=True,
+    #                     secure=True,  # Set to True in production
+    #                     samesite='Lax',
+    #                 )
+    #                 response.set_cookie(
+    #                     'refresh_token',
+    #                     str(refresh),
+    #                     httponly=True,
+    #                     secure=True,  # Set to True in production
+    #                     samesite='Lax',
+    #                 )
+
+    #                 return response
+    #             else:
+    #                 return Response({"message": "Wrong password."}, status=status.HTTP_401_UNAUTHORIZED)
+    #         else:
+    #             return Response({"message": "User is not activated yet."}, status=status.HTTP_403_FORBIDDEN)
+    #     except User.DoesNotExist:
+    #         return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+    #     except Exception as e:
+    #         return Response({"message": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class SignUpView(APIView):
     http_method_names = ["post"]
     
@@ -137,6 +184,36 @@ class LogoutView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+class CustomTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code != 200:
+            return Response({'error': 'Refresh token is invalid or expired'}, status=response.status_code)
+
+        new_access_token = response.data.get('access')
+
+        if new_access_token:
+            response.set_cookie(
+                'access_token',
+                new_access_token,
+                httponly=True,
+                secure=True,
+                samesite='Lax',
+            )
+
+        return response
+
+class VerifyTokenView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            author = Author.objects.get(user=request.user)
+            return Response({'authorId': str(author.id)}, status=200)
+        except Author.DoesNotExist:
+            return Response({'error': 'Author not found'}, status=404)
 
 class AuthorDetailView(generics.RetrieveAPIView):
     queryset = Author.objects.all()
@@ -180,6 +257,25 @@ class AuthorEditProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle a collection of model instances AND comes with pagination
+    #asked chatGPT how to get the authors using ListAPIView 2024-10-18
+    # variables that ListAPIView needs
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+    pagination_class = AuthorsPagination
+    def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
+        #retrieve all profiles on the node (paginated)
+        response = super().get(request, *args, **kwargs) #get provided by ListAPIView that queries database, serializes, and handles pagination
+
+        #customize structure of response
+        response.data = {
+        "type": "authors",  
+        "authors": response.data['results']  
+        }
+
+        return response
+
 
 
 class FollowerView(APIView):
