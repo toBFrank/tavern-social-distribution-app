@@ -108,6 +108,32 @@
     color: #555;
     text-align: center;
     margin-top: 20px;
+    /* Spacing above the message */
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    position: relative; 
+}
+
+.edit-Icon {
+    width: 15px;
+    height: 15px;
+    position: absolute; 
+    top: 0; 
+    right: 0; 
+    cursor: pointer; 
+}
+
+.edit-textarea {
+    width: 95%; 
+    height: 150px; 
+    padding: 10px;
+    font-size: 16px; 
+    resize: vertical; 
+    margin-bottom: 10px; 
 }
 
 /* New CSS for Friends and Unlisted Posts */
