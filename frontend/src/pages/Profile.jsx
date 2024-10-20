@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService'; // Import service
-import { createFollowRequest, checkIfFollowing } from '../services/FollowService';
+import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
 import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -11,7 +11,6 @@ const Profile = () => {
   const [profileData, setProfileData] = useState(null);
   const [currentProfileData, setCurrentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [buttonState, setButtonState] = useState("Follow"); // button of another users profile can either be Follow, Requested, Unfollow
 
   const navigate = useNavigate();
 
@@ -38,35 +37,6 @@ const Profile = () => {
       })
   }, []) //empty dependency list so that its only called once when component mounts
 
-
-  const checkFollowStatus = async () => {
-    try {
-      const response = await checkIfFollowing(authorId, currentUserId); // Checking if current user follows the profile's author
-  
-      if (response.status === 200) { //following accepted
-        setButtonState("Unfollow"); //you're already following, so you can only unfollow from here 
-      } else if (response.status === 202) { //follow request pending 
-        //not following, so either requested, or hasn't requested
-        setButtonState("Requested");
-      }
-      else {
-        setButtonState("Follow");
-      }
-    } catch (error) {
-      // Check if the error response exists and has a status
-      if (error.response) {
-        if (error.response.status === 404) {
-          //DONT wanna log 404 errors
-        } else {
-          console.error("Error checking follow status:", error.response.status, error.message); // Log other errors
-        }
-      } else {
-        // Handle cases where error.response is undefined
-        console.error("Error checking follow status:", error.message);
-      }
-    }
-  };
-
   // Show loading message or an error message if data is not available
   if (loading) {
     return <p>Loading...</p>; // Show a loading message while fetching
@@ -79,42 +49,10 @@ const Profile = () => {
   // Determine if the current user is viewing their own profile
   const isCurrentUser = currentUserId === authorId;
 
-  //check follow status if it's not the current user's profile
-  if (!loading && profileData && !isCurrentUser) {
-    checkFollowStatus(); // Only call this if profile is not the current user
-  }
-
   // Filter posts based on visibility
   const publicPosts = profileData.public_posts || [];
   const friendsPosts = profileData.friends_posts || [];
   const unlistedPosts = profileData.unlisted_posts || [];
-
-  const handleFollow = async () => {
-    if (buttonState === "Follow") {
-      const followRequestData = {
-        type: 'follow',
-        summary: `${currentUserId} wants to follow ${authorId}`,
-        actor: currentProfileData,
-        object: profileData, //author you want to follow
-      };
-
-      console.log(followRequestData);
-
-      try {
-        const requestFollowResponse = await createFollowRequest(authorId, followRequestData);
-        if (requestFollowResponse.status === 201 || requestFollowResponse.status === 200) { // Assuming 201 indicates a successful follow request
-          setButtonState("Requested"); // Update button state after a successful follow request
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    
-    else if (buttonState === "Unfollow") {
-      // unfollow button logic here
-    }
-
-  }
 
   return (
     <div className="profile-page">
@@ -162,11 +100,12 @@ const Profile = () => {
         {isCurrentUser ? (
           <button onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
         ) : (
-          <button 
-            onClick={handleFollow} 
-            disabled={buttonState === "Requested"}
-          >{buttonState}
-          </button>
+          <FollowButton 
+            authorId={authorId} 
+            currentUserId={currentUserId} 
+            currentProfileData={currentProfileData} 
+            profileData={profileData}
+          />
         )}
       </div>
 
