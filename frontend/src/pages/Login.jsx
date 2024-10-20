@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Cookies from 'js-cookie';
-import { login } from '../services/loginservice';
+import { login } from '../services/LoginService';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -45,7 +45,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} method="post">
         <div className="form-group">
           <label>Username</label>
           <input

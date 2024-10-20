@@ -1,6 +1,6 @@
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
-    CustomTokenRefreshView,
     LoginView,
     SignUpView,
     AuthorDetailView,
@@ -16,7 +16,7 @@ from .views import (
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),  # Use JWT for login
-    path('refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),  # Token refresh endpoint
+    path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),  # Refresh JWT token endpoint
     path('verify/', VerifyTokenView.as_view(), name='verify-token'),  # Verify JWT token endpoint
     path('signup/', SignUpView.as_view(), name='signup'),  # User signup endpoint
     path('authors/<uuid:pk>/', AuthorDetailView.as_view(), name='author-detail'),  # Author detail view
