@@ -1,4 +1,5 @@
 import api from "./axios";
+import Cookies from "js-cookie"; // Import js-cookie
 
 // URL: api/authors/{author_id}/inbox/follow_requests/
 export const getFollowRequests = async (authorSerial) => {
