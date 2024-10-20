@@ -51,6 +51,7 @@
   font-weight: bold;
   overflow: hidden;
 }
+
 #title-input:focus {
   background: white;
   border: 5px solid black;
@@ -61,24 +62,6 @@
 #plain-textarea {
   flex: 0.8;
   width: 90%;
-}
-
-.title-textarea {
-  align-self: flex-start; 
-  font-size: 18px;
-  padding: 15px 15px 15px 20px;
-  margin: 0px 0px 15px 18px; 
-  width: 50%;
-  height: 20px;
-  outline: none;
-  background: #f8e5d3;
-  color: black;
-  border: 3px solid black;
-  border-radius: 20px;
-  box-shadow: 3px 3px 2px 0px #e2e2e2;
-  transition: 0.3s ease;
-  font-family: 'Roboto', sans-serif;
-  resize: none;
 }
 
 .visibility-options {
@@ -158,6 +141,7 @@ input[type='radio'] {
   box-shadow: 5px 5px 0px 0px black;
   cursor: pointer;
 }
+
 #image-selection-hint {
   font-family: 'Roboto', sans-serif;
   font-size: 18px;

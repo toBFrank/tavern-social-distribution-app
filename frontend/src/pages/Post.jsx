@@ -15,11 +15,11 @@ const Post = ({ postId }) => {
   const [selectedOption, setSelectedOption] = useState('Plain');
 
   const options = ['Plain', 'Markdown', 'Image'];
+  const [title, setTitle] = useState('');
   const [uploadedImage, setUploadedImage] = useState(null);
   const [imgFile, setImgFile] = useState(null);
   const fileInputUpload = useRef(null);
   const [plainText, setPlainText] = useState('');
-  const [title, setTitle] = useState('');
   const [markdown, setMarkdown] = useState('');
 
   //#endregion
@@ -46,11 +46,10 @@ const Post = ({ postId }) => {
   const handlePlainTextChange = (event) => {
     setPlainText(event.target.value);
   };
-  const handleTitleChange = (event) => { 
-    setTitle(event.target.value);
-  };
+
   const handlePostClick = async () => {
     const postData = new FormData(); // Use FormData to handle file uploads
+
     // Add necessary fields to the FormData object
     postData.append('author_id', authorId);
     postData.append('title', title || 'New Post');
@@ -122,12 +121,6 @@ const Post = ({ postId }) => {
         <h1>{postId ? 'Edit' : 'Create'} Post</h1>
         <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
-      <textarea
-        className="title-textarea"
-        placeholder="Title"
-        value={title}
-        onChange={handleTitleChange}
-      ></textarea>
 
       {/* <textarea
         id="title-textarea"
@@ -165,7 +158,6 @@ const Post = ({ postId }) => {
           />
         </div>
       ) : selectedOption === 'Plain' ? (
-        
         <textarea
           id="plain-textarea"
           placeholder="Type something here..."
