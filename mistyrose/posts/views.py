@@ -9,6 +9,8 @@ from stream.models import Inbox
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
+from .models import Post
+
 
 
 #region Post Views
@@ -32,13 +34,17 @@ class PostDetailsView(APIView):
             post = Post.objects.get(id=post_serial, author_id=author_serial)
         except Post.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
+        print("request data:", request.data)  # Log the request data
         serializer = PostSerializer(post, data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-          
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            print("serializer errors:", serializer.errors)  # Log validation errors here
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
       
     def delete(self, request, author_serial, post_serial):
         try:
@@ -177,6 +183,14 @@ class CommentedView(APIView):
 #endregion
 
 #region Like Views
+# Get all the public posts locally 
+class PublicPostsView(APIView):
+    def get(self, request):
+        public_posts = Post.objects.filter(visibility='PUBLIC')
+        print(public_posts) # testing
+        serializer = PostSerializer(public_posts, many=True)
+        return Response(serializer.data)
+      
 class LikedView(APIView):
     """
     get or like a post
