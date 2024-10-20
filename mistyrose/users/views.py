@@ -394,16 +394,9 @@ class UnfollowView(APIView):
             return Response({'error': 'Follow relationship does not exist.'}, status=404)
 
 class FollowersDetailView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
-
     def get(self, request):
-        # Get the author instance for the authenticated user
         author = get_object_or_404(Author, user=request.user)
-
-        # Get all followers of the authenticated user
         followers = Follows.objects.filter(followed_id=author, status='ACCEPTED').select_related('local_follower_id')
-
-        # Serialize the followers data
         followers_data = [{'id': follower.local_follower_id.id, 'displayName': follower.local_follower_id.display_name, 'profileImage': follower.local_follower_id.profile_image} for follower in followers]
 
         return Response({
@@ -411,20 +404,15 @@ class FollowersDetailView(APIView):
         }, status=status.HTTP_200_OK)
 
 class FriendsView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
 
     def get(self, request):
-        # Get the author instance for the authenticated user
         author = get_object_or_404(Author, user=request.user)
-
-        # Get all follow relationships where the authenticated user is following and is followed back
-        friends = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').filter(followed_id__in=Follows.objects.filter(local_follower_id=author, status='ACCEPTED').values('followed_id')).select_related('followed_id')
-
-        # Serialize the friends data
-        friends_data = [{'id': friend.followed_id.id, 'displayName': friend.followed_id.display_name, 'profileImage': friend.followed_id.profile_image} for friend in friends]
-
+        followed_ids = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').values_list('followed_id', flat=True)
+        friends = Follows.objects.filter(local_follower_id__in=followed_ids, followed_id=author, status='ACCEPTED').select_related('local_follower_id')
+        friends_data = [{'id': friend.local_follower_id.id, 'displayName': friend.local_follower_id.display_name, 'profileImage': friend.local_follower_id.profile_image} for friend in friends]
         return Response({
             "friends": friends_data
         }, status=status.HTTP_200_OK)
+
 
 
