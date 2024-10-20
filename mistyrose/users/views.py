@@ -24,6 +24,7 @@ from django.middleware.csrf import get_token
 from django.contrib.auth import authenticate
 from .pagination import AuthorsPagination
 from .serializers import PostSerializer
+from uuid import UUID
 
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 
@@ -374,4 +375,28 @@ class FollowerView(APIView):
             print("Follow request deleted successfully")
 
         return Response({"status": "Follow request denied"}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+class UnfollowView(APIView):
+    def delete(self, request, author_id, follower_id):
+        try:
+            # Validate UUID format
+            author_id = UUID(author_id)
+            follower_id = UUID(follower_id)
+        except ValueError:
+            return Response({'error': 'Invalid author or follower ID format.'}, status=400)
+        
+        try:
+            # find corresponding follow relationship
+            follow = Follows.objects.get(followed_id=author_id, local_follower_id=follower_id)
+            
+            # delete follow relationship
+            follow.delete()
+            return Response({'message': 'Successfully unfollowed the author.'}, status=200)
+        
+        except Follows.DoesNotExist:
+            return Response({'error': 'Follow relationship does not exist.'}, status=404)
+
 
