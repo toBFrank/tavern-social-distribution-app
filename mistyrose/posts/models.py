@@ -4,6 +4,9 @@ import uuid
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
+def get_upload_path(instance, filename):
+    return f'posts/{instance.author_id}/{instance.id}/{filename}'
+
 # Create your models here.
 class Post(models.Model):
     TYPE_CHOICES = [('post', 'Post')]
@@ -28,7 +31,8 @@ class Post(models.Model):
     description = models.TextField(blank=True, null=True)
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
     text_content = models.TextField(blank=True, null=True)
-    image_content = models.ImageField(upload_to='images/', blank=True, null=True)
+    # put image content to user's media folder media/posts/author_id/post_id/image_content_name
+    image_content = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='PUBLIC')
 
@@ -48,8 +52,9 @@ class Like(models.Model):
     object_url = models.URLField(null=True, blank=True)  # can be a URL to a post or comment
 
     # generic foreign key to attach like to Post or Comment
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE,null=True) 
-    object_id = models.UUIDField(max_length=200,null=True) # for storing primary key value of the model itll be relating to
+    # set default value to post content type
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, default=ContentType.objects.get_for_model(Post).id)
+    object_id = models.UUIDField(max_length=200, null=True, blank=True) # for storing primary key value of the model itll be relating to
     content_object = GenericForeignKey('content_type', 'object_id') # foreign key to a Comment or Post
 
     def __str__(self):

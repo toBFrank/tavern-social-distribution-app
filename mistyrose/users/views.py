@@ -9,7 +9,6 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -224,26 +223,6 @@ class LogoutView(APIView):
                 {"message": f"An error occurred: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-class CustomTokenRefreshView(TokenRefreshView):
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-
-        if response.status_code != 200:
-            return Response({'error': 'Refresh token is invalid or expired'}, status=response.status_code)
-
-        new_access_token = response.data.get('access')
-
-        if new_access_token:
-            response.set_cookie(
-                'access_token',
-                new_access_token,
-                httponly=True,
-                secure=True,
-                samesite='Lax',
-            )
-
-        return response
 
 class VerifyTokenView(APIView):
     authentication_classes = [JWTAuthentication]
