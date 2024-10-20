@@ -1,4 +1,3 @@
-// src/MarkdownEditor.js
 import React from 'react';
 import { marked } from 'marked';
 import '../styles/components/MarkdownEditor.css';

@@ -4,7 +4,7 @@ import { getAuthorProfile, updateAuthorProfile } from '../services/editProfileSe
 import '../styles/pages/EditProfile.css';
 
 const EditProfile = () => {
-    const { id } = useParams();
+    const { authorId } = useParams();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -19,7 +19,7 @@ const EditProfile = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const data = await getAuthorProfile(id);
+                const data = await getAuthorProfile(authorId);
                 setFormData({
                     displayName: data.displayName,
                     github: data.github,
@@ -32,7 +32,7 @@ const EditProfile = () => {
         };
 
         fetchProfile();
-    }, [id]);
+    }, [authorId]);
 
     const handleChange = (e) => {
         setFormData({
@@ -52,8 +52,8 @@ const EditProfile = () => {
         };
 
         try {
-            await updateAuthorProfile(id, updatedData);  // Send the transformed data
-            navigate(`/profile/${id}`);
+            await updateAuthorProfile(authorId, updatedData);  // Send the transformed data
+            navigate(`/profile/${authorId}`);
         } catch (error) {
             console.error('Error updating profile:', error);
             setErrors({ general: 'Failed to update profile' });
@@ -81,7 +81,7 @@ const EditProfile = () => {
                         <label htmlFor="displayName">Display Name:</label>
                         <input
                             type="text"
-                            id="displayName"
+                            authorId="displayName"
                             name="displayName"
                             placeholder="Enter display name"
                             value={formData.displayName}
@@ -94,7 +94,7 @@ const EditProfile = () => {
                         <label htmlFor="github">GitHub:</label>
                         <input
                             type="url"
-                            id="github"
+                            authorId="github"
                             name="github"
                             placeholder="Enter GitHub URL"
                             value={formData.github}
@@ -107,7 +107,7 @@ const EditProfile = () => {
                         <label htmlFor="profileImage">Profile Image URL:</label>
                         <input
                             type="url"
-                            id="profileImage"
+                            authorId="profileImage"
                             name="profileImage"
                             placeholder="Enter profile image URL"
                             value={formData.profileImage}
