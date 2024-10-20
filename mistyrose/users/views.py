@@ -24,6 +24,7 @@ from django.middleware.csrf import get_token
 from django.contrib.auth import authenticate
 from .pagination import AuthorsPagination
 from .serializers import PostSerializer
+from uuid import UUID
 
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
 
@@ -57,15 +58,18 @@ class LoginView(APIView):
         if user is None:
             return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
         
+        if not user.is_active:
+            return Response({"error": "User account is not activated. Please contact an admin."}, status=status.HTTP_403_FORBIDDEN)
+        
         author_id = Author.objects.get(user=user).id
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         
-        response=Response({
+        response = Response({
             "author_id": author_id,
             "refresh_token": str(refresh),
             "access_token": access_token
-        }, status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
 
         response.set_cookie(
             'author_id', 
@@ -95,6 +99,7 @@ class LoginView(APIView):
         )
 
         return response
+
     
     # http_method_names = ["post"]
 
@@ -177,7 +182,7 @@ class SignUpView(APIView):
                     username=username,
                     email=email,
                     password=password,
-                    is_active=True  
+                    is_active=False  # user is inactive by default(admin must make it active)
                 )
                 user.date_joined = timezone.now()
                 user.save()
@@ -191,16 +196,6 @@ class SignUpView(APIView):
                 serializer = AuthorSerializer(author, context={"request": request})
                 
                 response=Response(serializer.data, status=status.HTTP_201_CREATED)
-                # Set author_id in cookies
-                response.set_cookie(
-                    'author_id', 
-                    str(author.id), 
-                    httponly=True,  # Secure HTTP-only cookie
-                    secure=False,    # Enable only in production (HTTPS)
-                    samesite='None',
-                    path='/'
-                )
-
                 return response
         except Exception as e:
             return Response(
@@ -374,4 +369,28 @@ class FollowerView(APIView):
             print("Follow request deleted successfully")
 
         return Response({"status": "Follow request denied"}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+class UnfollowView(APIView):
+    def delete(self, request, author_id, follower_id):
+        try:
+            # Validate UUID format
+            author_id = UUID(author_id)
+            follower_id = UUID(follower_id)
+        except ValueError:
+            return Response({'error': 'Invalid author or follower ID format.'}, status=400)
+        
+        try:
+            # find corresponding follow relationship
+            follow = Follows.objects.get(followed_id=author_id, local_follower_id=follower_id)
+            
+            # delete follow relationship
+            follow.delete()
+            return Response({'message': 'Successfully unfollowed the author.'}, status=200)
+        
+        except Follows.DoesNotExist:
+            return Response({'error': 'Follow relationship does not exist.'}, status=404)
+
 
