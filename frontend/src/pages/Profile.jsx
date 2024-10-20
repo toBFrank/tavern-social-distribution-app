@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAuthorProfile } from '../services/profileService'; 
+import { getAuthorProfile } from '../services/profileService';
 import '../styles/pages/Profile.css';
 import editIcon from '../assets/editIcon.png';
 import { updatePost } from '../services/PostsService';
@@ -12,8 +12,8 @@ const Profile = () => {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   // Editing posts 
-  const [editPost, setEditPost] = useState(null); 
-  const [editedContent, setEditedContent] = useState(''); 
+  const [editPost, setEditPost] = useState(null);
+  const [editedContent, setEditedContent] = useState('');
 
 
   const navigate = useNavigate();
@@ -29,7 +29,7 @@ const Profile = () => {
         console.error(err);
         setLoading(false); // Stop loading even on error
       });
-  }, [[currentUserId]]);
+  }, [authorId]);
 
   // Show loading message or an error message if data is not available
   if (loading) {
@@ -41,11 +41,11 @@ const Profile = () => {
   }
 
   // Determine if the current user is viewing their own profile
-  const postTestEdit= (post) => {
-    setEditPost(post.id); 
-    setEditedContent(post.text_content); 
+  const postTestEdit = (post) => {
+    setEditPost(post.id);
+    setEditedContent(post.text_content);
   };
-  
+
   const isCurrentUser = currentUserId === authorId;
 
   // Filter posts based on visibility
@@ -55,35 +55,54 @@ const Profile = () => {
 
   const saveEditPost = async (postId) => {
     try {
-      const postToUpdate = profileData.public_posts.find(post => post.id === postId);
-  
+      // Find the post in any of the arrays (public, friends, unlisted)
+      let postToUpdate = profileData.public_posts.find(post => post.id === postId)
+        || profileData.friends_posts.find(post => post.id === postId)
+        || profileData.unlisted_posts.find(post => post.id === postId);
+
+      // Check if the post exists
+      if (!postToUpdate) {
+        throw new Error(`Post with ID ${postId} not found.`);
+      }
+
+      // Prepare updated data
       const updatedData = {
-        id: postId,  
+        id: postId,
         author_id: currentUserId,
-        title: postToUpdate.title || "None",  
-        description: postToUpdate.description || "",  
-        text_content: editedContent,  
-        image_content: postToUpdate.image_content || null,  
-        content_type: postToUpdate.content_type || 'text/plain', 
-        visibility: postToUpdate.visibility || 'PUBLIC',  
+        title: postToUpdate.title || "None",  // Optional default value
+        description: postToUpdate.description || "",  // Optional default value
+        text_content: editedContent,  // Updated content
+        image_content: postToUpdate.image_content || null,  // Optional field
+        content_type: postToUpdate.content_type || 'text/plain',  // Default to 'text/plain'
+        visibility: postToUpdate.visibility || 'PUBLIC',  // Optional default visibility
       };
-  
+
+      // Call the API to update the post in the backend
       await updatePost(currentUserId, postId, updatedData);
-  
-      setProfileData((prevData) => ({
-        ...prevData,
-        public_posts: prevData.public_posts.map((post) =>
+
+      // Update the post in the frontend state
+      setProfileData((prevData) => {
+        // Update the specific post in the correct array
+        const updatePosts = (posts) => posts.map((post) =>
           post.id === postId ? { ...post, text_content: editedContent } : post
-        ),
-      }));
-  
-      setEditPost(null);  // Exit edit mode
+        );
+
+        return {
+          ...prevData,
+          public_posts: updatePosts(prevData.public_posts),
+          friends_posts: updatePosts(prevData.friends_posts),
+          unlisted_posts: updatePosts(prevData.unlisted_posts),
+        };
+      });
+
+      // Exit edit mode
+      setEditPost(null);
     } catch (err) {
       console.error('Error saving the post:', err);
     }
-  };
-  
-  
+  };  
+
+
   return (
     <div className="profile-page">
       {/* Profile Header */}
@@ -152,12 +171,35 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="post-content">
-                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                    {editPost === post.id ? (
+                      <textarea
+                        value={editedContent}
+                        onChange={(e) => setEditedContent(e.target.value)}
+                      />
+                    ) : (
+                      <>
+                        <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
+                        <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                      </>
+                    )}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
                     <p>{post.comments_count} Comments</p>
+
+                    {isCurrentUser && (
+                      editPost === post.id ? (
+                        <>
+                          <button onClick={() => saveEditPost(post.id)}>Save</button>
+                          <button onClick={() => setEditPost(null)}>Cancel</button>
+                        </>
+                      ) : (
+                        <button onClick={() => postTestEdit(post)}>
+                            <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
+                            Edit
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               ))
@@ -178,12 +220,35 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="post-content">
-                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                    {editPost === post.id ? (
+                      <textarea
+                        value={editedContent}
+                        onChange={(e) => setEditedContent(e.target.value)}
+                      />
+                    ) : (
+                      <>
+                        <h4>{post.title || "Untitled"}</h4>
+                        <p>{post.text_content || "No content available"}</p>
+                      </>
+                    )}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
                     <p>{post.comments_count} Comments</p>
+
+                    {isCurrentUser && (
+                      editPost === post.id ? (
+                        <>
+                          <button onClick={() => saveEditPost(post.id)}>Save</button>
+                          <button onClick={() => setEditPost(null)}>Cancel</button>
+                        </>
+                      ) : (
+                        <button onClick={() => postTestEdit(post)}>
+                            <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
+                            Edit
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               ))
@@ -204,12 +269,35 @@ const Profile = () => {
                     </div>
                   </div>
                   <div className="post-content">
-                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                    {editPost === post.id ? (
+                      <textarea
+                        value={editedContent}
+                        onChange={(e) => setEditedContent(e.target.value)}
+                      />
+                    ) : (
+                      <>
+                        <h4>{post.title || "Untitled"}</h4>
+                        <p>{post.text_content || "No content available"}</p>
+                      </>
+                    )}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
                     <p>{post.comments_count} Comments</p>
+
+                    {isCurrentUser && (
+                      editPost === post.id ? (
+                        <>
+                          <button onClick={() => saveEditPost(post.id)}>Save</button>
+                          <button onClick={() => setEditPost(null)}>Cancel</button>
+                        </>
+                      ) : (
+                        <button onClick={() => postTestEdit(post)}>
+                            <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
+                            Edit
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               ))
@@ -252,3 +340,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
