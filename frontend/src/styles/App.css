@@ -43,13 +43,14 @@ textarea:focus {
   box-shadow: 10px 10px 0px 0px black;
 }
 
-input, form input {
+input,
+form input {
   font-size: large;
   padding: 20px;
   /* outline: none; */
   background: #f8e5d3;
   color: black;
-  border: 3px solid black;
+  border: 0.15rem solid black;
   border-radius: 20px;
   box-shadow: 5px 5px 0px 0px black;
   transition: 0.3s ease;
