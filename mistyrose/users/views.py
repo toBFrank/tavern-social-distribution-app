@@ -62,11 +62,40 @@ class LoginView(APIView):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         
-        return Response({
+        response=Response({
             "author_id": author_id,
             "refresh_token": str(refresh),
             "access_token": access_token
         }, status.HTTP_200_OK)
+
+        response.set_cookie(
+            'author_id', 
+            author_id, 
+            httponly=True, 
+            secure=False,  # Set this to True in production if using HTTPS
+            samesite='None',
+            path='/'
+        )
+
+        response.set_cookie(
+            'access_token', 
+            access_token, 
+            httponly=True, 
+            secure=False,  # Set this to True in production if using HTTPS
+            samesite='None',
+            path='/'
+        )
+
+        response.set_cookie(
+            'refresh_token', 
+            str(refresh), 
+            httponly=True, 
+            secure=False,  # Set this to True in production if using HTTPS
+            samesite='None',
+            path='/'
+        )
+
+        return response
     
     # http_method_names = ["post"]
 
@@ -149,7 +178,7 @@ class SignUpView(APIView):
                     username=username,
                     email=email,
                     password=password,
-                    is_active=False  
+                    is_active=True  
                 )
                 user.date_joined = timezone.now()
                 user.save()
@@ -162,7 +191,18 @@ class SignUpView(APIView):
                 author = create_author(author_data, request, user)
                 serializer = AuthorSerializer(author, context={"request": request})
                 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                response=Response(serializer.data, status=status.HTTP_201_CREATED)
+                # Set author_id in cookies
+                response.set_cookie(
+                    'author_id', 
+                    str(author.id), 
+                    httponly=True,  # Secure HTTP-only cookie
+                    secure=False,    # Enable only in production (HTTPS)
+                    samesite='None',
+                    path='/'
+                )
+
+                return response
         except Exception as e:
             return Response(
                 {"message": f"An error occurred: {str(e)}"},
