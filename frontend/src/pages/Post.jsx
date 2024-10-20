@@ -85,36 +85,6 @@ const Post = ({ postId }) => {
     }
   };
 
-  // const handlePostClick = async () => {
-  //   const postData = {
-  //     author_id: authorId,
-  //     title: title || 'New Post',
-  //     text_content:
-  //       selectedOption === 'Plain'
-  //         ? plainText
-  //         : selectedOption === 'Markdown'
-  //           ? markdown
-  //           : null,
-  //     image_content: selectedOption === 'Image' ? imgFile : null,
-  //     content_type:
-  //       selectedOption === 'Image'
-  //         ? 'image'
-  //         : selectedOption === 'Markdown'
-  //           ? 'text/markdown'
-  //           : 'text/plain',
-  //     visibility: visibility.toUpperCase(),
-  //   };
-
-  //   try {
-  //     // print all cookies
-  //     console.log(Cookies.get());
-  //     await createPost(authorId, postData);
-  //     navigate('/');
-  //   } catch (error) {
-  //     // TODO: Handle error
-  //   }
-  // };
-
   const handleDeleteClick = async () => {
     try {
       const response = await deletePost(authorId, postId);

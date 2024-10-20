@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/pages/Home.css';
 import FollowRequests from '../components/FollowRequests';
-import SearchBar from "../components/SearchBar";
-import SearchResultsList from "../components/SearchResultsList";
+import SearchBar from '../components/SearchBar';
+import SearchResultsList from '../components/SearchResultsList';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
