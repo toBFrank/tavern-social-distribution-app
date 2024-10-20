@@ -73,6 +73,10 @@
   margin-bottom: 50px;
 }
 
+input[type='radio'] {
+  box-shadow: none;
+}
+
 .postPage-buttons {
   display: flex;
   flex-direction: column;

@@ -61,4 +61,12 @@ input:focus {
   border: 5px solid black;
   border-radius: 10px;
   box-shadow: 10px 10px 0px 0px black;
+  outline: none;
+}
+form input:focus {
+  background: white;
+  border: 5px solid black;
+  border-radius: 10px;
+  box-shadow: 10px 10px 0px 0px black;
+  outline: none;
 }
