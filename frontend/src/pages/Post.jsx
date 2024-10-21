@@ -121,7 +121,6 @@ const Post = ({ postId }) => {
         <h1>{postId ? 'Edit' : 'Create'} Post</h1>
         <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
-      <textarea
 
       {/* <textarea
         id="title-textarea"
