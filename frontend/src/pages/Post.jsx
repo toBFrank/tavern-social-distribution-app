@@ -120,7 +120,7 @@ const Post = ( ) => {
         // Create a new post if no postId
         await createPost(authorId, postData);
       }  
-      navigate('/');
+      navigate(`/profile/${authorId}`);
     } catch (error) {
       // TODO: Handle error
     }
