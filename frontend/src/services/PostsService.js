@@ -11,16 +11,22 @@ export const getPost = async (authorSerial, postSerial) => {
     throw error;
   }
 };
+
+// Update post visibility to 'DELETED' instead of actually deleting the post
 export const deletePost = async (authorSerial, postSerial) => {
   try {
-    const response = await api.delete(
-      `posts/authors/${authorSerial}/posts/${postSerial}/`
+    // Update the post's visibility to 'DELETED' instead of deleting
+    const postData = { visibility: 'DELETED' };
+    const response = await api.patch(
+      `posts/authors/${authorSerial}/posts/${postSerial}/`,
+      postData
     );
     return response;
   } catch (error) {
     throw error;
   }
 };
+
 export const updatePost = async (authorSerial, postSerial, postData) => {
   try {
     const response = await api.put(
