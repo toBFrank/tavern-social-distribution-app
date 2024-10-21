@@ -4,17 +4,19 @@ import "../styles/components/LikeButton.css";
 import Cookies from 'js-cookie';
 import { createLike, getLikes } from '../services/LikesService';
 import { Favorite } from "@mui/icons-material";
+import { getAuthorProfile } from '../services/profileService'; 
 
-const LikeButton = () => {
+const LikeButton = ({ postId }) => {
   const [likes, setLikes] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const authorId = Cookies.get('author_id');
+  const [currentProfileData, setCurrentProfileData] = useState(null); 
 
   //get likes w/ useEffect to update whenever postId changes or page reloads
   useEffect(() => {
     const fetchLikes = async () => {
         try {
-            const likesResponse = await getLikes(authorId, "23b10051-0059-410b-8685-0e558c6ddde5");
+            const likesResponse = await getLikes(authorId, postId);
             setLikes(likesResponse.length);
             console.log(likesResponse);
 
@@ -32,23 +34,24 @@ const LikeButton = () => {
     fetchLikes();
   }, [authorId]);
 
+  useEffect(() => {
+    getAuthorProfile(authorId)
+    .then((data) => {
+        setCurrentProfileData(data);
+    })
+    .catch((error) => {
+        console.error(error);
+    })
+  }, []) //empty dependency list so that its only called once to get author info when component mounts
+
   const handleLike = async () => {
     if (!isLiked) {
         //create like object
+        const currentHost = window.location.origin; //getting host for post url
         const likeData = {
-            type: "like",
-            author: {
-              type: "author",
-              id: "http://nodeaaaa/api/authors/111",
-              page: "http://nodeaaaa/authors/greg",
-              host: "http://nodeaaaa/api/",
-              displayName: "Greg Johnson",
-              github: "http://github.com/gjohnson",
-              profileImage: "https://i.imgur.com/k7XVwpB.jpeg",
-            },
-            published: new Date().toISOString(),
-            id: "http://nodeaaaa/api/authors/111/liked/166",
-            object: "http://localhost:8000/authors/222/posts/23b10051-0059-410b-8685-0e558c6ddde5",
+            type: 'like',
+            author: currentProfileData,
+            object: `${currentHost}/api/authors/${authorId}/posts/${postId}/`, 
         };
 
         try {
