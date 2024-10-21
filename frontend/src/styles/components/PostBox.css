@@ -18,7 +18,6 @@
   width: 100%;
   justify-content: flex-start;
 }
-
 .profile-image-container {
   margin-right: 10px;
   width: 50px;
@@ -33,16 +32,23 @@
 }
 
 .profile-image {
-  max-width: 100%;
+  width: 100%;
   height: auto;
+  max-height: 100%;
   object-fit: cover;
 }
 
 .profile-image-default {
   width: 100%;
-  height: auto;
+  height: 100%; 
   background-color: black;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+
 
 .poster-name-date {
   display: flex;
