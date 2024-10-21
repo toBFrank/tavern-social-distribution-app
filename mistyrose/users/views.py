@@ -423,29 +423,24 @@ class FollowersDetailView(APIView):
 class FriendsView(APIView):
 
     def get(self, request, author_id=None):
-        # Get the author instance for the authenticated user
         current_user = get_object_or_404(Author, user=request.user)
 
-        # If viewing someone else's profile, fetch that author's data
         if author_id:
             viewed_author = get_object_or_404(Author, id=author_id)
         else:
-            # If no author_id is passed, show the current user's profile
+
             viewed_author = current_user
-
-        # Get the users that the viewed_author follows
+            
         following_ids = Follows.objects.filter(local_follower_id=viewed_author, status='ACCEPTED').values_list('followed_id', flat=True)
-
-        # Get the users who follow the viewed_author
+        
         followers_ids = Follows.objects.filter(followed_id=viewed_author, status='ACCEPTED').values_list('local_follower_id', flat=True)
 
-        # Find mutual friends: people who both follow and are followed by the viewed_author
         mutual_friend_ids = set(following_ids).intersection(set(followers_ids))
 
-        # Fetch the mutual friends' author objects
+       
         friends = Author.objects.filter(id__in=mutual_friend_ids)
 
-        # Serialize the mutual friends data
+      
         friends_data = [
             {
                 'id': friend.id,
