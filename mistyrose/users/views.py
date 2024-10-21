@@ -238,7 +238,13 @@ class AuthorDetailView(generics.RetrieveAPIView):
 class AuthorProfileView(APIView):
     def get(self, request, pk):
         author = get_object_or_404(Author, pk=pk)
-        friends_count = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
+        # Use the FriendsView logic to get friends data
+        friends_view = FriendsView()
+        friends_response = friends_view.get(request, author_id=pk)
+        friends_data = friends_response.data.get('friends', [])
+
+        # Calculate friends count based on the friends data returned
+        friends_count = len(friends_data)
         followers_count = Follows.objects.filter(followed_id=author, status='ACCEPTED').count()
         following_count = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
         public_posts = Post.objects.filter(author_id=author, visibility='PUBLIC').order_by('-published')
@@ -295,21 +301,32 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
 
 class FollowerView(APIView):
     
-    # def get(self, request, author_id, follower_id):
-    #     """
-    #     Check if follower_id is a follower of author_id
-    #     """
-    #     author = get_object_or_404(Author, id=author_id)
+    def get(self, request, author_id, follower_id):
+        """
+        Check if follower_id is a follower of author_id
+        return 200 if following (accepted)
+        return 202 if follow request pending (202 to indicate request is still in progress)
+        return 404 if not following or requested
+        """
+        author = get_object_or_404(Author, id=author_id)
 
-    #     # Check follow status using the remote URL
-    #     follow_status = Follows.objects.filter(remote_follower_url=follower_id, followed_id=author, status='ACCEPTED').exists()
+         # Check if the follow request is accepted
+        is_accepted = Follows.objects.filter(
+            local_follower_id=follower_id, followed_id=author, status='ACCEPTED'
+        ).exists()
 
-    #     if follow_status:
-    #         print("Follower exists")
-    #         return Response({"status": "Follower exists"}, status=status.HTTP_200_OK)
-    #     print("Follower not found")
-    #     return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Check if there's a pending follow request
+        is_pending = Follows.objects.filter(
+            local_follower_id=follower_id, followed_id=author, status='PENDING'
+        ).exists()
 
+        if is_accepted:
+            return Response({"status": "Following"}, status=status.HTTP_200_OK)
+
+        if is_pending:
+            return Response({"status": "Follow request pending"}, status=status.HTTP_202_ACCEPTED)
+
+        return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, author_id, follower_id):
         print(f"Received Author ID: {author_id}, Received Follower ID: {follower_id}")
@@ -393,4 +410,47 @@ class UnfollowView(APIView):
         except Follows.DoesNotExist:
             return Response({'error': 'Follow relationship does not exist.'}, status=404)
 
+class FollowersDetailView(APIView):
+    def get(self, request):
+        author = get_object_or_404(Author, user=request.user)
+        followers = Follows.objects.filter(followed_id=author, status='ACCEPTED').select_related('local_follower_id')
+        followers_data = [{'id': follower.local_follower_id.id, 'displayName': follower.local_follower_id.display_name, 'profileImage': follower.local_follower_id.profile_image} for follower in followers]
+
+        return Response({
+            "followers": followers_data
+        }, status=status.HTTP_200_OK)
+
+class FriendsView(APIView):
+
+    def get(self, request, author_id=None):
+        current_user = get_object_or_404(Author, user=request.user)
+
+        if author_id:
+            viewed_author = get_object_or_404(Author, id=author_id)
+        else:
+
+            viewed_author = current_user
+            
+        following_ids = Follows.objects.filter(local_follower_id=viewed_author, status='ACCEPTED').values_list('followed_id', flat=True)
+        
+        followers_ids = Follows.objects.filter(followed_id=viewed_author, status='ACCEPTED').values_list('local_follower_id', flat=True)
+
+        mutual_friend_ids = set(following_ids).intersection(set(followers_ids))
+
+       
+        friends = Author.objects.filter(id__in=mutual_friend_ids)
+
+      
+        friends_data = [
+            {
+                'id': friend.id,
+                'displayName': friend.display_name,
+                'profileImage': friend.profile_image
+            }
+            for friend in friends
+        ]
+
+        return Response({
+            "friends": friends_data
+        }, status=status.HTTP_200_OK)
 

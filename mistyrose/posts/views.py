@@ -9,6 +9,8 @@ from stream.models import Inbox
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
+from .models import Post
+from users.models import Author, Follows  
 
 
 #region Post Views
@@ -32,13 +34,15 @@ class PostDetailsView(APIView):
             post = Post.objects.get(id=post_serial, author_id=author_serial)
         except Post.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
+        print("request data:", request.data)  # Log the request data
         serializer = PostSerializer(post, data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-          
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
       
     def delete(self, request, author_serial, post_serial):
         try:
@@ -63,31 +67,30 @@ class PostDetailsByFqidView(APIView):
         
         serializer = PostSerializer(post)
         return Response(serializer.data)
-      
+
 class AuthorPostsView(APIView):
     """
-    List all posts by an author, or create a new post for author.
+    List all posts by an author, or create a new post for the author.
     """
-    # permission_classes = [IsAuthenticatedOrReadOnly]
-    
+
     def get(self, request, author_serial):
         posts = Post.objects.filter(author_id=author_serial)
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
-      
+
     def post(self, request, author_serial):
         try:
             author = Author.objects.get(id=author_serial)
         except Author.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        
+
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(author=author)  # Associate the post with the author
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-          
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
       
 class PostImageView(APIView):
     """
@@ -166,7 +169,7 @@ class CommentedView(APIView):
         """ 
         Get comments on a post
         """
-        post = get_object_or_404(Post, id=post_id, author_id=author_serial)
+        post = get_object_or_404(Post, id=post_id) # not filtering by author so anyone can see it.... is that right? TODO: clarify
 
         comments = post.comments.all()
         serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
@@ -174,10 +177,11 @@ class CommentedView(APIView):
     #TODO: return "type": "comments" format as specified in the project description, right now just returning a list of comments for ease
            
 
-#endregion
 
-#region Like Views
+    
+    
 class LikedView(APIView):
+    #TODO: ASK IF WE ARE SUPPOSED TO BE ABLE TO UNLIKE A POST
     """
     get or like a post
     """
@@ -244,7 +248,7 @@ class LikedView(APIView):
         """
         Get likes on a post
         """
-        post = get_object_or_404(Post, id=post_id, author_id=author_serial)
+        post = get_object_or_404(Post, id=post_id)
 
         likes = post.likes.all()
         serializer = LikeSerializer(likes, many=True) # many=True specifies that input is not just a single like
@@ -252,4 +256,59 @@ class LikedView(APIView):
         #TODO: return "type": "likes" format as specified in the project description, right now just returning a list of likes for ease
 
 
-#endregion
+   
+class PublicPostsView(APIView):
+    # To view all of the public posts in the home page
+    permission_classes = [IsAuthenticatedOrReadOnly] 
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_403_FORBIDDEN)
+
+        current_author = get_object_or_404(Author, user=request.user)
+
+        posts = Post.objects.exclude(author_id=current_author.id)
+
+        serializer = PostSerializer(posts, many=True)
+
+        all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
+
+        authorized_authors_per_post = []
+
+        for post_data in serializer.data:
+            post_visibility = post_data.get('visibility')
+            authorized_authors = set()
+
+            if post_visibility == 'PUBLIC':
+                authorized_authors.update(all_authors)
+
+            elif post_visibility == 'UNLISTED':
+                followers = Follows.objects.filter(
+                    followed_id=current_author,
+                    status='ACCEPTED'
+                ).select_related('local_follower_id')
+                followers_data = [follower.local_follower_id.id for follower in followers]
+                authorized_authors.update(followers_data)
+
+            elif post_visibility == 'FRIENDS':
+                following_ids = Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True)
+                followers_ids = Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True)
+
+                mutual_friend_ids = set(following_ids).intersection(set(followers_ids))
+                friends = Author.objects.filter(id__in=mutual_friend_ids)
+                friends_data = [friend.id for friend in friends]
+                authorized_authors.update(friends_data)
+
+            # Include visibility_type in the authorized_authors_per_post dictionary
+            authorized_authors_per_post.append({
+                'post_id': post_data['id'], 
+                'authorized_authors': list(authorized_authors),
+                'visibility_type': post_visibility  # Add visibility_type here
+            })
+
+        # Create response data with posts and their respective authorized authors
+        response_data = {
+            'posts': serializer.data,  
+            'authorized_authors_per_post': authorized_authors_per_post
+        }
+        return Response(response_data, status=status.HTTP_200_OK)
