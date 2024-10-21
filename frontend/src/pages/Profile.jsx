@@ -11,7 +11,7 @@ const Profile = () => {
   const { authorId } = useParams();  // Get the authorId from the URL parameters
   const currentUserId = Cookies.get('author_id');  // Get the current user's ID from cookies
   const [profileData, setProfileData] = useState(null);
-  const [currentProfileData] = useState(null);
+  const [currentProfileData, setCurrentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -28,6 +28,16 @@ const Profile = () => {
         setLoading(false); // Stop loading even on error
       });
   }, [authorId]);
+
+  useEffect(() => {
+    getAuthorProfile(currentUserId)
+      .then((data) => {
+        setCurrentProfileData(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      })
+  }, []) //empty dependency list so that its only called once when component mounts
 
   
   // Show loading message or an error message if data is not available
