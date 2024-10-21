@@ -75,63 +75,8 @@ class AuthorPostsView(APIView):
 
     def get(self, request, author_serial):
         posts = Post.objects.filter(author_id=author_serial)
-
         serializer = PostSerializer(posts, many=True)
-
-        current_author = get_object_or_404(Author, user=request.user)
-
-        all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
-
-        authorized_authors_per_post = []
-
-        for post_data in serializer.data:
-            post_visibility = post_data.get('visibility') 
-            authorized_authors = set()  
-
-            if post_visibility == 'PUBLIC':
-
-                authorized_authors.update(all_authors)
-
-            elif post_visibility == 'UNLISTED':
-                
-                followers = Follows.objects.filter(
-                    followed_id=current_author,
-                    status='ACCEPTED'
-                ).select_related('local_follower_id')
-                followers_data = [follower.local_follower_id.id for follower in followers]
-                authorized_authors.update(followers_data)
-
-            elif post_visibility == 'FRIENDS':
-               
-                following_ids = Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True)
-                followers_ids = Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True)
-
-         
-                mutual_friend_ids = set(following_ids).intersection(set(followers_ids))
-                
-              
-                friends = Author.objects.filter(id__in=mutual_friend_ids)
-                friends_data = [friend.id for friend in friends]
-                authorized_authors.update(friends_data)
-
-          
-            authorized_authors_per_post.append({
-                'post_id': post_data['id'],  # Assuming 'id' is the post ID in the serialized data
-                'authorized_authors': list(authorized_authors)  # Convert set to list
-            })
-
-      
-        response_data = {
-            'posts': serializer.data,  
-            'authorized_authors_per_post': authorized_authors_per_post  
-        }
-
-       
-        return Response(response_data, status=status.HTTP_200_OK)
-
-
-       
-        return Response(authorized_authors_per_post, status=status.HTTP_200_OK)
+        return Response(serializer.data)
 
     def post(self, request, author_serial):
         try:
@@ -312,3 +257,69 @@ class LikedView(APIView):
 
 
    
+class PublicPostsView(APIView):
+    # To view all of the public posts in the home page
+    permission_classes = [IsAuthenticatedOrReadOnly] 
+
+    def get(self, request):
+        # Check if the user is authenticated
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Get the current authenticated author
+        current_author = get_object_or_404(Author, user=request.user)
+
+        # Fetch all posts by the current author
+        posts = Post.objects.exclude(author_id=current_author.id)
+
+        # Serialize the posts
+        serializer = PostSerializer(posts, many=True)
+
+        # Get all other authors except the current one
+        all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
+
+        authorized_authors_per_post = []
+
+        # Loop through each post and determine authorized authors based on visibility
+        for post_data in serializer.data:
+            post_visibility = post_data.get('visibility')
+            authorized_authors = set()
+
+            if post_visibility == 'PUBLIC':
+                # All other authors are authorized to see public posts
+                authorized_authors.update(all_authors)
+
+            elif post_visibility == 'UNLISTED':
+                # Only followers of the current author are authorized for unlisted posts
+                followers = Follows.objects.filter(
+                    followed_id=current_author,
+                    status='ACCEPTED'
+                ).select_related('local_follower_id')
+                followers_data = [follower.local_follower_id.id for follower in followers]
+                authorized_authors.update(followers_data)
+
+            elif post_visibility == 'FRIENDS':
+                # Find mutual friends (both following and followed by current author)
+                following_ids = Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True)
+                followers_ids = Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True)
+
+                # Intersect to get mutual friends
+                mutual_friend_ids = set(following_ids).intersection(set(followers_ids))
+                friends = Author.objects.filter(id__in=mutual_friend_ids)
+                friends_data = [friend.id for friend in friends]
+                authorized_authors.update(friends_data)
+
+            # Append the post ID and its authorized authors
+            authorized_authors_per_post.append({
+                'post_id': post_data['id'],  # Assuming 'id' is the post ID in the serialized data
+                'authorized_authors': list(authorized_authors)  # Convert set to list
+            })
+
+        # Create response data with posts and their respective authorized authors
+        response_data = {
+            'posts': serializer.data,  
+            'authorized_authors_per_post': authorized_authors_per_post
+        }
+        print(authorized_authors_per_post)
+        return Response(response_data, status=status.HTTP_200_OK)
+
