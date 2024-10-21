@@ -6,11 +6,11 @@
   flex-direction: column;
   box-shadow: 0px 0px 8px #ddd;
   border-radius: 10px;
-  margin-top: 1rem;
+  margin-top: 6.5rem;
   max-height: 300px;
   overflow-y: auto;
   position: absolute; /*dont want it to push down the content when search list appears */
   top: 2.5rem; /* so that its displayed under the search bar which is set to 2.5 height*/
   z-index: 10; 
-  width: calc(100% - 21.5rem); /*21.5 rem is right padding for the main content in home*/
+  width: calc(100% - 16rem); /*18 rem is right padding for the main content in home*/
 }

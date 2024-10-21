@@ -16,10 +16,22 @@ const CommentsModal = ({ postId }) => {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
 
+    useEffect(() => {
+        const fetchComments = async () => {
+            try {
+                const fetchComments = await getComments(authorId, postId);
+                setComments(fetchComments);
+            }
+            catch(error) {
+                console.error(error);
+            }
+        };
+    
+        fetchComments();
+      }, [authorId, postId]);
+    
     const handleOpen = async () => {
         setIsModalOpen(true);
-        const fetchComments = await getComments(authorId, postId);
-        setComments(fetchComments);
     };
 
     const handleClose = () => setIsModalOpen(false);
@@ -56,6 +68,7 @@ const CommentsModal = ({ postId }) => {
         <button className="comments-button" onClick={handleOpen}>
           <Comment />
         </button>
+        <span className='comments-text'> {comments.length} {comments.length === 1 ? 'comment' : 'comments'} </span>
         <Modal
           open={isModalOpen}
           onClose={handleClose}
@@ -70,7 +83,10 @@ const CommentsModal = ({ postId }) => {
               {comments.length > 0 ? (
                 comments.map((comment, index) => (
                   <Typography key={index} variant="body1" sx={{ mt: 1 }}>
-                    {comment.comment} 
+                    <div className='comment-box'>
+                        {comment.comment} 
+                    </div>
+                    
                   </Typography>
                 ))
               ) : (
@@ -78,13 +94,13 @@ const CommentsModal = ({ postId }) => {
               )}
             </Typography>
             <div className="comment-input-box">
-              <textarea
+              <textarea className='comment-textbox'
                 type="text"
                 placeholder="Add a comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
               ></textarea>
-              <button onClick={handleCommentSubmit}>Post</button>
+              <button className="post-comment" onClick={handleCommentSubmit}>Post</button>
             </div>
           </Box>
         </Modal>

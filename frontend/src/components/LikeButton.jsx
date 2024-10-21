@@ -18,7 +18,6 @@ const LikeButton = ({ postId }) => {
         try {
             const likesResponse = await getLikes(authorId, postId);
             setLikes(likesResponse.length);
-            console.log(likesResponse);
 
             //check if user liked post already
             const userLike = likesResponse.find(like => like.author_id === authorId);
@@ -32,7 +31,7 @@ const LikeButton = ({ postId }) => {
     };
 
     fetchLikes();
-  }, [authorId]);
+  }, [authorId, postId]);
 
   useEffect(() => {
     getAuthorProfile(authorId)
