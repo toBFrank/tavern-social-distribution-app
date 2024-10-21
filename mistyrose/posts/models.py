@@ -28,7 +28,7 @@ class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='posts')
     title = models.CharField(max_length=200, blank=True, null=True, default='No Title')
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True, editable=True)
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
     text_content = models.TextField(blank=True, null=True)
     # put image content to user's media folder media/posts/author_id/post_id/image_content_name

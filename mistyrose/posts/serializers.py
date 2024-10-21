@@ -24,7 +24,7 @@ class PostSerializer(serializers.ModelSerializer):
         
         read_only_fields = [
             'id',
-            'published'
+            'published', 
         ]
         # Method to get likes count for a post
     def get_likes_count(self, post):

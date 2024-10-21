@@ -13,6 +13,7 @@ export const getPost = async (authorSerial, postSerial) => {
 };
 export const deletePost = async (authorSerial, postSerial) => {
   try {
+    // TODO: Post deletion should NOT delete from the database, but instead mark the post as deleted
     const response = await api.delete(
       `posts/authors/${authorSerial}/posts/${postSerial}/`
     );
