@@ -22,7 +22,7 @@ const SearchBar = ({ setResults }) => {
               value && //check that they've entered value into search bar --> if value is empy --> wont render anything
               author && //check that user exists
               author.displayName && //check that user has a display name
-              author.displayName.toLowerCase().includes(value) //check if lowercase of authors name includes value entered into search bar
+              author.displayName.toLowerCase().includes(value.toLowerCase()) //check if lowercase of authors name includes value entered into search bar
             );
           });
           

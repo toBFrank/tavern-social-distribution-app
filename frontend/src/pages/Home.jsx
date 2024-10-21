@@ -7,7 +7,9 @@ import SearchResultsList from '../components/SearchResultsList';
 import { makeGithubActivityPosts } from '../services/GithubService';
 import Cookies from 'js-cookie';
 import { getAuthorProfile } from '../services/profileService';
-import api from '../services/axios'; // Adjust the import based on your file structure
+import LikeButton from '../components/LikeButton';
+import CommentsModal from '../components/CommentsModal';
+import api from '../services/axios'; 
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -190,6 +192,10 @@ const Home = () => {
                       </div>
                       <h4>{post.title}</h4>
                       <p>{post.text_content}</p>
+                      <div className='likes-comments-container'>
+                        <LikeButton postId={post.id}/>
+                        <CommentsModal postId={post.id}/>
+                      </div>
                     </div>
                   </li>
                 ))}
