@@ -35,7 +35,6 @@ class PostDetailsView(APIView):
         except Post.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        print("request data:", request.data)  # Log the request data
         serializer = PostSerializer(post, data=request.data)
 
         if serializer.is_valid():
@@ -131,7 +130,7 @@ class CommentedView(APIView):
         request_type = comment_data.get('type')
 
         if request_type != 'comment':
-            return Response({"detail: Must be 'comment' type"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Must be 'comment' type"}, status=status.HTTP_400_BAD_REQUEST)
         
         post_url = comment_data.get("post")
         if not post_url:
