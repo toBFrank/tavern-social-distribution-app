@@ -74,6 +74,17 @@ class InboxViewTest(TestCase):
 
 class GetFollowRequestsTest(TestCase):
     def setUp(self):
+        # Create test user
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+
+        # Generate JWT token for the user
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+
+        # Initialize API client
+        self.client = APIClient()
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)  # Use JWT authentication
+
         self.actor = Author.objects.create(
             id=uuid.uuid4(), 
             host='http://example.com/',
@@ -115,5 +126,9 @@ class GetFollowRequestsTest(TestCase):
         self.assertEqual(len(response.data), 1)
 
         #asked chatGPT how to check the response body for the follow requests endpoint tests 2024-10-21
-        self.assertEqual(response.data[0]['actor']['id'], f"http://localhost/api/authors/{self.actor.id}/")
-        self.assertEqual(response.data[0]['object']['id'], f"http://localhost/api/authors/{self.object.id}/")
+        self.assertEqual(response.data[0]['actor']['id'], str(self.actor.id))
+        self.assertEqual(response.data[0]['object']['id'], str(self.object.id))
+
+    def test_get_follow_requests_400(self):
+        response = self.client.get(reverse('follow_requests', kwargs={'author_id': uuid.uuid4()})) #random author id that doesnt exist
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
