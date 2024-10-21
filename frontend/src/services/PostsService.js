@@ -71,12 +71,12 @@ export const createPost = async (authorSerial, postData) => {
 };
 
 // URL: ://service/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/image
-export const getPostImage = async (authorSerial, postSerial) => {
+export const getPostImageUrl = async (authorSerial, postSerial) => {
   try {
     const response = await api.get(
       `posts/authors/${authorSerial}/posts/${postSerial}/image/`
     );
-    return response;
+    return response.data.image_url;
   } catch (error) {
     throw error;
   }

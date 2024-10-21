@@ -100,12 +100,16 @@ class PostImageView(APIView):
 
     def get(self, request, author_serial, post_serial):
         try:
-            post = Post.objects.get(author__id=author_serial, id=post_serial)
+            
+            author = Author.objects.get(id=author_serial)
+            post = Post.objects.get(author_id=author, id=post_serial)
+        except Author.DoesNotExist:
+            return Response({"detail": f"Author {author_serial} not found."}, status=status.HTTP_404_NOT_FOUND)
         except Post.DoesNotExist:
-            return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": f"Post {post_serial} not found for {author}"}, status=status.HTTP_404_NOT_FOUND)
 
-        if post.image:
-            image_url = post.image.url
+        if post.image_content:
+            image_url = request.build_absolute_uri(post.image_content.url)
             return Response({'image_url': image_url})
         else:
             return Response({'detail': 'No image available for this post'}, status=status.HTTP_404_NOT_FOUND)
