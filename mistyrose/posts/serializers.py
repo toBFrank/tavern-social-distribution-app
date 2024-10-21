@@ -28,7 +28,7 @@ class PostSerializer(serializers.ModelSerializer):
         ]
         # Method to get likes count for a post
     def get_likes_count(self, post):
-        return Like.objects.filter(object_url=post.id).count()
+        return Like.objects.filter(object_id=post.id).count()
 
     # Method to get comments count for a post
     def get_comments_count(self, post):
