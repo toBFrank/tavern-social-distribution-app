@@ -1,4 +1,4 @@
-import api from './api';
+import api from './axios';
 
 // URL: ://service/api/authors/{AUTHOR_SERIAL}/inbox
 export const createComment = async (authorSerial, postSerial, commentData) => {
@@ -17,7 +17,7 @@ export const createComment = async (authorSerial, postSerial, commentData) => {
 export const getComments = async (authorSerial, postSerial) => {
   try {
     const response = await api.get(
-      `/authors/${authorSerial}/posts/${postSerial}/comments`
+      `/authors/${authorSerial}/posts/${postSerial}/comments/`
     );
     return response.data;
   } catch (error) {

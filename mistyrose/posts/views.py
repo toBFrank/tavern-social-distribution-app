@@ -232,7 +232,7 @@ class CommentedView(APIView):
         """ 
         Get comments on a post
         """
-        post = get_object_or_404(Post, id=post_id, author_id=author_serial)
+        post = get_object_or_404(Post, id=post_id) # not filtering by author so anyone can see it.... is that right? TODO: clarify
 
         comments = post.comments.all()
         serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
@@ -244,6 +244,7 @@ class CommentedView(APIView):
     
     
 class LikedView(APIView):
+    #TODO: ASK IF WE ARE SUPPOSED TO BE ABLE TO UNLIKE A POST
     """
     get or like a post
     """
@@ -310,7 +311,7 @@ class LikedView(APIView):
         """
         Get likes on a post
         """
-        post = get_object_or_404(Post, id=post_id, author_id=author_serial)
+        post = get_object_or_404(Post, id=post_id)
 
         likes = post.likes.all()
         serializer = LikeSerializer(likes, many=True) # many=True specifies that input is not just a single like
