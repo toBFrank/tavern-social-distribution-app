@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { createPost, getAllPosts } from './PostsService';
+import { getAuthorProfile } from './profileService';
 
-export const makeGithubActivityPosts = async (username, authorId) => {
+export const makeGithubActivityPosts = async (authorId) => {
   try {
+    const username = (await getAuthorProfile(authorId)).github.split('/').pop();
     const posts = (await getAllPosts(authorId)).data;
 
     // 1. Get raw data from Github API
@@ -23,9 +25,6 @@ export const makeGithubActivityPosts = async (username, authorId) => {
           return post.description !== String(event.id);
         });
       });
-
-    console.log(`POSTS:\n${posts.map((post) => post.description)}`);
-    console.log(`PARSED:\n${parsedData.map((event) => event.id)}`);
 
     // 3. Turn into strings
     const stringifiedData = getStringsFromParsedData(parsedData, username);

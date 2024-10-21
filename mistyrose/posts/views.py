@@ -86,7 +86,7 @@ class AuthorPostsView(APIView):
 
         serializer = PostSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(author=author)  # Associate the post with the author
+            serializer.save(author_id=author)  # Associate the post with the author
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
