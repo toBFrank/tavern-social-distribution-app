@@ -68,6 +68,12 @@ class AuthorSerializer(serializers.Serializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['type'] = 'author'  # Add 'type' to the representation
+
+        # Remove fields if they are empty or None to prevent error in follow requests with empty string fields
+        if not data.get('github'):
+            data.pop('github', None)
+        if not data.get('profileImage'):
+            data.pop('profileImage', None)
         return data
     
 class AuthorEditProfileSerializer(serializers.ModelSerializer):

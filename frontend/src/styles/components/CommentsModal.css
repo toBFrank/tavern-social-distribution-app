@@ -1,0 +1,26 @@
+/* https://mui.com/material-ui/react-modal/ for 'Basic Modal' code from MUI, 2024-10-19 */
+
+.modalBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; 
+    background-color: #fff; 
+    border: 2px solid #000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    padding: 16px; 
+}
+  
+.comments-button {
+    background-color: transparent; 
+    border: none;        
+    color: grey;        
+    cursor: pointer;     
+    min-width: auto;     /* Allow button to shrink to fit its content */
+}
+
+.comments-button:hover {
+    background-color: transparent; 
+    color: darkgrey; 
+}

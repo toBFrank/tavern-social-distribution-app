@@ -58,15 +58,18 @@ class LoginView(APIView):
         if user is None:
             return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
         
+        if not user.is_active:
+            return Response({"error": "User account is not activated. Please contact an admin."}, status=status.HTTP_403_FORBIDDEN)
+        
         author_id = Author.objects.get(user=user).id
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         
-        response=Response({
+        response = Response({
             "author_id": author_id,
             "refresh_token": str(refresh),
             "access_token": access_token
-        }, status.HTTP_200_OK)
+        }, status=status.HTTP_200_OK)
 
         response.set_cookie(
             'author_id', 
@@ -96,6 +99,7 @@ class LoginView(APIView):
         )
 
         return response
+
     
     # http_method_names = ["post"]
 
@@ -178,7 +182,7 @@ class SignUpView(APIView):
                     username=username,
                     email=email,
                     password=password,
-                    is_active=True  
+                    is_active=False  # user is inactive by default(admin must make it active)
                 )
                 user.date_joined = timezone.now()
                 user.save()
@@ -192,16 +196,6 @@ class SignUpView(APIView):
                 serializer = AuthorSerializer(author, context={"request": request})
                 
                 response=Response(serializer.data, status=status.HTTP_201_CREATED)
-                # Set author_id in cookies
-                response.set_cookie(
-                    'author_id', 
-                    str(author.id), 
-                    httponly=True,  # Secure HTTP-only cookie
-                    secure=False,    # Enable only in production (HTTPS)
-                    samesite='None',
-                    path='/'
-                )
-
                 return response
         except Exception as e:
             return Response(
@@ -301,21 +295,32 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
 
 class FollowerView(APIView):
     
-    # def get(self, request, author_id, follower_id):
-    #     """
-    #     Check if follower_id is a follower of author_id
-    #     """
-    #     author = get_object_or_404(Author, id=author_id)
+    def get(self, request, author_id, follower_id):
+        """
+        Check if follower_id is a follower of author_id
+        return 200 if following (accepted)
+        return 202 if follow request pending (202 to indicate request is still in progress)
+        return 404 if not following or requested
+        """
+        author = get_object_or_404(Author, id=author_id)
 
-    #     # Check follow status using the remote URL
-    #     follow_status = Follows.objects.filter(remote_follower_url=follower_id, followed_id=author, status='ACCEPTED').exists()
+         # Check if the follow request is accepted
+        is_accepted = Follows.objects.filter(
+            local_follower_id=follower_id, followed_id=author, status='ACCEPTED'
+        ).exists()
 
-    #     if follow_status:
-    #         print("Follower exists")
-    #         return Response({"status": "Follower exists"}, status=status.HTTP_200_OK)
-    #     print("Follower not found")
-    #     return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Check if there's a pending follow request
+        is_pending = Follows.objects.filter(
+            local_follower_id=follower_id, followed_id=author, status='PENDING'
+        ).exists()
 
+        if is_accepted:
+            return Response({"status": "Following"}, status=status.HTTP_200_OK)
+
+        if is_pending:
+            return Response({"status": "Follow request pending"}, status=status.HTTP_202_ACCEPTED)
+
+        return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, author_id, follower_id):
         print(f"Received Author ID: {author_id}, Received Follower ID: {follower_id}")
