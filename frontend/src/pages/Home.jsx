@@ -1,17 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import '../styles/pages/Home.css';
 import FollowRequests from '../components/FollowRequests';
 import SearchBar from '../components/SearchBar';
 import SearchResultsList from '../components/SearchResultsList';
 import { makeGithubActivityPosts } from '../services/GithubService';
+import Cookies from 'js-cookie';
 
 const Home = () => {
   const [results, setResults] = useState([]);
+  const hasRun = useRef(false);
 
   useEffect(() => {
-    makeGithubActivityPosts();
-  });
+    if (hasRun.current) {
+      return;
+    }
+    hasRun.current = true;
+    const makeGithubActivityPostsFromService = async () => {
+      const authorId = Cookies.get('author_id');
+      if (!authorId) {
+        return;
+      }
+      await makeGithubActivityPosts('haileyok', authorId);
+    };
+
+    makeGithubActivityPostsFromService();
+  }, []);
 
   return (
     <div className="home-container">
