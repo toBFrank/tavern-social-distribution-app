@@ -14,7 +14,8 @@ from .views import (
     AuthorsView,
     UnfollowView,
     FollowersDetailView,
-    FriendsView
+    FriendsView,
+    ProfileImageUploadView
 )
 
 urlpatterns = [
@@ -33,4 +34,5 @@ urlpatterns = [
     path('authors/<str:author_id>/followers/<str:follower_id>/unfollow/', UnfollowView.as_view(), name='unfollow'),
     path('followers/', FollowersDetailView.as_view(), name='followers'),
     path('friends/', FriendsView.as_view(), name='friends'),
+    path('authors/<str:username>/upload_image/', ProfileImageUploadView.as_view(), name='upload-profile-image'),
 ]

@@ -12,40 +12,33 @@ from rest_framework.decorators import api_view
 
 # Create your views here.
 class InboxView(APIView):
-    # after creating the necessary follow/like/comment/post object, Inbox object will also be created with a generic foreign key to keep track of whats in the inbox
-    def post(self, request, author_id): #author id of the person's Inbox 
+    def post(self, request, author_id):
         object_type = request.data.get('type')
-        author = get_object_or_404(Author, id=author_id) 
+        author = get_object_or_404(Author, id=author_id)
 
-        #TODO: FILL IN FOR NECESSARY PARTS
-        # if object_type == "post":
-        #     serializer = PostSerializer(data=request.data) 
-        #     content_type = ContentType.objects.get_for_model(Post)
-
-        # elif object_type == "comment":
-        #     serializer = CommentSerializer(data=request.data) 
-        #     content_type = ContentType.objects.get_for_model(Follows)
-
-        # elif object_type == "like":
-        #     serializer = LikeSerializer(data=request.data) 
-        #     content_type = ContentType.objects.get_for_model(Like) 
-
-        #follow request 
+        # Ensure we are dealing with a follow request
         if object_type == "follow":
-            #TODO: shouldn't allow creating the same follow request multiple times.
             serializer = FollowSerializer(data=request.data)
             content_type = ContentType.objects.get_for_model(Follows)
-
         else:
-            return Response({"Error":"Object type does not exist"}, status=400)
-        
-        #want to return 200 if they already request, but don't create another follow request
+            return Response({"Error": "Object type does not exist"}, status=400)
+
+        # Retrieve actor and object data, and handle None case
         actor_data = request.data.get('actor')
         object_data = request.data.get('object')
-        actor_id = actor_data['id'].rstrip('/').split('/')[-1] 
-        object_id = object_data['id'].rstrip('/').split('/')[-1] 
 
-        #asked chatGPT how to filter for a table 2024-10-19
+        # Check if actor_data and object_data exist
+        if actor_data is None or 'id' not in actor_data:
+            return Response({"error": "'actor' or 'actor.id' is missing from the request"}, status=400)
+
+        if object_data is None or 'id' not in object_data:
+            return Response({"error": "'object' or 'object.id' is missing from the request"}, status=400)
+
+        # Extract actor_id and object_id safely
+        actor_id = actor_data['id'].rstrip('/').split('/')[-1]
+        object_id = object_data['id'].rstrip('/').split('/')[-1]
+
+        # Check if the follow request already exists
         existing_follow = Follows.objects.filter(
             local_follower_id=actor_id,
             followed_id=object_id
@@ -53,23 +46,23 @@ class InboxView(APIView):
 
         if existing_follow:
             return Response(FollowSerializer(existing_follow).data, status=200)
-        
-        #if no follow request created already, create entry
+
+        # If no follow request exists, validate and create a new one
         if serializer.is_valid():
             object_instance = serializer.save()
-            
-            #create Inbox entry
+
+            # Create Inbox entry
             Inbox.objects.create(
                 type=object_type,
                 author=author,
                 content_type=content_type,
-                object_id=object_instance.id, # assumes Follow, Comment, Like, Post all have id
+                object_id=object_instance.id,
                 content_object=object_instance
             )
             return Response(serializer.data, status=201)
         else:
             return Response(serializer.errors, status=400)
-        
+
 #local only TODO: need to document this is a new one for local use only
 #TODO: only unique requests...
 @api_view(['GET'])

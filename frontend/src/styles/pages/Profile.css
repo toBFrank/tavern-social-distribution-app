@@ -195,3 +195,14 @@
     text-align: center;
     margin-top: 20px;
 }
+
+.post-image {
+    max-width: 100%;
+    /* Ensures the image doesn't overflow the container */
+    height: auto;
+    /* Maintains the aspect ratio of the image */
+    display: block;
+    /* Ensures the image is displayed as a block element */
+    margin: 10px auto;
+    /* Center the image within its container */
+}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAuthorProfile, updateAuthorProfile } from '../services/editProfileService';
+import { getAuthorProfile, updateAuthorProfile, uploadProfileImage } from '../services/editProfileService';
 import '../styles/pages/EditProfile.css';
+import Cookies from 'js-cookie';  
 
 const EditProfile = () => {
     const { authorId } = useParams();
@@ -14,6 +15,7 @@ const EditProfile = () => {
     });
     const [loading, setLoading] = useState(true);
     const [errors, setErrors] = useState({});
+    const [imageUploading, setImageUploading] = useState(false);  // State for image uploading
 
     // Fetch author details when the component mounts
     useEffect(() => {
@@ -41,6 +43,40 @@ const EditProfile = () => {
         });
     };
 
+    // Handle image file upload
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        const authorIdFromCookie = Cookies.get('author_id');  // Retrieve author_id from cookies
+
+        if (file && authorIdFromCookie) {
+            setImageUploading(true);
+
+            const formDataToUpload = new FormData();
+            formDataToUpload.append('profile_image', file);
+
+            try {
+                // Upload image to the server
+                const response = await uploadProfileImage(authorIdFromCookie, formDataToUpload);  // Upload API call
+                if (response.ok) {
+                    const result = await response.json();
+                    setFormData({
+                        ...formData,
+                        profileImage: result.url  // Set the image URL returned from the server
+                    });
+                } else {
+                    setErrors({ imageUpload: 'Failed to upload image' });
+                }
+            } catch (err) {
+                console.error('Image upload error:', err);
+                setErrors({ imageUpload: 'Image upload failed' });
+            } finally {
+                setImageUploading(false);
+            }
+        } else {
+            setErrors({ imageUpload: 'Please select a file to upload' });
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -48,7 +84,7 @@ const EditProfile = () => {
         const updatedData = {
             display_name: formData.displayName,  // Transform displayName to display_name
             github: formData.github,
-            profile_image: formData.profileImage  // Transform profileImage to profile_image
+            profile_image: formData.profileImage  // Profile image URL from the uploaded image
         };
 
         try {
@@ -104,16 +140,15 @@ const EditProfile = () => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="profileImage">Profile Image URL:</label>
+                        <label htmlFor="profileImage">Profile Image:</label>
                         <input
-                            type="url"
-                            authorId="profileImage"
+                            type="file"
                             name="profileImage"
-                            placeholder="Enter profile image URL"
-                            value={formData.profileImage}
-                            onChange={handleChange}
+                            accept="image/*"
+                            onChange={handleImageUpload}  // Handle image file upload
                         />
-                        {errors.profileImage && <p className="error">{errors.profileImage}</p>}
+                        {imageUploading && <p>Uploading image...</p>}
+                        {errors.imageUpload && <p className="error">{errors.imageUpload}</p>}
                     </div>
 
                     {errors.general && <p className="error">{errors.general}</p>}

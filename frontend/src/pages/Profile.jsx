@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService'; // Import service
 import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
+import editIcon from '../assets/editIcon.png';
 import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';  // Import react-markdown for rendering markdown content
 
 const Profile = () => {
   const { authorId } = useParams();  // Get the authorId from the URL parameters
@@ -37,6 +39,7 @@ const Profile = () => {
       })
   }, []) //empty dependency list so that its only called once when component mounts
 
+  
   // Show loading message or an error message if data is not available
   if (loading) {
     return <p>Loading...</p>; // Show a loading message while fetching
@@ -46,7 +49,6 @@ const Profile = () => {
     return <p>Error loading profile data.</p>; // Show an error message if data is null
   }
 
-  // Determine if the current user is viewing their own profile
   const isCurrentUser = currentUserId === authorId;
 
   // Filter posts based on visibility
@@ -128,11 +130,33 @@ const Profile = () => {
                   </div>
                   <div className="post-content">
                     <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+
+                    {/* Display the image if available */}
+                    {post.image_content ? (
+                      <img
+                        src={`http://localhost:8000${post.image_content}`}
+                        alt="Post Content"
+                        className="post-image"
+                      />
+                    ) : post.content_type === 'text/markdown' ? (
+                      /* Render markdown content */
+                      <ReactMarkdown>{post.text_content}</ReactMarkdown>
+                    ) : (
+                      /* Render plain text if no markdown or image */
+                      <p>{post.text_content || "No content available"}</p>
+                    )}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
                     <p>{post.comments_count} Comments</p>
+
+                    {isCurrentUser && (
+                      <button onClick={() => navigate(`/post/${post.id}/edit`,{ state: { postId: post.id } })}>
+                        <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
+                        Edit
+                      </button>
+                    )}
+
                   </div>
                 </div>
               ))
@@ -154,11 +178,33 @@ const Profile = () => {
                   </div>
                   <div className="post-content">
                     <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+
+                    {/* Display the image if available */}
+                    {post.image_content ? (
+                      <img
+                        src={`http://localhost:8000${post.image_content}`}
+                        alt="Post Content"
+                        className="post-image"
+                      />
+                    ) : post.content_type === 'text/markdown' ? (
+                      /* Render markdown content */
+                      <ReactMarkdown>{post.text_content}</ReactMarkdown>
+                    ) : (
+                      /* Render plain text if no markdown or image */
+                      <p>{post.text_content || "No content available"}</p>
+                    )}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
                     <p>{post.comments_count} Comments</p>
+
+                    {isCurrentUser && (
+                      <button onClick={() => navigate(`/post/${post.id}/edit`, { state: { postId: post.id } })}>
+                        <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
+                        Edit
+                      </button>
+                    )}
+
                   </div>
                 </div>
               ))
@@ -180,11 +226,33 @@ const Profile = () => {
                   </div>
                   <div className="post-content">
                     <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+
+                    {/* Display the image if available */}
+                    {post.image_content ? (
+                      <img
+                        src={`http://localhost:8000${post.image_content}`}
+                        alt="Post Content"
+                        className="post-image"
+                      />
+                    ) : post.content_type === 'text/markdown' ? (
+                      /* Render markdown content */
+                      <ReactMarkdown>{post.text_content}</ReactMarkdown>
+                    ) : (
+                      /* Render plain text if no markdown or image */
+                      <p>{post.text_content || "No content available"}</p>
+                    )}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
                     <p>{post.comments_count} Comments</p>
+
+                    {isCurrentUser && (
+                      <button onClick={() => navigate(`/post/${post.id}/edit`, { state: { postId: post.id } })}>
+                        <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
+                        Edit
+                      </button>
+                    )}
+
                   </div>
                 </div>
               ))
@@ -208,7 +276,18 @@ const Profile = () => {
                   </div>
                   <div className="post-content">
                     <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-                    <p>{post.text_content || "No content available"}</p> {/* Display the text_content */}
+                    {/* Check the content type and render accordingly */}
+                    {post.image_content ? (
+                      <img
+                        src={`http://localhost:8000${post.image_content}`}
+                        alt="Post Content"
+                        className="post-image"
+                      />
+                    ) : post.content_type === 'text/markdown' ? (
+                      <ReactMarkdown>{post.text_content}</ReactMarkdown>  // Render markdown content
+                    ) : (
+                      <p>{post.text_content || "No content available"}</p>  // Render plain text if no markdown
+                    )}
                   </div>
                   <div className="post-footer">
                     <p>{post.likes_count} Likes</p>
@@ -227,3 +306,4 @@ const Profile = () => {
 };
 
 export default Profile;
+
