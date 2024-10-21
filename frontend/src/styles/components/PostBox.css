@@ -1,7 +1,9 @@
 .post-box {
   display: flex;
   flex-direction: column;
-  width: 70%;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 88%;
   margin-top: 20px;
   background-color: #f8e5d3;
   border-radius: 40px;
@@ -85,9 +87,4 @@
   gap: 40px;
   margin-left: 20px;
   margin-right: 20px;
-}
-.post-footer p {
-  font-size: medium;
-  margin: 0;
-  color: black;
 }

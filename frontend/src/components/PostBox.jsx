@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { getMarkdownText } from '../utils/getMarkdownText';
 import { getPostImageUrl } from '../services/PostsService';
 import '../styles/components/PostBox.css';
+import LikeButton from './LikeButton';
+import CommentsModal from './CommentsModal';
 
 const PostBox = ({ post, poster }) => {
   const [imageUrl, setImageUrl] = useState(null);
@@ -51,8 +53,8 @@ const PostBox = ({ post, poster }) => {
         )}
       </div>
       <div className="post-footer">
-        <p>{post.likes_count} likes</p>
-        <p>{post.comments_count} comments</p>
+          <LikeButton postId={post.id} />
+          <CommentsModal postId={post.id} />
       </div>
     </div>
   );
