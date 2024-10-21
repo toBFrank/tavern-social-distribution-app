@@ -3,7 +3,6 @@ import '../styles/pages/Home.css';
 import FollowRequests from '../components/FollowRequests';
 import SearchBar from '../components/SearchBar';
 import SearchResultsList from '../components/SearchResultsList';
-import Cookies from 'js-cookie'; 
 import { getAuthorProfile } from '../services/profileService'; 
 import api from '../services/axios'; // Adjust the import based on your file structure
 
@@ -14,6 +13,7 @@ const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState('Public');
   const [authorProfiles, setAuthorProfiles] = useState({}); 
   const [results, setResults] = useState([]);
+  const [authorizedAuthors, setAuthorizedAuthors] = useState([]); // New state for authorized authors
 
   const handleFilterClick = (filter) => {
     setSelectedFilter(filter);
@@ -27,6 +27,9 @@ const Home = () => {
 
         // Set posts directly from the response structure
         setPosts(data.posts); 
+
+        // Set authorized authors
+        setAuthorizedAuthors(data.authorized_authors_per_post); // Set authorized authors data
 
         // Fetch author profiles based on the retrieved posts
         const profiles = await Promise.all(
@@ -68,6 +71,14 @@ const Home = () => {
 
   // Filter posts based on visibility and selected filter
   const filteredPosts = posts.filter(post => {
+    // Find the corresponding entry in authorizedAuthors for the current post
+    const postAuthorization = authorizedAuthors.find(auth => auth.post_id === post.id);
+    const isAuthorized = postAuthorization.authorized_authors.includes(post.author_id);
+    if (!isAuthorized) {
+      return false; // Skip unauthorized posts
+    }
+
+    // Check visibility based on selected filter
     if (selectedFilter === 'Public') {
       return post.visibility === 'PUBLIC';
     } else if (selectedFilter === 'Unlisted') {
@@ -137,4 +148,3 @@ const Home = () => {
 };
 
 export default Home;
-
