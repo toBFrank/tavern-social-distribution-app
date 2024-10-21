@@ -3,10 +3,11 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.test import APIClient
 from users.models import Author
-from posts.models import Post, Comment
+from posts.models import Post, Comment, Like
 import uuid
 from django.urls import reverse
 from rest_framework import status
+from django.contrib.contenttypes.models import ContentType
 
 
 # Create your tests here.
@@ -132,3 +133,20 @@ class LikeViewTests(TestCase):
 
         response = self.client.post(url, like_request, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_likes_200(self):
+        url = reverse('post_likes', kwargs={'author_serial': self.like_author.id, 'post_id': self.post.id})  
+
+        content_type = ContentType.objects.get_for_model(Post)
+        Like.objects.create(
+            id=uuid.uuid4(),
+            author_id=self.like_author,
+            content_type=content_type,
+            object_id=self.post.id,
+            content_object=self.post
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        
