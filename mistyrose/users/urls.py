@@ -13,6 +13,8 @@ from .views import (
     FollowerView, 
     AuthorsView,
     UnfollowView,
+    FollowersDetailView,
+    FriendsView
 )
 
 urlpatterns = [
@@ -29,4 +31,6 @@ urlpatterns = [
     path('service/api/authors/<str:author_id>/followers/<str:follower_id>/', FollowerView.as_view(), name='manage_follow_request'), #TODO: remove service
     path('api/authors/', AuthorsView.as_view(), name='authors-list'),
     path('authors/<str:author_id>/followers/<str:follower_id>/unfollow/', UnfollowView.as_view(), name='unfollow'),
+    path('followers/', FollowersDetailView.as_view(), name='followers'),
+    path('friends/', FriendsView.as_view(), name='friends'),
 ]

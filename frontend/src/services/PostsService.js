@@ -24,7 +24,7 @@ export const deletePost = async (authorSerial, postSerial) => {
 export const updatePost = async (authorSerial, postSerial, postData) => {
   try {
     const response = await api.put(
-      `posts/authors/${authorSerial}/posts/${postSerial}/`,
+      `posts/authors/${authorSerial}/posts/${postSerial}/`, 
       postData
     );
     return response;
