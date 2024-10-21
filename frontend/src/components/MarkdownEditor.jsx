@@ -1,14 +1,10 @@
 import React from 'react';
-import { marked } from 'marked';
+import { getMarkdownText } from '../utils/getMarkdownText';
 import '../styles/components/MarkdownEditor.css';
 
 const MarkdownEditor = ({ markdown, setMarkdown }) => {
   const handleChange = (event) => {
     setMarkdown(event.target.value);
-  };
-
-  const getMarkdownText = () => {
-    return { __html: marked(markdown) };
   };
 
   return (
@@ -23,7 +19,7 @@ const MarkdownEditor = ({ markdown, setMarkdown }) => {
       />
       <div
         className="markdown-preview"
-        dangerouslySetInnerHTML={getMarkdownText()}
+        dangerouslySetInnerHTML={getMarkdownText(markdown)}
       />
     </div>
   );
