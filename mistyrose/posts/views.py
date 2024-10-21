@@ -10,7 +10,7 @@ from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from .models import Post
-from users.models import Author, Follows  # Make sure to import the Author model
+from users.models import Author, Follows  
 
 
 #region Post Views
@@ -41,9 +41,7 @@ class PostDetailsView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        else:
-            print("serializer errors:", serializer.errors)  # Log validation errors here
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
       
     def delete(self, request, author_serial, post_serial):
@@ -76,32 +74,26 @@ class AuthorPostsView(APIView):
     """
 
     def get(self, request, author_serial):
-        # Fetch all posts by the specified author
         posts = Post.objects.filter(author_id=author_serial)
 
-        # Serialize posts to access visibility and other fields
         serializer = PostSerializer(posts, many=True)
 
-        # Get the current author instance
         current_author = get_object_or_404(Author, user=request.user)
 
-        # Get all author IDs excluding the current author
         all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
 
-        # Initialize a list to hold authorized authors for each post
         authorized_authors_per_post = []
 
-        # Iterate over the serialized post data
         for post_data in serializer.data:
-            post_visibility = post_data.get('visibility')  # Get the visibility from serialized data
-            authorized_authors = set()  # Create a set for authorized authors for this specific post
+            post_visibility = post_data.get('visibility') 
+            authorized_authors = set()  
 
             if post_visibility == 'PUBLIC':
-                # For public posts, include all author IDs
+
                 authorized_authors.update(all_authors)
 
             elif post_visibility == 'UNLISTED':
-                # For unlisted posts, get all followers
+                
                 followers = Follows.objects.filter(
                     followed_id=current_author,
                     status='ACCEPTED'
@@ -110,35 +102,35 @@ class AuthorPostsView(APIView):
                 authorized_authors.update(followers_data)
 
             elif post_visibility == 'FRIENDS':
-                # For friends posts, get mutual followers (those who are both followed and following the current author)
+               
                 following_ids = Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True)
                 followers_ids = Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True)
 
-                # Find mutual friends
+         
                 mutual_friend_ids = set(following_ids).intersection(set(followers_ids))
                 
-                # Fetch the mutual friends' author objects
+              
                 friends = Author.objects.filter(id__in=mutual_friend_ids)
                 friends_data = [friend.id for friend in friends]
                 authorized_authors.update(friends_data)
 
-            # Append the authorized authors for this post to the list
+          
             authorized_authors_per_post.append({
                 'post_id': post_data['id'],  # Assuming 'id' is the post ID in the serialized data
                 'authorized_authors': list(authorized_authors)  # Convert set to list
             })
 
-        # Combine both the serialized posts and the authorized authors in the response
+      
         response_data = {
-            'posts': serializer.data,  # Serialized post data
-            'authorized_authors_per_post': authorized_authors_per_post  # Authorized authors for each post
+            'posts': serializer.data,  
+            'authorized_authors_per_post': authorized_authors_per_post  
         }
 
-        # Return the combined response
+       
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-        # Return the authorized authors for each post
+       
         return Response(authorized_authors_per_post, status=status.HTTP_200_OK)
 
     def post(self, request, author_serial):
