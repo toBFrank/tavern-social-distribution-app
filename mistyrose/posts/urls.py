@@ -1,6 +1,5 @@
 from django.urls import path
 from .views import AuthorPostsView, PostDetailsByFqidView, PostDetailsView, PostImageView, CommentedView, PublicPostsView
-
 urlpatterns = [
     # Post URLs
     path('authors/<uuid:author_serial>/posts/<uuid:post_serial>/', PostDetailsView.as_view(), name='post-detail'),
@@ -10,5 +9,7 @@ urlpatterns = [
     # Comment URLs
     # path('api/authors/<uuid:author_serial>/commented/', CommentedView.as_view(), name='commented'),
     path('', PublicPostsView.as_view(), name='public-posts'),
+ 
+    
     # Like URLs
 ]

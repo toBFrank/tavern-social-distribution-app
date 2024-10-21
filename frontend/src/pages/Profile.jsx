@@ -14,7 +14,6 @@ const Profile = () => {
   const [currentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,7 +45,6 @@ const Profile = () => {
   const publicPosts = profileData.public_posts || [];
   const friendsPosts = profileData.friends_posts || [];
   const unlistedPosts = profileData.unlisted_posts || [];
-
 
   return (
     <div className="profile-page">
