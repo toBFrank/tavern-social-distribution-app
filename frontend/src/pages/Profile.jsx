@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getAuthorProfile } from '../services/profileService'; 
+import { getAuthorProfile } from '../services/profileService'; // Import service
 import '../styles/pages/Profile.css';
-import editIcon from '../assets/editIcon.png';
-import { updatePost } from '../services/PostsService';
 import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -11,10 +9,6 @@ const Profile = () => {
   const currentUserId = Cookies.get('author_id');  // Get the current user's ID from cookies
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Editing posts 
-  const [editPost, setEditPost] = useState(null); 
-  const [editedContent, setEditedContent] = useState(''); 
-
 
   const navigate = useNavigate();
 
@@ -29,7 +23,7 @@ const Profile = () => {
         console.error(err);
         setLoading(false); // Stop loading even on error
       });
-  }, [userAuthentication.authorId]);
+  }, [authorId]);
 
   // Show loading message or an error message if data is not available
   if (loading) {
@@ -41,11 +35,6 @@ const Profile = () => {
   }
 
   // Determine if the current user is viewing their own profile
-  const postTestEdit= (post) => {
-    setEditPost(post.id); 
-    setEditedContent(post.text_content); 
-  };
-  
   const isCurrentUser = currentUserId === authorId;
 
   // Filter posts based on visibility
@@ -53,37 +42,6 @@ const Profile = () => {
   const friendsPosts = profileData.friends_posts || [];
   const unlistedPosts = profileData.unlisted_posts || [];
 
-  const saveEditPost = async (postId) => {
-    try {
-      const postToUpdate = profileData.public_posts.find(post => post.id === postId);
-  
-      const updatedData = {
-        id: postId,  
-        author_id: userAuthentication.authorId, 
-        title: postToUpdate.title || "None",  
-        description: postToUpdate.description || "",  
-        text_content: editedContent,  
-        image_content: postToUpdate.image_content || null,  
-        content_type: postToUpdate.content_type || 'text/plain', 
-        visibility: postToUpdate.visibility || 'PUBLIC',  
-      };
-  
-      await updatePost(userAuthentication.authorId, postId, updatedData);
-  
-      setProfileData((prevData) => ({
-        ...prevData,
-        public_posts: prevData.public_posts.map((post) =>
-          post.id === postId ? { ...post, text_content: editedContent } : post
-        ),
-      }));
-  
-      setEditPost(null);  // Exit edit mode
-    } catch (err) {
-      console.error('Error saving the post:', err);
-    }
-  };
-  
-  
   return (
     <div className="profile-page">
       {/* Profile Header */}
