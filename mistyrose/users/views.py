@@ -1,4 +1,5 @@
 from django.shortcuts import render
+import os
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, generics
@@ -453,4 +454,38 @@ class FriendsView(APIView):
         return Response({
             "friends": friends_data
         }, status=status.HTTP_200_OK)
+    
 
+class ProfileImageUploadView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, username):
+        try:
+            # Ensure the username exists
+            if not username:
+                return Response({"error": "Username not provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Check if the request has a file
+            file = request.FILES.get('profile_image')
+            if not file:
+                return Response({"error": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Create a unique file path for the image based on the username
+            file_path = f'profiles/{username}/{file.name}'
+            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+            # Save the image to the media folder
+            with open(full_path, 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+
+            # Construct the media URL with localhost:8000
+            media_url = f'http://localhost:8000{settings.MEDIA_URL}{file_path}'
+
+            return Response({"message": "Profile image uploaded successfully", "url": media_url}, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({"error": f"Failed to upload profile image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

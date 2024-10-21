@@ -34,3 +34,11 @@ export const updateAuthorProfile = async (authorId, profileData) => {
     if (!response.ok) throw new Error('Failed to update profile');
     return response.json();
 };
+
+export const uploadProfileImage = async (authorId, formData) => {
+    const response = await fetch(`http://localhost:8000/authors/${authorId}/upload_image/`, {
+        method: 'POST',
+        body: formData
+    });
+    return response;
+};
