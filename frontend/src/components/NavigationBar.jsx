@@ -19,7 +19,7 @@ const NavigationBar = () => {
     ['Home', <CottageOutlined fontSize="inherit" />, '/'],
     ['Post', <AddOutlined fontSize="inherit" />, '/post'],
     ['Profile', <PersonOutlined fontSize="inherit" />, `/profile/${authorId}`],
-    ['Settings', <SettingsOutlined fontSize="inherit" />, '/settings'],
+    // ['Settings', <SettingsOutlined fontSize="inherit" />, '/settings'],
   ];
   const location = useLocation();
   //#endregion
