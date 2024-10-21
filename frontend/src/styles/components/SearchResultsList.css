@@ -11,6 +11,8 @@
   overflow-y: auto;
   position: absolute; /*dont want it to push down the content when search list appears */
   top: 2.5rem; /* so that its displayed under the search bar which is set to 2.5 height*/
-  z-index: 10; 
-  width: calc(100% - 21.5rem); /*21.5 rem is right padding for the main content in home*/
+  z-index: 10;
+  width: calc(
+    100% - 21.5rem
+  ); /*21.5 rem is right padding for the main content in home*/
 }

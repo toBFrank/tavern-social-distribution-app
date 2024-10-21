@@ -49,8 +49,7 @@ api.interceptors.response.use(
             }
           );
           const accessToken = response.data['access'];
-          console.log(`New Access Token UWU: ${accessToken}`);
-
+          
           Cookies.set('access_token', accessToken, { sameSite: 'strict' });
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return axios(originalRequest);

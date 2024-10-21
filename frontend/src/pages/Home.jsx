@@ -8,6 +8,7 @@ import { makeGithubActivityPosts } from '../services/GithubService';
 import Cookies from 'js-cookie';
 import { getAuthorProfile } from '../services/profileService';
 import api from '../services/axios'; // Adjust the import based on your file structure
+import PostBox from '../components/PostBox';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -162,42 +163,17 @@ const Home = () => {
           </h3>
         </div>
         <div className="posts-container">
-          <div className="posts-list">
-            {filteredPosts.length > 0 ? (
-              <ul>
-                {filteredPosts.map((post) => (
-                  <li key={post.id}>
-                    <div className="posts-det-content">
-                      <div className="author-container">
-                        {authorProfiles[post.author_id]?.profileImage && (
-                          <img
-                            src={authorProfiles[post.author_id]?.profileImage}
-                            alt="Author Profile"
-                            style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '50%',
-                            }}
-                          />
-                        )}
-                        <div className="author-detail">
-                          <h3>
-                            {authorProfiles[post.author_id]?.displayName ||
-                              'Anonymous'}
-                          </h3>
-                          <p>{new Date(post.published).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                      <h4>{post.title}</h4>
-                      <p>{post.text_content}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No posts available.</p>
-            )}
-          </div>
+          {filteredPosts.length > 0 ? (
+            <ul>
+              {filteredPosts.map((post, index) => (
+                <li key={post.id}>
+                  <PostBox post={post} poster={authorProfiles[post.author_id]} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No posts available.</p>
+          )}
         </div>
       </div>
       <div className="follow-request-container">
@@ -208,3 +184,40 @@ const Home = () => {
 };
 
 export default Home;
+
+// <div className="posts-list">
+//   {filteredPosts.length > 0 ? (
+//     <ul>
+//       {filteredPosts.map((post, index) => (
+//         <li key={post.id}>
+//           <div className="posts-det-content">
+//             <div className="author-container">
+//               {authorProfiles[post.author_id]?.profileImage && (
+//                 <img
+//                   src={authorProfiles[post.author_id]?.profileImage}
+//                   alt="Author Profile"
+//                   style={{
+//                     width: '50px',
+//                     height: '50px',
+//                     borderRadius: '50%',
+//                   }}
+//                 />
+//               )}
+//               <div className="author-detail">
+//                 <h3>
+//                   {authorProfiles[post.author_id]?.displayName ||
+//                     'Anonymous'}
+//                 </h3>
+//                 <p>{new Date(post.published).toLocaleDateString()}</p>
+//               </div>
+//             </div>
+//             <h4>{post.title}</h4>
+//             <p>{post.text_content}</p>
+//           </div>
+//         </li>
+//       ))}
+//     </ul>
+//   ) : (
+//     <p>No posts available.</p>
+//   )}
+// </div>
