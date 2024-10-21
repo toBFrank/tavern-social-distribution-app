@@ -17,15 +17,15 @@ const SearchBar = ({ setResults }) => {
 
       if (Array.isArray(authorsArray)) {
         const results = authorsArray.filter((author) => {
-          return (
-            value && //check that they've entered value into search bar --> if value is empy --> wont render anything
-            author && //check that user exists
-            author.displayName && //check that user has a display name
-            author.displayName.toLowerCase().includes(value) //check if lowercase of authors name includes value entered into search bar
-          );
-        });
-
-        setResults(results);
+            return (
+              value && //check that they've entered value into search bar --> if value is empy --> wont render anything
+              author && //check that user exists
+              author.displayName && //check that user has a display name
+              author.displayName.toLowerCase().includes(value.toLowerCase()) //check if lowercase of authors name includes value entered into search bar
+            );
+          });
+          
+          setResults(results);
       } else {
         console.error(
           'Expected authors to be an array, but got:',

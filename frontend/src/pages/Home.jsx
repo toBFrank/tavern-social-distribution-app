@@ -7,7 +7,9 @@ import SearchResultsList from '../components/SearchResultsList';
 import { makeGithubActivityPosts } from '../services/GithubService';
 import Cookies from 'js-cookie';
 import { getAuthorProfile } from '../services/profileService';
-import api from '../services/axios'; // Adjust the import based on your file structure
+import LikeButton from '../components/LikeButton';
+import CommentsModal from '../components/CommentsModal';
+import api from '../services/axios'; 
 import PostBox from '../components/PostBox';
 
 const Home = () => {
