@@ -18,7 +18,7 @@ class LoginViewTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.author = Author.objects.create(user=self.user, display_name='Test User')
-        self.url = reverse('login')  # Ensure you have named the login URL as 'login'
+        self.url = reverse('login')  
 
     def test_login_success(self):
         data = {"username": "testuser", "password": "testpass"}
