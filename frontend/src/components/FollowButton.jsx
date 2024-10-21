@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createFollowRequest, checkIfFollowing } from '../services/FollowService';
+import { createFollowRequest, checkIfFollowing, rejectFollowRequest } from '../services/FollowService';
 
 const FollowButton = ({ authorId, currentUserId, currentProfileData, profileData }) => {
   const [buttonState, setButtonState] = useState("Follow");
@@ -54,17 +54,33 @@ const FollowButton = ({ authorId, currentUserId, currentProfileData, profileData
         console.error(error);
       }
     }
-    
-    else if (buttonState === "Unfollow") {
-      // unfollow button logic here
-    }
 
   };
+
+  const handleUnfollow = async () => {
+    if (buttonState === "Unfollow"){
+      try {
+        await rejectFollowRequest(authorId, currentUserId);
+        setButtonState("Follow");  // Update button state after a successful unfollow request
+      } catch (error) {
+        console.error("Error unfollowing:", error);
+      }
+    }
+  };
+
+  const handleButtonClick = async () => {
+    if (buttonState === "Follow") {
+      await handleFollow();  // Handle the follow action
+    } else if (buttonState === "Unfollow") {
+      await handleUnfollow();  // Handle the unfollow action
+    }
+  };
+
 
 
   return (
     <button 
-      onClick={handleFollow} 
+      onClick={handleButtonClick} 
       disabled={buttonState === "Requested"}
     >
       {buttonState}
