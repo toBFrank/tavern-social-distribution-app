@@ -72,6 +72,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/post/:postId/share"
+        element={
+          <ProtectedRoute>
+            <Post />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 };

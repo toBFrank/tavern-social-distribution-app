@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
-
+from django.http import JsonResponse
 
 #region Post Views
 class PostDetailsView(APIView):

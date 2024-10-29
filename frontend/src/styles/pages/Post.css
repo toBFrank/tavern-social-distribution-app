@@ -88,19 +88,28 @@ input[type='radio'] {
 }
 
 .post-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 800px;
-  height: 50px;
-  background-color: #c1ffc7;
-  border-radius: 28px;
+  min-width: 600px;
+  height: 40px;
+  color: #fff;
+  padding: 5px 10px;
+  font-weight: bold;
   cursor: pointer;
-  color: black;
-  font-family: Arial, sans-serif;
-  font-size: 17px;
-  padding: 0 31px;
-  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+  outline: none;
+  border-radius: 5px;
+  border: none;
+  background: #4e7056;
+  box-shadow: 0 5px #4b8b70;
+}
+.post-button:hover {
+  box-shadow: 0 3px rgb(64, 131, 102);
+  top: 1px;
+}
+.post-button:active {
+  box-shadow: 0 0 #4b8b70;
+  top: 5px;
 }
 
 .delete-button {

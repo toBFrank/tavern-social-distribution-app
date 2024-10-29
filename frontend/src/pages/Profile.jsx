@@ -60,14 +60,28 @@ const Profile = () => {
     <div className="profile-page">
       {/* Profile Header */}
       <div className="profile-header">
-        <img
-          src={profileData.profileImage}
-          alt={profileData.displayName}
-          className="profile-image"
-        />
-        <h1>{profileData.displayName}</h1>
+        <div className='Img-details'>
+          <img
+            src={profileData.profileImage}
+            alt={profileData.displayName}
+            className="profile-image"
+          />
+          {/* Follow / Edit Profile Button */}
+          {isCurrentUser ? (
+            <button className='edit-button' onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
+          ) : (
+            <FollowButton 
+              authorId={authorId} 
+              currentUserId={currentUserId} 
+              currentProfileData={currentProfileData} 
+              profileData={profileData}
+            />
+          )}
+        </div>
 
-        <div className="profile-stats">
+        <div className='profile-details'>
+          <h1>{profileData.displayName}</h1>
+          <div className="profile-stats">
           <div>
             <h2>{profileData.friends_count || 0}</h2>
             <p>Friends</p>
@@ -82,33 +96,27 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Profile Links */}
-        <div className="profile-links">
-          <p>GitHub Profile:</p>
-          <a
-            href={profileData.github}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {profileData.github || 'GitHub Profile'}
-          </a>
-          <p>Profile Link:</p>
-          <a href={profileData.page} target="_blank" rel="noopener noreferrer">
-            {profileData.page || 'Profile Link'}
-          </a>
-        </div>
+          {/* Profile Links */}
+          <div className="profile-links">
+            <div className='links-details'>
+              <p>GitHub Profile:</p>
+              <a
+                href={profileData.github}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {profileData.github || 'GitHub Profile'}
+              </a>
+            </div>
+            <div className='links-details'>
+                <p>Profile Link:</p>
+                <a href={profileData.page} target="_blank" rel="noopener noreferrer">
+                  {profileData.page || 'Profile Link'}
+                </a>
+            </div>
 
-        {/* Follow / Edit Profile Button */}
-        {isCurrentUser ? (
-          <button onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
-        ) : (
-          <FollowButton 
-            authorId={authorId} 
-            currentUserId={currentUserId} 
-            currentProfileData={currentProfileData} 
-            profileData={profileData}
-          />
-        )}
+          </div>
+        </div>
       </div>
 
       {/* Post Sections */}
@@ -123,7 +131,7 @@ const Profile = () => {
                 <div key={post.id} className="post">
                   <div className="post-header">
                     <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
-                    <div>
+                    <div className='userPost-details'>
                       <h3>{profileData.displayName}</h3>
                       <p>{new Date(post.published).toLocaleString()}</p>
                     </div>
@@ -151,7 +159,7 @@ const Profile = () => {
                     <p>{post.comments_count} Comments</p>
 
                     {isCurrentUser && (
-                      <button onClick={() => navigate(`/post/${post.id}/edit`,{ state: { postId: post.id } })}>
+                      <button className='post-edit-button'onClick={() => navigate(`/post/${post.id}/edit`,{ state: { postId: post.id } })}>
                         <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
                         Edit
                       </button>

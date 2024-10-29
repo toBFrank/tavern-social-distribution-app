@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Cookies from 'js-cookie';
+import '../styles/pages/Login.css'
+import logInText from '../assets/logInText.png';
 import { login } from '../services/loginservice';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,31 +45,33 @@ const Login = () => {
   //#endregion
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit} method="post">
-        <div className="form-group">
-          <label>Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" disabled={loading}>
-          Login
-        </button>
-      </form>
+<div className='login-background-container'>
+      <div className="login-container">
+        <img src={logInText} className='logIn-text' alt="Login" />
+        <form className= "form-container" onSubmit={handleSubmit} method="post">
+          <div className="form-group">
+            <label className='username-text'>Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className='password-text'>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button className ="login-button" type="submit" disabled={loading}>
+            Enter
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

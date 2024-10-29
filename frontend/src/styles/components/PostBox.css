@@ -5,9 +5,9 @@
   justify-content: flex-start;
   width: 88%;
   margin-top: 20px;
-  background-color: #f8e5d3;
+  background-color: #fff9f3;
   border-radius: 40px;
-  border: 5px solid black;
+  border: 3px solid black;
   padding: 20px;
   align-items: flex-start;
 }
@@ -17,9 +17,10 @@
   flex-direction: row;
   width: 100%;
   justify-content: flex-start;
+  
 }
 .profile-image-container {
-  margin-right: 10px;
+  margin-right: 20px;
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -68,9 +69,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-left: 20px;
-  margin-right: 20px;
-  margin-bottom: 20px;
+  white-space: pre-wrap;
 }
 .post-content h2 {
   font-size: large;
@@ -94,3 +93,5 @@
   margin-left: 20px;
   margin-right: 20px;
 }
+
+

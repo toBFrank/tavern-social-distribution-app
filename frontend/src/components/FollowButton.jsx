@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../styles/components/FollowButton.css';
 import { createFollowRequest, checkIfFollowing, rejectFollowRequest } from '../services/FollowService';
 
 const FollowButton = ({ authorId, currentUserId, currentProfileData, profileData }) => {
@@ -80,12 +81,14 @@ const FollowButton = ({ authorId, currentUserId, currentProfileData, profileData
 
   return (
     <button 
+      className={`follow-button ${buttonState === "Requested" ? 'requested' : ''}`} 
       onClick={handleButtonClick} 
       disabled={buttonState === "Requested"}
     >
       {buttonState}
     </button>
-  );
+);
+
 };
 
 export default FollowButton;

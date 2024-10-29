@@ -5,14 +5,15 @@
 
 .follow-request-container {
     width: 11rem;
-    background-color: #f8e5d3;
+    background-color: #fffbf8;
     padding: 20px;
     position: fixed;
     right: 0;
     top: 0;
     bottom: 0;
-    margin: 20px;
+    margin: 20px 40px 20px 20px;
     border-radius: 20px;
+    border: 3px solid black;
 }
 
 .home-container {
@@ -20,7 +21,6 @@
     display: flex;
     flex-direction: column;
     min-width: 0; /* prevent overflow*/
-    margin: 1rem;
     padding-right: 18rem;
     position: relative;
     overflow: visible;
@@ -39,6 +39,7 @@
   font-size: 20px;
 }
 .home-filter-options {
+  margin: 10px 0 0 20px;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;

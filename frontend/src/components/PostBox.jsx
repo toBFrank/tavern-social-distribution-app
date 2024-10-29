@@ -4,6 +4,7 @@ import { getPostImageUrl } from '../services/PostsService';
 import '../styles/components/PostBox.css';
 import LikeButton from './LikeButton';
 import CommentsModal from './CommentsModal';
+import ShareButton from './ShareButton';
 
 const PostBox = ({ post, poster }) => {
   const [imageUrl, setImageUrl] = useState(null);
@@ -27,7 +28,7 @@ const PostBox = ({ post, poster }) => {
     if (post.content_type === 'image') {
       getImgUrlFromServer();
     }
-  }, []);
+  }, [post.author_id, post.content_type, post.id]);
 
   return (
     <div className="post-box">
@@ -55,6 +56,9 @@ const PostBox = ({ post, poster }) => {
       <div className="post-footer">
           <LikeButton postId={post.id} />
           <CommentsModal postId={post.id} />
+          {post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && (
+            <ShareButton postId={post.id} authorId={post.author_id} />
+          )}
       </div>
     </div>
   );
