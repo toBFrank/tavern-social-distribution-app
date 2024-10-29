@@ -45,21 +45,31 @@ const FollowRequests = () => {
     };
 
     return (
-        <div>
+        <div className="FollowRequest-container">
             <div className="requests-title">Requests</div>
-            {followRequests.map((followRequest, index) => (
-                <div key={index} className="follow-request-box">
-                    <div className="follower-name">{followRequest.actor.displayName}</div>
-                    <div className="btns">
-                        <button className="reject-button" onClick={() => handleReject(followRequest.actor.id)}>
-                            <Clear className="icon"/> {/* 'x' button */}
-                        </button>
-                        <button className="accept-button" onClick={() => handleAccept(followRequest.actor.id)}>
-                            <Check className="icon"/> {/* check button */}
-                        </button>
+            {followRequests.map((followRequest, index) => {
+                console.log(followRequest.actor.profileImage); 
+                return (
+                    <div key={index} className="follow-request-box">
+                        <div className="follower-picAndName"> 
+                            <img
+                                className="follower-profilePic"
+                                src={followRequest.actor.profileImage} 
+                                alt={`Img`} 
+                            />
+                            <div className="follower-name">{followRequest.actor.displayName}</div>
+                        </div>
+                        <div className="btns">
+                            <button className="reject-button" onClick={() => handleReject(followRequest.actor.id)}>
+                                <Clear className="icon"/> {/* 'x' button */}
+                            </button>
+                            <button className="accept-button" onClick={() => handleAccept(followRequest.actor.id)}>
+                                <Check className="icon"/> {/* check button */}
+                            </button>
+                        </div>
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 };
