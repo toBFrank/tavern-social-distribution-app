@@ -35,7 +35,6 @@ const Login = () => {
 
       setLoading(false);
       navigate('/');
-      console.log('Login successful:', response);
     } catch (error) {
       console.error('Login failed:', error);
     }
