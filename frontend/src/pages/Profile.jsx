@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService'; // Import service
 import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
-import editIcon from '../assets/editIcon.png';
 import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';  // Import react-markdown for rendering markdown content
 import PostBox from '../components/PostBox';
 
 const Profile = () => {
@@ -121,7 +119,7 @@ const Profile = () => {
             <h2>Public Posts</h2>
             {publicPosts.length > 0 ? (
               publicPosts.map((post) => (
-                <PostBox post={post} poster={profileData} />
+                <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/>
               ))
             ) : (
               <p>No public posts available.</p>
@@ -131,7 +129,7 @@ const Profile = () => {
             <h2>Friends Posts</h2>
             {friendsPosts.length > 0 ? (
               friendsPosts.map((post) => (
-                <PostBox post={post} poster={profileData} />
+                <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/>
               ))
             ) : (
               <p>No friends posts available.</p>
@@ -141,7 +139,7 @@ const Profile = () => {
             <h2>Unlisted Posts</h2>
             {unlistedPosts.length > 0 ? (
               unlistedPosts.map((post) => (
-                <PostBox post={post} poster={profileData} />
+                <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/>
               ))
             ) : (
               <p>No unlisted posts available.</p>
@@ -153,7 +151,7 @@ const Profile = () => {
             <h2>Public Posts</h2>
             {publicPosts.length > 0 ? (
               publicPosts.map((post) => (
-                <PostBox post={post} poster={profileData} />
+                <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/> /* this is someone elses profile, cant edit their post*/
               ))
             ) : (
               <p>This user doesn't have any public posts.</p>

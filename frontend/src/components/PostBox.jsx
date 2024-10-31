@@ -4,8 +4,9 @@ import { getPostImageUrl } from '../services/PostsService';
 import '../styles/components/PostBox.css';
 import LikeButton from './LikeButton';
 import CommentsModal from './CommentsModal';
+import { BorderColor } from "@mui/icons-material";
 
-const PostBox = ({ post, poster }) => {
+const PostBox = ({ post, poster, isUserEditable }) => {
   const [imageUrl, setImageUrl] = useState(null);
 
   const posterName = poster ? poster.displayName : 'Anonymous';
@@ -43,6 +44,13 @@ const PostBox = ({ post, poster }) => {
           <h4>{posterName}</h4>
           <p>{new Date(post.published).toLocaleString()}</p>
         </div>
+        {isUserEditable && (
+          <div className='post-edit'>
+            <button className='post-edit-button'>
+              <BorderColor className='post-edit-icon' />
+            </button>
+          </div>
+        )}
       </div>
       <div className="post-content">
         <h2>{post.title}</h2>
