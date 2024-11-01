@@ -32,6 +32,7 @@
   border: none;
   color: grey;
   cursor: pointer;
+  margin-top: 0.5rem;
   /* max-width: 100px; */
 }
 
