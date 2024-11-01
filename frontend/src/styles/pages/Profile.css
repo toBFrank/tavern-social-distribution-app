@@ -67,41 +67,6 @@
     margin-top: 30px;
 }
 
-/* Each post card */
-.post {
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.post-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.post-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.post-content {
-    margin-top: 10px;
-}
-
-.post-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    font-size: 14px;
-    color: #777;
-}
-
 /* No posts message */
 .no-posts-message {
     font-size: 18px;
@@ -109,13 +74,6 @@
     text-align: center;
     margin-top: 20px;
     /* Spacing above the message */
-}
-
-.post-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    position: relative; 
 }
 
 .edit-Icon {
