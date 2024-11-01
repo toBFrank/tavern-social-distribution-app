@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom'; // Import Link from React Router
 import { getMarkdownText } from '../utils/getMarkdownText';
 import { getPostImageUrl } from '../services/PostsService';
 import '../styles/components/PostBox.css';
@@ -13,7 +14,6 @@ const PostBox = ({ post, poster }) => {
 
   useEffect(() => {
     const getImgUrlFromServer = async () => {
-      // console.log(JSON.stringify(post));
       try {
         const imageUrlFromServer = await getPostImageUrl(
           post.author_id,
@@ -32,13 +32,15 @@ const PostBox = ({ post, poster }) => {
   return (
     <div className="post-box">
       <div className="post-header">
-        {posterImageUrl ? (
+        <Link to={`/profile/${post.author_id}`} style={{ display: 'flex' }}> {/* Add display: flex */}
           <div className="profile-image-container">
-            <img src={posterImageUrl} alt="profile" className="profile-image" />
+            {posterImageUrl ? (
+              <img src={posterImageUrl} alt="profile" className="profile-image" />
+            ) : (
+              <div className="profile-image-default" />
+            )}
           </div>
-        ) : (
-          <div className="profile-image-default" />
-        )}
+        </Link>
         <div className="poster-name-date">
           <h4>{posterName}</h4>
           <p>{new Date(post.published).toLocaleString()}</p>
@@ -53,8 +55,8 @@ const PostBox = ({ post, poster }) => {
         )}
       </div>
       <div className="post-footer">
-          <LikeButton postId={post.id} />
-          <CommentsModal postId={post.id} />
+        <LikeButton postId={post.id} />
+        <CommentsModal postId={post.id} />
       </div>
     </div>
   );

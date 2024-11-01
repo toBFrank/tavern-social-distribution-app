@@ -7,6 +7,7 @@ import Settings from '../pages/Settings';
 import EditProfile from '../pages/EditProfile';
 import Signup from '../pages/Signup';
 import Login from '../pages/Login';
+import PostDetail from '../pages/PostDetail';
 import ProtectedRoute from './ProtectedRoute';
 
 const AppRoutes = () => {
@@ -69,6 +70,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Post />
+          </ProtectedRoute>
+        }
+      />
+       <Route
+        path="/post/:postFqid"
+        element={
+          <ProtectedRoute>
+            <PostDetail />
           </ProtectedRoute>
         }
       />
