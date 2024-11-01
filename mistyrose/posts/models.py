@@ -3,6 +3,7 @@ from django.db import models
 import uuid
 from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError # Remove this!
 
 def get_upload_path(instance, filename):
     return f'posts/{instance.author_id}/{instance.id}/{filename}'
@@ -15,7 +16,8 @@ class Post(models.Model):
       ('FRIENDS', 'Friends'),
       ('PUBLIC', 'Public'),
       ('UNLISTED', 'Unlisted'),
-      ('DELETED', 'Deleted')
+      ('DELETED', 'Deleted'),
+      ('SHARED', 'Shared')
     ]
     
     CONTENT_TYPE_CHOICES = [
@@ -35,12 +37,20 @@ class Post(models.Model):
     image_content = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='PUBLIC')
+    original_url = models.JSONField(blank=True, null=True)
 
     # generic relation for reverse lookup for 'Like' objects on the post - because we are using generic foreign key in the like
     likes = GenericRelation('Like')
 
     def __str__(self):
         return self.title
+    
+    # Remove this
+    def clean(self):
+        # Custom validation to ensure original_url is set for shared posts
+        if self.visibility == 'SHARED' and not self.original_url:
+            raise ValidationError("Original URL must be provided for shared posts.")
+        super().clean()
       
     class Meta:
         ordering = ['-published']

@@ -221,7 +221,8 @@ class AuthorProfileView(APIView):
         public_posts = Post.objects.filter(author_id=author, visibility='PUBLIC').order_by('-published')
         friends_posts = Post.objects.filter(author_id=author, visibility='FRIENDS').order_by('-published')
         unlisted_posts = Post.objects.filter(author_id=author, visibility='UNLISTED').order_by('-published')
-        
+        shared_posts = Post.objects.filter(author_id=author, visibility='SHARED').order_by('-published')
+
         # Serialize the author data
         author_serializer = AuthorSerializer(author)
         
@@ -229,6 +230,7 @@ class AuthorProfileView(APIView):
         public_post_serializer = PostSerializer(public_posts, many=True)
         friends_post_serializer = PostSerializer(friends_posts, many=True)
         unlisted_post_serializer = PostSerializer(unlisted_posts, many=True)
+        shared_post_serializer = PostSerializer(shared_posts, many=True)
         
         # Prepare the response data
         data = author_serializer.data
@@ -238,6 +240,7 @@ class AuthorProfileView(APIView):
         data['public_posts'] = public_post_serializer.data
         data['friends_posts'] = friends_post_serializer.data
         data['unlisted_posts'] = unlisted_post_serializer.data
+        data['shared_posts'] = shared_post_serializer.data
         
         # Return the prepared response
         return Response(data)
