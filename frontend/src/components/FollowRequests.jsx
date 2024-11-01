@@ -48,7 +48,6 @@ const FollowRequests = () => {
         <div className="FollowRequest-container">
             <div className="requests-title">Requests</div>
             {followRequests.map((followRequest, index) => {
-                console.log(followRequest.actor.profileImage); 
                 return (
                     <div key={index} className="follow-request-box">
                         <div className="follower-picAndName"> 

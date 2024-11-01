@@ -102,7 +102,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
           <h4>{posterName}</h4>
           <p>{new Date(postPublishedDate).toLocaleString()}</p>
         </div>
-        {isUserEditable && (
+        {isUserEditable && post.visibility !== 'SHARED' && (
           <div className='post-edit'>
             <button className='post-edit-button' onClick={() => navigate(`/post/${post.id}/edit`, { state: { postId: post.id } })}>
               <BorderColor className='post-edit-icon' />

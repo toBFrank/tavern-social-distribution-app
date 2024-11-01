@@ -20,8 +20,7 @@ const ShareButton = ({ postId, authorId, postContent }) => {
 
         const originalUrl = [authorId, postId];
 
-        // Prepare the new post data
-        const newPostData = {
+        const sharedPostData = {
             author_id: storedAuthorId,
             title: postContent.title || "Untitled",
             text_content: postContent.text_content || "",
@@ -34,15 +33,16 @@ const ShareButton = ({ postId, authorId, postContent }) => {
         if (postContent.content_type === 'image') {
             console.log("content:", postContent);
             const imageUrl = await getPostImageUrl(postContent.author_id, postContent.id);
-            console.log('Image URL:', imageUrl);
-            newPostData.image_url = imageUrl;  // Add image_url to the post data
+            // console.log('Image URL:', imageUrl);
+            sharedPostData.image_url = imageUrl;  // Add image_url to the post data
         }
 
-        console.log("Data sent to API:", newPostData);
+        console.log("Data sent to API:", sharedPostData);
 
         try {
-            const response = await createPost(storedAuthorId, newPostData);
-            console.log("API Response:", response);
+            const response = await createPost(storedAuthorId, sharedPostData);
+            // console.log("API Response:", response);
+            console.log("Response Data:", response.data); 
             alert('Post shared successfully!');
         } catch (error) {
             if (error.response && error.response.status === 401) {

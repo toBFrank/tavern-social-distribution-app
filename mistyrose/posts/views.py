@@ -302,6 +302,15 @@ class PublicPostsView(APIView):
                 friends_data = [friend.id for friend in friends]
                 authorized_authors.update(friends_data)
 
+            elif post_visibility == 'SHARED':
+                original_url = post_data.get('original_url')  
+                if original_url:
+                    original_author_id = original_url[0]  
+                    authorized_authors.add(original_author_id) 
+                post_author_id = post_data.get('author_id')  # Get the author_id from post data
+                authorized_authors.add(post_author_id) 
+
+
             # Include visibility_type in the authorized_authors_per_post dictionary
             authorized_authors_per_post.append({
                 'post_id': post_data['id'], 

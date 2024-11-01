@@ -25,6 +25,7 @@
 
 .follower-name {
   font-family: 'Fredoka', sans-serif;
+  padding-top: 5px;
 }
 
 .accept-button,
@@ -53,4 +54,5 @@
 .follower-picAndName {
   display: flex;
   flex-direction: row;
+  margin: 5px;
 }

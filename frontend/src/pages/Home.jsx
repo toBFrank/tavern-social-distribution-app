@@ -111,7 +111,7 @@ const Home = () => {
     const postAuthorization = authorizedAuthors.find(
       (auth) => auth.post_id === post.id
     );
-    const isAuthorized = postAuthorization.authorized_authors.includes(post.author_id) || post.visibility === "SHARED"; // This is wrong! Ask about this! How to make the shared post authorized
+    const isAuthorized = postAuthorization.authorized_authors.includes(post.author_id);
 
     if (!isAuthorized) {
       return false; 
@@ -121,9 +121,9 @@ const Home = () => {
     if (selectedFilter === 'Public') {
       return post.visibility === 'PUBLIC';
     } else if (selectedFilter === 'Unlisted') {
-      return post.visibility === 'UNLISTED';
+      return post.visibility === 'UNLISTED' || post.visibility === 'SHARED'; // CHANGE: Should only show to those who are following the user!;
     } else if (selectedFilter === 'Friends') {
-      return post.visibility === 'FRIENDS' || post.visibility === 'SHARED';
+      return post.visibility === 'FRIENDS';
     }
     return true; // Fallback case, should return all posts if no filter is selected
   });
