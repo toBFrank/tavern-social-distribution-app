@@ -44,7 +44,7 @@ export const checkIfFollowing = async (authorId, followerId) => {
   const token = Cookies.get('access_token');
     try {
       const response = await api.get(
-        `http://localhost:8000/service/api/authors/${authorId}/followers/${followerId}/`,
+        `/authors/${authorId}/followers/${followerId}/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -62,7 +62,7 @@ export const checkIfFollowing = async (authorId, followerId) => {
 export const acceptFollowRequest = async (authorId, followerId) => {
   const token = Cookies.get('access_token');
   try {
-      const response = await api.put(`http://localhost:8000/service/api/authors/${authorId}/followers/${followerId}/`,
+      const response = await api.put(`/authors/${authorId}/followers/${followerId}/`,
         null,
         {
           headers: {
@@ -79,7 +79,7 @@ export const acceptFollowRequest = async (authorId, followerId) => {
 export const rejectFollowRequest = async (authorId, followerId) => {
   const token = Cookies.get('access_token');
   try {
-    await api.delete(`http://localhost:8000/service/api/authors/${authorId}/followers/${followerId}/` ,
+    await api.delete(`/authors/${authorId}/followers/${followerId}/` ,
          {
           headers: {
             Authorization: `Bearer ${ token }`,

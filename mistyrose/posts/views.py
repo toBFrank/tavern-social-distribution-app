@@ -58,9 +58,9 @@ class PostDetailsByFqidView(APIView):
     """
     # permission_classes = [IsAuthenticatedOrReadOnly]
     
-    def get(self, request, fqid):
+    def get(self, request, post_fqid):
         try:
-            post = Post.objects.get(id=fqid)
+            post = Post.objects.get(id=post_fqid)
         except Post.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         

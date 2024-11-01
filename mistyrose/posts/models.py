@@ -63,7 +63,8 @@ class Like(models.Model):
 
     # generic foreign key to attach like to Post or Comment
     # set default value to post content type
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, default=ContentType.objects.get_for_model(Post).id)
+    # content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, default=ContentType.objects.get_for_model(Post).id)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
     object_id = models.UUIDField(max_length=200, null=True, blank=True) # for storing primary key value of the model itll be relating to
     content_object = GenericForeignKey('content_type', 'object_id') # foreign key to a Comment or Post
 

@@ -7,6 +7,7 @@ import Settings from '../pages/Settings';
 import EditProfile from '../pages/EditProfile';
 import Signup from '../pages/Signup';
 import Login from '../pages/Login';
+import PostDetail from '../pages/PostDetail';
 import ProtectedRoute from './ProtectedRoute';
 
 const AppRoutes = () => {
@@ -72,11 +73,11 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/post/:postId/share"
+       <Route
+        path="/post/:postFqid"
         element={
           <ProtectedRoute>
-            <Post />
+            <PostDetail />
           </ProtectedRoute>
         }
       />
