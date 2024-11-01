@@ -13,6 +13,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [originalPost, setOriginalPost] = useState(null);
   const [originalAuthor, setOriginalAuthor] = useState(null);
+  const [originalImageUrl, setOriginalImageUrl] = useState(null);
   const [posterImageUrl, setPosterImageUrl] = useState(poster ? poster.profileImage : null);
   const posterName = originalPost ? originalAuthor?.displayName : poster?.displayName || 'Anonymous';
   const postPublishedDate = originalPost ? originalPost.published : post.published;
@@ -31,42 +32,33 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         setImageUrl(null);
       }
     };
-    if (post.content_type === 'image') {
+    if (post.content_type === 'image' & post.visibility !== 'SHARED') {
       getImgUrlFromServer();
-    }
+    } 
   }, [post.author_id, post.content_type, post.id]);
 
   // Fetch post have visibility of SHARED it will take the original posts info
   useEffect(() => {
     const fetchSharedPostDetails = async () => {
-      if (post.visibility === 'SHARED' && post.original_url) {
-        try {
-          const response = await getPost(post.original_url[0], post.original_url[1]);
-          setOriginalPost(response.data); 
-        } catch (error) {
-          console.error('Error fetching shared post:', error);
+        if (post.visibility === 'SHARED' && post.original_url) {
+            try {
+                const response = await getPost(post.original_url[0], post.original_url[1]);
+                setOriginalPost(response.data);
+                
+                // Fetch the original image URL if the post type is an image
+                if (response.data.content_type === 'image') {
+                    const originalImgUrl = await getPostImageUrl(response.data.author_id, response.data.id);
+                    setOriginalImageUrl(originalImgUrl);
+                }
+            } catch (error) {
+                console.error('Error fetching shared post:', error);
+            }
         }
-      }
     };
 
     fetchSharedPostDetails();
-  }, [post.visibility, post.fqid]);
+  }, [post.visibility, post.original_url]);
 
-  // useEffect(() => {
-  //   const fetchPostByFqid = async () => {
-  //     if (post.original_url) {
-  //       console.log('id:', post.original_url[0])
-  //       try {
-  //         const response = await getPostByFqid(post.original_url[0]);
-  //         console.log("Fetched Post by FQID:", response.data); 
-  //       } catch (error) {
-  //         console.error('Error fetching post by FQID:', error);
-  //       }
-  //     }
-  //   };
-
-  //   fetchPostByFqid();
-  // }, [post.original_url]);
   
   // Fetch original author's profile once originalPost is set
   useEffect(() => {
@@ -74,6 +66,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       if (originalPost) {
         try {
           const authorProfile = await getAuthorProfile(originalPost.author_id);
+          // console.log('orig post url: ', post.visibility);
           setOriginalAuthor(authorProfile);
   
           // Set poster image if originalAuthor has a profile image
@@ -88,16 +81,6 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   
     fetchOriginalAuthorProfile();
   }, [originalPost]);
-  
-
-  // useEffect(() => {
-  //   if (originalPost) {
-  //       // console.log("Shared Post Details:", originalPost);
-  //       console.log("Original author profile: ", originalPost)
-  //       console.log("Sharing author profile: ", poster)
-  //   }
-
-  // }, [originalPost]);
 
   return (
     <div className="post-box">
@@ -128,13 +111,20 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         )}
       </div>
       <div className="post-content">
-        <h2>{post.title}</h2>
-        {post.content_type === 'text/plain' && <p>{post.text_content}</p>}
-        {post.content_type === 'image' && <img src={imageUrl} alt="post" />}
-        {post.content_type === 'text/markdown' && (
-          <div dangerouslySetInnerHTML={getMarkdownText(post.text_content)} />
-        )}
+          <h2>{post.title}</h2>
+          {post.content_type === 'text/plain' && <p>{post.text_content}</p>}
+          {post.content_type === 'image' && (
+              originalPost && post.visibility === 'SHARED' ? (
+                  <img src={originalImageUrl} alt="post share" />
+              ) : (
+                  <img src={imageUrl} alt="post" />
+              )
+          )}
+          {post.content_type === 'text/markdown' && (
+              <div dangerouslySetInnerHTML={getMarkdownText(post.text_content)} />
+          )}
       </div>
+
       <div className="post-footer">
         <LikeButton postId={post.id} />
         <CommentsModal postId={post.id} />

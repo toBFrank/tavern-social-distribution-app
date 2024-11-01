@@ -54,6 +54,7 @@ const Profile = () => {
   const publicPosts = profileData.public_posts || [];
   const friendsPosts = profileData.friends_posts || [];
   const unlistedPosts = profileData.unlisted_posts || [];
+  const sharedPosts = profileData.shared_posts || [];
 
   return (
     <div className="profile-page">
@@ -158,6 +159,19 @@ const Profile = () => {
             ) : (
               <p>No unlisted posts available.</p>
             )}
+
+            {/* Shared Posts */}
+            <h2>Shared Posts</h2>
+            {sharedPosts.length > 0 ? (
+              sharedPosts.map((post) => (
+                <div key={post.id}>
+                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/>
+                </div> 
+              ))
+            ) : (
+              <p>No unlisted posts available.</p>
+            )}
+
           </>
         ) : (
           <>

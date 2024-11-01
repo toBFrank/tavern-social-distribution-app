@@ -111,9 +111,7 @@ const Home = () => {
     const postAuthorization = authorizedAuthors.find(
       (auth) => auth.post_id === post.id
     );
-    const isAuthorized = 
-    postAuthorization.authorized_authors.includes(post.author_id) || 
-    post.visibility === "SHARED"; // This is wrong! Ask about this! How to make the shared post authorized
+    const isAuthorized = postAuthorization.authorized_authors.includes(post.author_id) || post.visibility === "SHARED"; // This is wrong! Ask about this! How to make the shared post authorized
 
     if (!isAuthorized) {
       return false; 
