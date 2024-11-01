@@ -13,10 +13,10 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedFilter, setSelectedFilter] = useState('Posts');
+  const [selectedFilter, setSelectedFilter] = useState('Public');
   const [authorProfiles, setAuthorProfiles] = useState({});
   const [results, setResults] = useState([]);
-  const [authorizedAuthors, setAuthorizedAuthors] = useState([]); 
+  const [authorizedAuthors, setAuthorizedAuthors] = useState([]); // New state for authorized authors
   const hasRun = useRef(false);
 
   useEffect(() => {
@@ -42,12 +42,16 @@ const Home = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await api.get('posts/');
-        const data = response.data;
-        
-        setPosts(data.posts);
-        setAuthorizedAuthors(data.authorized_authors_per_post);
+        const response = await api.get('posts/'); // Using axios instance to fetch posts
+        const data = response.data; // Accessing data directly from the response
 
+        // Set posts directly from the response structure
+        setPosts(data.posts);
+
+        // Set authorized authors
+        setAuthorizedAuthors(data.authorized_authors_per_post); // Set authorized authors data
+
+        // Fetch author profiles based on the retrieved posts
         const profiles = await Promise.all(
           data.posts.map(async (post) => {
             try {
@@ -108,7 +112,7 @@ const Home = () => {
       post.author_id
     );
     if (!isAuthorized) {
-      return false; 
+      return false; // Skip unauthorized posts
     }
 
     // Check visibility based on selected filter
@@ -119,7 +123,7 @@ const Home = () => {
     } else if (selectedFilter === 'Friends') {
       return post.visibility === 'FRIENDS';
     }
-    return true;
+    return true; // Fallback case, should return all posts if no filter is selected
   });
 
   return (
@@ -130,34 +134,45 @@ const Home = () => {
         {results.length > 0 && <SearchResultsList results={results} />}
         <div className="home-filter-options">
           <h3
-            onClick={() => handleFilterClick('Posts')}
+            onClick={() => handleFilterClick('Public')}
             style={{
-              opacity: selectedFilter === 'Posts' ? '100%' : '50%',
+              opacity: selectedFilter === 'Public' ? '100%' : '50%',
               cursor: 'pointer',
             }}
           >
-            Posts
+            Public
           </h3>
           <h3
-            onClick={() => handleFilterClick("Friend's Posts")}
+            onClick={() => handleFilterClick('Friends')}
             style={{
-              opacity: selectedFilter === "Friend's Posts" ? '100%' : '50%',
+              opacity: selectedFilter === 'Friends' ? '100%' : '50%',
               cursor: 'pointer',
             }}
           >
-            Friend's Posts
+            Friends
+          </h3>
+          <h3
+            onClick={() => handleFilterClick('Unlisted')}
+            style={{
+              opacity: selectedFilter === 'Unlisted' ? '100%' : '50%',
+              cursor: 'pointer',
+            }}
+          >
+            Unlisted
           </h3>
         </div>
         <div className="posts-container">
           {filteredPosts.length > 0 ? (
             <ul>
               {filteredPosts.map((post) => {
+                // Find authorized authors for the post
                 const postAuthorization = authorizedAuthors.find(
                   (auth) => auth.post_id === post.id
                 );
                 const authorizedAuthorsForPost = postAuthorization?.authorized_authors || [];
                 return (
                   <li key={post.id}>
+                    {/* Temporarily removed the Link component */}
                     <div>
                       <PostBox post={post} poster={authorProfiles[post.author_id]} />
                     </div>
