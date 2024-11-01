@@ -170,7 +170,7 @@ const Home = () => {
             <ul>
               {filteredPosts.map((post, index) => (
                 <li key={post.id}>
-                  <PostBox post={post} poster={authorProfiles[post.author_id]} />
+                  <PostBox post={post} poster={authorProfiles[post.author_id]} isUserEditable={false} />
                 </li>
               ))}
             </ul>

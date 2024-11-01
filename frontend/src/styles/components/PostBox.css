@@ -94,6 +94,21 @@
   margin-right: 20px;
 }
 
+.post-edit {
+  margin-left: auto;
+}
+
+.post-edit-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.post-edit-icon {
+  opacity: 50%;
+}
+
 .poster-author-header {
   display: flex;
   flex-direction: row;

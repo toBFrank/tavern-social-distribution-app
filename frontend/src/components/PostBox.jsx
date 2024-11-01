@@ -6,14 +6,17 @@ import '../styles/components/PostBox.css';
 import LikeButton from './LikeButton';
 import CommentsModal from './CommentsModal';
 import ShareButton from './ShareButton';
+import { BorderColor } from "@mui/icons-material";
+import { useNavigate } from 'react-router-dom';
 
-const PostBox = ({ post, poster }) => {
+const PostBox = ({ post, poster, isUserEditable }) => {
   const [imageUrl, setImageUrl] = useState(null);
   const [originalPost, setOriginalPost] = useState(null);
   const [originalAuthor, setOriginalAuthor] = useState(null);
   const [posterImageUrl, setPosterImageUrl] = useState(poster ? poster.profileImage : null);
   const posterName = originalPost ? originalAuthor?.displayName : poster?.displayName || 'Anonymous';
   const postPublishedDate = originalPost ? originalPost.published : post.published;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getImgUrlFromServer = async () => {
@@ -116,6 +119,13 @@ const PostBox = ({ post, poster }) => {
           <h4>{posterName}</h4>
           <p>{new Date(postPublishedDate).toLocaleString()}</p>
         </div>
+        {isUserEditable && (
+          <div className='post-edit'>
+            <button className='post-edit-button' onClick={() => navigate(`/post/${post.id}/edit`, { state: { postId: post.id } })}>
+              <BorderColor className='post-edit-icon' />
+            </button>
+          </div>
+        )}
       </div>
       <div className="post-content">
         <h2>{post.title}</h2>
