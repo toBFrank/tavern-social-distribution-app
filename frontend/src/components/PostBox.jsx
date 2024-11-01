@@ -30,7 +30,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     if (post.content_type === 'image') {
       getImgUrlFromServer();
     }
-  }, []);
+});
 
   return (
     <div className="post-box">
