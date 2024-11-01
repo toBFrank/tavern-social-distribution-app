@@ -106,16 +106,17 @@ const Home = () => {
   }
 
   // Filter posts based on visibility and selected filter
-  const filteredPosts = posts.filter((post) => {
+  const filteredPosts = posts.filter((post) => {    
     // Find the corresponding entry in authorizedAuthors for the current post
     const postAuthorization = authorizedAuthors.find(
       (auth) => auth.post_id === post.id
     );
-    const isAuthorized = postAuthorization.authorized_authors.includes(
-      post.author_id
-    );
+    const isAuthorized = 
+    postAuthorization.authorized_authors.includes(post.author_id) || 
+    post.visibility === "SHARED"; // This is wrong! Ask about this! How to make the shared post authorized
+
     if (!isAuthorized) {
-      return false; // Skip unauthorized posts
+      return false; 
     }
 
     // Check visibility based on selected filter
@@ -124,7 +125,7 @@ const Home = () => {
     } else if (selectedFilter === 'Unlisted') {
       return post.visibility === 'UNLISTED';
     } else if (selectedFilter === 'Friends') {
-      return post.visibility === 'FRIENDS';
+      return post.visibility === 'FRIENDS' || post.visibility === 'SHARED';
     }
     return true; // Fallback case, should return all posts if no filter is selected
   });

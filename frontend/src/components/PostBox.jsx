@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getMarkdownText } from '../utils/getMarkdownText';
-import { getPostImageUrl } from '../services/PostsService';
+import { getPostImageUrl, getPost, getPostByFqid } from '../services/PostsService';
+import { getAuthorProfile } from '../services/profileService';
 import '../styles/components/PostBox.css';
 import LikeButton from './LikeButton';
 import CommentsModal from './CommentsModal';
@@ -8,9 +9,11 @@ import ShareButton from './ShareButton';
 
 const PostBox = ({ post, poster }) => {
   const [imageUrl, setImageUrl] = useState(null);
-
-  const posterName = poster ? poster.displayName : 'Anonymous';
-  const posterImageUrl = poster ? poster.profileImage : null;
+  const [originalPost, setOriginalPost] = useState(null);
+  const [originalAuthor, setOriginalAuthor] = useState(null);
+  const [posterImageUrl, setPosterImageUrl] = useState(poster ? poster.profileImage : null);
+  const posterName = originalPost ? originalAuthor?.displayName : poster?.displayName || 'Anonymous';
+  const postPublishedDate = originalPost ? originalPost.published : post.published;
 
   useEffect(() => {
     const getImgUrlFromServer = async () => {
@@ -30,8 +33,77 @@ const PostBox = ({ post, poster }) => {
     }
   }, [post.author_id, post.content_type, post.id]);
 
+  // Fetch post have visibility of SHARED it will take the original posts info
+  useEffect(() => {
+    const fetchSharedPostDetails = async () => {
+      if (post.visibility === 'SHARED' && post.original_url) {
+        try {
+          const response = await getPost(post.original_url[0], post.original_url[1]);
+          setOriginalPost(response.data); 
+        } catch (error) {
+          console.error('Error fetching shared post:', error);
+        }
+      }
+    };
+
+    fetchSharedPostDetails();
+  }, [post.visibility, post.fqid]);
+
+  // useEffect(() => {
+  //   const fetchPostByFqid = async () => {
+  //     if (post.original_url) {
+  //       console.log('id:', post.original_url[0])
+  //       try {
+  //         const response = await getPostByFqid(post.original_url[0]);
+  //         console.log("Fetched Post by FQID:", response.data); 
+  //       } catch (error) {
+  //         console.error('Error fetching post by FQID:', error);
+  //       }
+  //     }
+  //   };
+
+  //   fetchPostByFqid();
+  // }, [post.original_url]);
+  
+  // Fetch original author's profile once originalPost is set
+  useEffect(() => {
+    const fetchOriginalAuthorProfile = async () => {
+      if (originalPost) {
+        try {
+          const authorProfile = await getAuthorProfile(originalPost.author_id);
+          setOriginalAuthor(authorProfile);
+  
+          // Set poster image if originalAuthor has a profile image
+          if (authorProfile.profileImage) {
+            setPosterImageUrl(authorProfile.profileImage);
+          }
+        } catch (error) {
+          console.error("Error fetching original author profile:", error);
+        }
+      }
+    };
+  
+    fetchOriginalAuthorProfile();
+  }, [originalPost]);
+  
+
+  // useEffect(() => {
+  //   if (originalPost) {
+  //       // console.log("Shared Post Details:", originalPost);
+  //       console.log("Original author profile: ", originalPost)
+  //       console.log("Sharing author profile: ", poster)
+  //   }
+
+  // }, [originalPost]);
+
   return (
     <div className="post-box">
+        {originalPost && (
+          <div className="poster-author-header">
+            <p>Reposted By: {poster.displayName}</p>
+            <p>{new Date(post.published).toLocaleString()}</p>
+          </div>
+        )}
       <div className="post-header">
         {posterImageUrl ? (
           <div className="profile-image-container">
@@ -42,7 +114,7 @@ const PostBox = ({ post, poster }) => {
         )}
         <div className="poster-name-date">
           <h4>{posterName}</h4>
-          <p>{new Date(post.published).toLocaleString()}</p>
+          <p>{new Date(postPublishedDate).toLocaleString()}</p>
         </div>
       </div>
       <div className="post-content">
@@ -54,11 +126,11 @@ const PostBox = ({ post, poster }) => {
         )}
       </div>
       <div className="post-footer">
-          <LikeButton postId={post.id} />
-          <CommentsModal postId={post.id} />
-          {post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && (
-            <ShareButton postId={post.id} authorId={post.author_id} />
-          )}
+        <LikeButton postId={post.id} />
+        <CommentsModal postId={post.id} />
+        {(post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && post.visibility !== 'SHARED') && (
+          <ShareButton postId={post.id} authorId={post.author_id} postContent={post} />
+        )}
       </div>
     </div>
   );
