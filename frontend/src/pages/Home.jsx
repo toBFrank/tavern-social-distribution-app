@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-
 import '../styles/pages/Home.css';
 import FollowRequests from '../components/FollowRequests';
 import SearchBar from '../components/SearchBar';
@@ -7,8 +6,6 @@ import SearchResultsList from '../components/SearchResultsList';
 import { makeGithubActivityPosts } from '../services/GithubService';
 import Cookies from 'js-cookie';
 import { getAuthorProfile } from '../services/profileService';
-import LikeButton from '../components/LikeButton';
-import CommentsModal from '../components/CommentsModal';
 import api from '../services/axios'; 
 import PostBox from '../components/PostBox';
 
@@ -111,7 +108,7 @@ const Home = () => {
     const postAuthorization = authorizedAuthors.find(
       (auth) => auth.post_id === post.id
     );
-    const isAuthorized = postAuthorization.authorized_authors.includes(
+    const isAuthorized = postAuthorization?.authorized_authors.includes(
       post.author_id
     );
     if (!isAuthorized) {
@@ -167,11 +164,21 @@ const Home = () => {
         <div className="posts-container">
           {filteredPosts.length > 0 ? (
             <ul>
-              {filteredPosts.map((post, index) => (
-                <li key={post.id}>
-                  <PostBox post={post} poster={authorProfiles[post.author_id]} isUserEditable={false} />
-                </li>
-              ))}
+              {filteredPosts.map((post) => {
+                // Find authorized authors for the post
+                const postAuthorization = authorizedAuthors.find(
+                  (auth) => auth.post_id === post.id
+                );
+                const authorizedAuthorsForPost = postAuthorization?.authorized_authors || [];
+                return (
+                  <li key={post.id}>
+                    {/* Temporarily removed the Link component */}
+                    <div>
+                      <PostBox post={post} poster={authorProfiles[post.author_id]} />
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p>No posts available.</p>
