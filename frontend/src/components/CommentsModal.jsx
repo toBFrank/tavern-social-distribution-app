@@ -100,7 +100,7 @@ const CommentsModal = ({ postId }) => {
         </Box>
       </Modal>
       <div
-        classname="comments-button-container"
+        className="comments-button-container"
         style={{ display: 'flex', alignItems: 'center' }}
       >
         <button className="comments-button" onClick={handleOpen}>

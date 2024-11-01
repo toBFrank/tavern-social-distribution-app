@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService'; // Import service
 import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
-import editIcon from '../assets/editIcon.png';
 import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';  // Import react-markdown for rendering markdown content
+import PostBox from '../components/PostBox';
 
 const Profile = () => {
   const { authorId } = useParams();  // Get the authorId from the URL parameters
@@ -120,45 +119,9 @@ const Profile = () => {
             <h2>Public Posts</h2>
             {publicPosts.length > 0 ? (
               publicPosts.map((post) => (
-                <div key={post.id} className="post">
-                  <div className="post-header">
-                    <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
-                    <div>
-                      <h3>{profileData.displayName}</h3>
-                      <p>{new Date(post.published).toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="post-content">
-                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-
-                    {/* Display the image if available */}
-                    {post.image_content ? (
-                      <img
-                        src={`http://localhost:8000${post.image_content}`}
-                        alt="Post Content"
-                        className="post-image"
-                      />
-                    ) : post.content_type === 'text/markdown' ? (
-                      /* Render markdown content */
-                      <ReactMarkdown>{post.text_content}</ReactMarkdown>
-                    ) : (
-                      /* Render plain text if no markdown or image */
-                      <p>{post.text_content || "No content available"}</p>
-                    )}
-                  </div>
-                  <div className="post-footer">
-                    <p>{post.likes_count} Likes</p>
-                    <p>{post.comments_count} Comments</p>
-
-                    {isCurrentUser && (
-                      <button onClick={() => navigate(`/post/${post.id}/edit`,{ state: { postId: post.id } })}>
-                        <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
-                        Edit
-                      </button>
-                    )}
-
-                  </div>
-                </div>
+                <div key={post.id}>
+                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/>
+                </div> 
               ))
             ) : (
               <p>No public posts available.</p>
@@ -168,45 +131,9 @@ const Profile = () => {
             <h2>Friends Posts</h2>
             {friendsPosts.length > 0 ? (
               friendsPosts.map((post) => (
-                <div key={post.id} className="post">
-                  <div className="post-header">
-                    <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
-                    <div>
-                      <h3>{profileData.displayName}</h3>
-                      <p>{new Date(post.published).toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="post-content">
-                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-
-                    {/* Display the image if available */}
-                    {post.image_content ? (
-                      <img
-                        src={`http://localhost:8000${post.image_content}`}
-                        alt="Post Content"
-                        className="post-image"
-                      />
-                    ) : post.content_type === 'text/markdown' ? (
-                      /* Render markdown content */
-                      <ReactMarkdown>{post.text_content}</ReactMarkdown>
-                    ) : (
-                      /* Render plain text if no markdown or image */
-                      <p>{post.text_content || "No content available"}</p>
-                    )}
-                  </div>
-                  <div className="post-footer">
-                    <p>{post.likes_count} Likes</p>
-                    <p>{post.comments_count} Comments</p>
-
-                    {isCurrentUser && (
-                      <button onClick={() => navigate(`/post/${post.id}/edit`, { state: { postId: post.id } })}>
-                        <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
-                        Edit
-                      </button>
-                    )}
-
-                  </div>
-                </div>
+                <div key={post.id}>
+                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/>
+                </div> 
               ))
             ) : (
               <p>No friends posts available.</p>
@@ -216,45 +143,9 @@ const Profile = () => {
             <h2>Unlisted Posts</h2>
             {unlistedPosts.length > 0 ? (
               unlistedPosts.map((post) => (
-                <div key={post.id} className="post">
-                  <div className="post-header">
-                    <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
-                    <div>
-                      <h3>{profileData.displayName}</h3>
-                      <p>{new Date(post.published).toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="post-content">
-                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-
-                    {/* Display the image if available */}
-                    {post.image_content ? (
-                      <img
-                        src={`http://localhost:8000${post.image_content}`}
-                        alt="Post Content"
-                        className="post-image"
-                      />
-                    ) : post.content_type === 'text/markdown' ? (
-                      /* Render markdown content */
-                      <ReactMarkdown>{post.text_content}</ReactMarkdown>
-                    ) : (
-                      /* Render plain text if no markdown or image */
-                      <p>{post.text_content || "No content available"}</p>
-                    )}
-                  </div>
-                  <div className="post-footer">
-                    <p>{post.likes_count} Likes</p>
-                    <p>{post.comments_count} Comments</p>
-
-                    {isCurrentUser && (
-                      <button onClick={() => navigate(`/post/${post.id}/edit`, { state: { postId: post.id } })}>
-                        <img src={editIcon} alt="Edit" style={{ width: '16px', height: '16px', marginRight: '5px' }} />
-                        Edit
-                      </button>
-                    )}
-
-                  </div>
-                </div>
+                <div key={post.id}>
+                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/>
+                </div> 
               ))
             ) : (
               <p>No unlisted posts available.</p>
@@ -266,34 +157,9 @@ const Profile = () => {
             <h2>Public Posts</h2>
             {publicPosts.length > 0 ? (
               publicPosts.map((post) => (
-                <div key={post.id} className="post">
-                  <div className="post-header">
-                    <img src={profileData.profileImage} alt={profileData.displayName} className="post-avatar" />
-                    <div>
-                      <h3>{profileData.displayName}</h3>
-                      <p>{new Date(post.published).toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="post-content">
-                    <h4>{post.title || "Untitled"}</h4> {/* Display the post title */}
-                    {/* Check the content type and render accordingly */}
-                    {post.image_content ? (
-                      <img
-                        src={`http://localhost:8000${post.image_content}`}
-                        alt="Post Content"
-                        className="post-image"
-                      />
-                    ) : post.content_type === 'text/markdown' ? (
-                      <ReactMarkdown>{post.text_content}</ReactMarkdown>  // Render markdown content
-                    ) : (
-                      <p>{post.text_content || "No content available"}</p>  // Render plain text if no markdown
-                    )}
-                  </div>
-                  <div className="post-footer">
-                    <p>{post.likes_count} Likes</p>
-                    <p>{post.comments_count} Comments</p>
-                  </div>
-                </div>
+                <div key={post.id}>
+                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser}/>
+                </div>  /* this is someone elses profile, cant edit their post*/
               ))
             ) : (
               <p>This user doesn't have any public posts.</p>
