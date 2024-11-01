@@ -4,11 +4,17 @@ import { getAuthorProfile } from './profileService';
 
 export const makeGithubActivityPosts = async (authorId) => {
   try {
-    const username = (await getAuthorProfile(authorId)).github.split('/').pop();
+    const authorProfile = await getAuthorProfile(authorId);
+    const username = authorProfile.github?.split('/').pop();
+    if (!username) {
+      throw new Error('Github username not found');
+    }
+
     const posts = (await getAllPosts(authorId)).data;
 
     // 1. Get raw data from Github API
     const rawData = await getGithubActivityData(username);
+
     // 2. Parse date and event type
     const parsedData = rawData
       .map((event) => {
@@ -58,7 +64,7 @@ export const getGithubActivityData = async (username) => {
       }
     );
 
-    return response.data;
+    return response.data ?? [];
   } catch (error) {
     console.error(error);
   }
