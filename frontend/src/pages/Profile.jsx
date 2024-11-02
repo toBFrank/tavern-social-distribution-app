@@ -62,14 +62,27 @@ const Profile = () => {
   return (
     <div className="profile-page">
       <div className="profile-header">
-        <img
-          src={profileData.profileImage}
-          alt={profileData.displayName}
-          className="profile-image"
-        />
-        <h1>{profileData.displayName}</h1>
+        <div className='Img-details'>
+          <img
+            src={profileData.profileImage}
+            alt={profileData.displayName}
+            className="profile-image"
+          />
+          {isCurrentUser ? (
+            <button className='edit-button' onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
+          ) : (
+            <FollowButton 
+              authorId={authorId} 
+              currentUserId={currentUserId} 
+              currentProfileData={currentProfileData} 
+              profileData={profileData}
+            />
+          )}
+        </div>
 
-        <div className="profile-stats">
+        <div className='profile-details'>
+          <h1>{profileData.displayName}</h1>
+          <div className="profile-stats">
           <div>
             <h2>{profileData.friends_count || 0}</h2>
             <p>Friends</p>
@@ -84,31 +97,27 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="profile-links">
-          <p>GitHub Profile:</p>
-          <a
-            href={profileData.github}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {profileData.github || 'GitHub Profile'}
-          </a>
-          <p>Profile Link:</p>
-          <a href={profileData.page} target="_blank" rel="noopener noreferrer">
-            {profileData.page || 'Profile Link'}
-          </a>
-        </div>
+          {/* Profile Links */}
+          <div className="profile-links">
+            <div className='links-details'>
+              <p>GitHub Profile:</p>
+              <a
+                href={profileData.github}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {profileData.github || 'GitHub Profile'}
+              </a>
+            </div>
+            <div className='links-details'>
+                <p>Profile Link:</p>
+                <a href={profileData.page} target="_blank" rel="noopener noreferrer">
+                  {profileData.page || 'Profile Link'}
+                </a>
+            </div>
 
-        {isCurrentUser ? (
-          <button onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
-        ) : (
-          <FollowButton 
-            authorId={authorId} 
-            currentUserId={currentUserId} 
-            currentProfileData={currentProfileData} 
-            profileData={profileData}
-          />
-        )}
+          </div>
+        </div>
       </div>
 
       <div className="posts-section">

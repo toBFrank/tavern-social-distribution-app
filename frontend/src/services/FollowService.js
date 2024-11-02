@@ -61,6 +61,7 @@ export const checkIfFollowing = async (authorId, followerId) => {
 // based on the requird format of API , service/api/... service at the front.
 export const acceptFollowRequest = async (authorId, followerId) => {
   const token = Cookies.get('access_token');
+  
   try {
       const response = await api.put(`/authors/${authorId}/followers/${followerId}/`,
         null,
