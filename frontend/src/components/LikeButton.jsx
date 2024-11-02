@@ -5,9 +5,13 @@ import { createLike, getLikes } from '../services/LikesService';
 import { Favorite } from '@mui/icons-material';
 import { getAuthorProfile } from '../services/profileService';
 import '../styles/components/LikeButton.css';
+import { Author } from '../models/Author';
+import AuthorsListModal from '../components/AuthorsListModal';
 
 const LikeButton = ({ postId }) => {
-  const [likes, setLikes] = useState(0);
+  const [likesCount, setLikesCount] = useState(0);
+  const [showAuthorsModal, setShowAuthorsModal] = useState(false);
+  const [authorsList, setAuthorsList] = useState([]);
   const [isLiked, setIsLiked] = useState(false);
   const authorId = Cookies.get('author_id');
   const [currentProfileData, setCurrentProfileData] = useState(null);
@@ -17,11 +21,12 @@ const LikeButton = ({ postId }) => {
     const fetchLikes = async () => {
       try {
         const likesResponse = await getLikes(authorId, postId);
-        setLikes(likesResponse.length);
+        console.log(likesResponse);
+        setLikesCount(likesResponse.count);
 
         //check if user liked post already
-        const userLike = likesResponse.find(
-          (like) => like.author_id === authorId
+        const userLike = likesResponse.src.find( //authors who liked post
+          (like) => like.author.id === authorId
         );
         if (userLike) {
           setIsLiked(true);
@@ -56,10 +61,11 @@ const LikeButton = ({ postId }) => {
 
       try {
         const response = await createLike(authorId, likeData);
+        console.log(response);
 
         // only updating likes if request is successful
         if (response.status === 201) {
-          setLikes(likes + 1);
+          setLikesCount(likesCount + 1);
           setIsLiked(true);
         } else {
           console.error('Creating like failed with ', response.status);
@@ -70,6 +76,30 @@ const LikeButton = ({ postId }) => {
     }
   };
 
+  const handleShowAuthors = async () => {
+    try {
+      const likesResponse = await getLikes(authorId, postId) //hitting endpoint again because if you like, you'll have to call getLikes anyways
+      console.log(likesResponse);
+
+      // store authors who liked the post
+      const authors = likesResponse.src.map(
+        (like) =>
+          new Author(
+            like.author.id,
+            like.author.host,
+            like.author.displayName,
+            like.author.github,
+            like.author.profileImage,
+            like.author.page
+          )
+      );
+      setAuthorsList(authors);
+      setShowAuthorsModal(true);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
     <div className="like-button-container">
       <button className="like-button" onClick={handleLike}>
@@ -79,10 +109,16 @@ const LikeButton = ({ postId }) => {
           <Favorite className="like-heart" id="not-liked" />
         )}
       </button>
-      <span className="like-text">
+      <span className="like-text" onClick={handleShowAuthors}>
         {' '}
-        {likes} {likes === 1 ? 'like' : 'likes'}
+        {likesCount} {likesCount === 1 ? 'like' : 'likes'}
       </span>
+      {showAuthorsModal && (
+        <AuthorsListModal 
+          authors={authorsList}
+          onModalClose={() => setShowAuthorsModal(false)}
+           />
+      )}
     </div>
   );
 };

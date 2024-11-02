@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from users.models import Author
-from rest_framework import viewsets, status
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
+from .pagination import LikesPagination
 
 
 #region Post Views
@@ -179,12 +180,13 @@ class CommentedView(APIView):
         return Response(serializer.data)
     #TODO: return "type": "comments" format as specified in the project description, right now just returning a list of comments for ease
            
+#endregion
 
 
     
-    
+#region Like views   
 class LikedView(APIView):
-    #TODO: ASK IF WE ARE SUPPOSED TO BE ABLE TO UNLIKE A POST
+    # TODO: handle duplicate likes -> return 200 instead similar to follow request
     """
     get or like a post
     """
@@ -216,49 +218,57 @@ class LikedView(APIView):
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
 
-        #creating the like object
-        request.data['author_id'] = author_serial
-        request.data['object_id'] = liked_object.id
-        request.data['content_type'] = object_content_type.id
 
-        like_serializer = LikeSerializer(data=request.data)
+        like_serializer = LikeSerializer(data=request.data) #asked chatGPT how to set the host in the serializer, need to add context 2024-11-02
         if like_serializer.is_valid():
-            like_instance = like_serializer.save()
+
+            like_serializer.save(
+                author_id=author,  
+                object_id=liked_object.id,
+                content_type=object_content_type,
+                object_url=object_url
+            )
 
             #creating Inbox object to forward to correct inbox
             post_host = object_url.split("//")[1].split("/")[0]
             if post_host != request.get_host():
-                # TODO: post or comment not on our host, need to forward it to a remote inbox
+                # TODO: Part 3-5 post or comment not on our host, need to forward it to a remote inbox
                 pass
-            else:
-                # create and add to Inbox of the post or comment's author
-                object_author = liked_object.author_id
-                content_type = ContentType.objects.get_for_model(Like)
-
-                Inbox.objects.create(
-                    type="like",
-                    author=object_author,
-                    content_type=content_type,
-                    object_id=like_instance.id,
-                    content_object=like_instance,
-                )
-
+            
             return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
         else:
             return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
         
+
+class LikesView(APIView):
     def get(self, request, author_serial, post_id):
         """
         Get likes on a post
         """
         post = get_object_or_404(Post, id=post_id)
 
-        likes = post.likes.all()
-        serializer = LikeSerializer(likes, many=True) # many=True specifies that input is not just a single like
-        return Response(serializer.data)
-        #TODO: return "type": "likes" format as specified in the project description, right now just returning a list of likes for ease
+        likes = post.likes.all().order_by('-published')
 
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
 
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/author/{author_serial}/posts/{post_id}",
+            "id": f"http://{host}/api/author/{author_serial}/posts/{post_id}/likes",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": post.likes.count(),
+            "src": serializer.data  # List of serialized like data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+#endview
    
 class PublicPostsView(APIView):
     # To view all of the public posts in the home page

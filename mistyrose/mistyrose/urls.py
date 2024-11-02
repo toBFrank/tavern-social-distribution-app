@@ -22,7 +22,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 from django.conf import settings
-from posts.views import CommentedView, LikedView
+from posts.views import CommentedView, LikedView, LikesView
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -44,7 +44,7 @@ urlpatterns = [
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
     path('', include('users.urls')),
     path('api/authors/<uuid:author_serial>/liked/', LikedView.as_view(), name='liked'),
-    path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/likes/', LikedView.as_view(), name='post_likes'),
+    path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/likes/', LikesView.as_view(), name='post_likes'),
 ]
 
 if settings.DEBUG:  # Only serve media files in development mode

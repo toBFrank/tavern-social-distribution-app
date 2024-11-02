@@ -1,6 +1,6 @@
 // https://mui.com/material-ui/react-modal/ for 'Basic Modal' code from MUI to show comments, 2024-10-31
 // https://mui.com/material-ui/react-list/ for List of Avatars, sections 'Align list items' and 'Selected ListItem', 2024-10-31
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -11,11 +11,8 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
 import { useNavigate } from 'react-router-dom';
 
-const AuthorsListModal = ({ authors }) => { /* authors is the list of Author objects that should be displayed in modal*/
-const [isModalOpen, setIsModalOpen] = useState(true);
+const AuthorsListModal = ({ authors, onModalClose }) => { /* authors is the list of Author objects that should be displayed in modal*/
 const navigate = useNavigate();
-
-const handleClose = () => setIsModalOpen(false);
 
 const handleClickProfile = async (author) => {
     navigate(`/profile/${author.id}`);
@@ -24,8 +21,8 @@ const handleClickProfile = async (author) => {
 
 return (
     <Modal 
-        open={isModalOpen} 
-        onClose={handleClose} 
+        open={true} 
+        onClose={onModalClose} 
         aria-labelledby="authors-list-title"
     >
         <Box className={'modalBox'}>
