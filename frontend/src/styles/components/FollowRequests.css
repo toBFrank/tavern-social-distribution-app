@@ -1,10 +1,13 @@
+.FollowRequest-container {
+  width: 100%;
+}
+
 .follow-request-box {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
   padding: 0.5rem;
-  margin-top: 0.5rem;
+  border-top: 2px solid #000000; 
 }
 
 .btns {
@@ -17,10 +20,12 @@
   text-align: center;
   font-weight: 600;
   font-size: large;
+  margin-bottom: 20px;
 }
 
 .follower-name {
   font-family: 'Fredoka', sans-serif;
+  padding-top: 5px;
 }
 
 .accept-button,
@@ -32,11 +37,22 @@
 }
 
 .accept-button {
-    color: #C1FFC7;
+    color: #263a28;
 }
 
 .reject-button {
-    color: #FFC2C2;
+    color: #522525;
 }
 
+.follower-profilePic {
+  width: 50px;                
+  height: 50px;           
+  border-radius: 50%;     
+  margin-right: 10px;   
+}
 
+.follower-picAndName {
+  display: flex;
+  flex-direction: row;
+  margin: 5px;
+}

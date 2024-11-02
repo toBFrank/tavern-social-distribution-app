@@ -6,6 +6,7 @@ import SearchResultsList from '../components/SearchResultsList';
 import { makeGithubActivityPosts } from '../services/GithubService';
 import Cookies from 'js-cookie';
 import { getAuthorProfile } from '../services/profileService';
+import { checkIfFollowing } from '../services/FollowService'; 
 import api from '../services/axios'; 
 import PostBox from '../components/PostBox';
 
@@ -16,7 +17,8 @@ const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState('Public');
   const [authorProfiles, setAuthorProfiles] = useState({});
   const [results, setResults] = useState([]);
-  const [authorizedAuthors, setAuthorizedAuthors] = useState([]); // New state for authorized authors
+  const [authorizedAuthors, setAuthorizedAuthors] = useState([]); 
+  const [followingStatus, setFollowingStatus] = useState({});
   const hasRun = useRef(false);
 
   useEffect(() => {
@@ -83,6 +85,23 @@ const Home = () => {
           {}
         );
         setAuthorProfiles(profileMap);
+
+        const currentUserId = Cookies.get('author_id');
+        const followingPromises = data.posts.map(post =>
+          checkIfFollowing(post.author_id, currentUserId)
+        );
+
+        const followingResponses = await Promise.all(followingPromises);
+        const followingStatusMap = {};
+
+        followingResponses.forEach((response, index) => {
+          if (response && response.data) {
+            followingStatusMap[data.posts[index].author_id] = response.data.status === "Following";
+          }
+        });
+
+        setFollowingStatus(followingStatusMap); 
+
       } catch (err) {
         console.error('Fetch Error:', err.message);
         setError(err.message);
@@ -103,7 +122,7 @@ const Home = () => {
   }
 
   // Filter posts based on visibility and selected filter
-  const filteredPosts = posts.filter((post) => {
+  const filteredPosts = posts.filter((post) => {    
     // Find the corresponding entry in authorizedAuthors for the current post
     const postAuthorization = authorizedAuthors.find(
       (auth) => auth.post_id === post.id
@@ -119,14 +138,20 @@ const Home = () => {
     if (selectedFilter === 'Public') {
       return post.visibility === 'PUBLIC';
     } else if (selectedFilter === 'Unlisted') {
-      return post.visibility === 'UNLISTED';
+    if (post.visibility === 'UNLISTED') {
+      return true; 
+    }
+    if (post.visibility === 'SHARED') {
+      return followingStatus[post.author_id]; // Show shared posts of people the current user follows
+    }
+    return false; 
     } else if (selectedFilter === 'Friends') {
       return post.visibility === 'FRIENDS';
     }
     return true; // Fallback case, should return all posts if no filter is selected
   });
 
-  return (
+  return ( 
     <div className="home-page-container">
       <div className="home-container">
         <h1>Feeds</h1>

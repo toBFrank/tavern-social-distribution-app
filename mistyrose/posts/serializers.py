@@ -27,7 +27,8 @@ class PostSerializer(serializers.ModelSerializer):
             'published',
             'visibility',
             'likes_count', 
-            'comments_count'  
+            'comments_count',
+            'original_url'
         ]
    
         read_only_fields = [
