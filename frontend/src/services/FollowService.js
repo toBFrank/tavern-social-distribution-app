@@ -40,21 +40,24 @@ export const createFollowRequest = async (authorSerial, followRequestData) => {
 
 // URL: service/api/authors/<str:author_id>/followers/<str:follower_id>/
 export const checkIfFollowing = async (authorId, followerId) => {
-    // Check if followerId is a follower of authorId
   const token = Cookies.get('access_token');
-    try {
+
+  try {
       const response = await api.get(
-        `/authors/${authorId}/followers/${followerId}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+          `/authors/${authorId}/followers/${followerId}/`,
+          {
+              headers: {
+                  Authorization: `Bearer ${token}`,
+              },
+          }
       );
       return response;
-    } catch (error) {
-      console.error(error);
-    }
+  } catch (error) {
+      if (error.response && error.response.data.error === "Follower not found") {
+          // if the follower is not found then return false
+          return { data: { status: false } }; 
+      }
+  }
 };
 
 // URL: service/api/authors/<str:author_id>/followers/<str:follower_id>/
