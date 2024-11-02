@@ -319,7 +319,9 @@ class FollowerView(APIView):
         if is_pending:
             return Response({"status": "Follow request pending"}, status=status.HTTP_202_ACCEPTED)
 
-        return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
+        # TO DO: Update documentation!
+        # return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "Follower not found"}, status=status.HTTP_204_NO_CONTENT)
 
     def put(self, request, author_id, follower_id):
         print(f"Received Author ID: {author_id}, Received Follower ID: {follower_id}")
