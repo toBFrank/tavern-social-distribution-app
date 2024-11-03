@@ -1,8 +1,8 @@
 .App {
   display: flex;
   flex-direction: row;
-  background-color: #fff7ef;
-  margin-left: 300px;
+  background: transparent;
+  margin-left: 175px;
   padding-left: 5%;
   padding-right: 5%;
   padding-top: 2%;

@@ -2,7 +2,7 @@ import React from 'react';
 import { getMarkdownText } from '../utils/getMarkdownText';
 import '../styles/components/MarkdownEditor.css';
 
-const MarkdownEditor = ({ markdown, setMarkdown }) => {
+const MarkdownEditor = ({ markdown, setMarkdown, readOnly, disabled }) => {
   const handleChange = (event) => {
     setMarkdown(event.target.value);
   };
@@ -16,6 +16,8 @@ const MarkdownEditor = ({ markdown, setMarkdown }) => {
         rows={10}
         style={{ width: '100%', fontSize: '16px' }}
         placeholder="Type something here..."
+        readOnly={readOnly}  
+        disabled={disabled} 
       />
       <div
         className="markdown-preview"
