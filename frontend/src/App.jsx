@@ -32,7 +32,7 @@ function App() {
 
   const handleToggleExpanded = (newExpanded) => {
     setExpanded(newExpanded);
-    console.log(`Navbar is now ${newExpanded ? 'expanded' : 'minimized'}`); 
+    // console.log(`Navbar is now ${newExpanded ? 'expanded' : 'minimized'}`); 
   };
 
   return (

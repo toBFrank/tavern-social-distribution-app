@@ -77,14 +77,17 @@ const CommentsModal = ({ postId }) => {
           <div className="comments-container">
             {comments.length > 0 ? (
               comments.map((comment, index) => (
-                <Typography key={index} variant="body1" sx={{ mt: 1 }}>
-                  <div className="comment-box">{comment.comment}</div>
-                </Typography>
+                <div key={index} className="comment-box">
+                  <Typography variant="body1">
+                    {comment.comment}
+                  </Typography>
+                </div>
               ))
             ) : (
               <Typography variant="body1">No comments available.</Typography>
             )}
           </div>
+
           <div className="comment-input-box">
             <textarea
               className="comment-textbox"
