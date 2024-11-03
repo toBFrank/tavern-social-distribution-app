@@ -279,7 +279,6 @@ class LikeView(APIView):
         """
         Get a single like by author serial and like serial
         """
-        
         like = get_object_or_404(Like, id=like_serial)
         serializer = LikeSerializer(like)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -414,6 +413,45 @@ class LikeViewByFQIDView(APIView):
         like = get_object_or_404(Like, id=like_id)
         serializer = LikeSerializer(like)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class LikedFQIDView(APIView):
+    """
+    get list of likes from author with FQID
+    """
+    def get(self, request, author_fqid):
+        """
+        get list of likes from author with FQID
+        """
+        # example author url: http://nodeaaaa/api/authors/111
+        decoded_fqid = urllib.parse.unquote(author_fqid)
+
+        try:
+            parts = decoded_fqid.split('/')
+            author_serial = parts[parts.index('authors') + 1] 
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        author = get_object_or_404(Author, id=author_serial)
+        likes = author.likes.all()
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/authors/{author_serial}",
+            "id": f"http://{host}/api/authors/{author_serial}/liked",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": author.likes.count(),
+            "src": serializer.data  # List of serialized like data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 #endview
