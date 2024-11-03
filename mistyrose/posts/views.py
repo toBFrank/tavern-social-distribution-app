@@ -185,7 +185,6 @@ class CommentedView(APIView):
     
 #region Like views   
 class LikedView(APIView):
-    # TODO: handle duplicate likes -> return 200 instead similar to follow request
     """
     get or like a post
     """
@@ -246,6 +245,35 @@ class LikedView(APIView):
         else:
             return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
         
+    def get(self, request, author_serial):
+        """
+        get list of likes by author_id
+        """
+        author = get_object_or_404(Author, id=author_serial)
+        likes = author.likes.all()
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/authors/{author_serial}",
+            "id": f"http://{host}/api/authors/{author_serial}/liked",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": author.likes.count(),
+            "src": serializer.data  # List of serialized like data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+
+
+        
 
 class LikesView(APIView):
     """
@@ -268,8 +296,8 @@ class LikesView(APIView):
         host = request.get_host()
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/author/{author_serial}/posts/{post_id}",
-            "id": f"http://{host}/api/author/{author_serial}/posts/{post_id}/likes",
+            "page": f"http://{host}/api/authors/{author_serial}/posts/{post_id}",
+            "id": f"http://{host}/api/authors/{author_serial}/posts/{post_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": post.likes.count(),
@@ -300,8 +328,8 @@ class LikedCommentsView(APIView):
         host = request.get_host()
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/author/{author_id}/commented/{comment_id}",
-            "id": f"http://{host}/api/author/{author_id}/commented/{comment_id}/likes",
+            "page": f"http://{host}/api/authors/{author_id}/commented/{comment_id}",
+            "id": f"http://{host}/api/authors/{author_id}/commented/{comment_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": comment.likes.count(),
@@ -344,8 +372,8 @@ class LikesViewByFQIDView(APIView):
         host = request.get_host()
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/author/{author_id}/posts/{post_id}",
-            "id": f"http://{host}/api/author/{author_id}/posts/{post_id}/likes",
+            "page": f"http://{host}/api/authors/{author_id}/posts/{post_id}",
+            "id": f"http://{host}/api/authors/{author_id}/posts/{post_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": post.likes.count(),
