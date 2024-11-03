@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 
 class Author(models.Model):
     # Each author will have a unique identifier (UUID).
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)  # Unique UUID for author
+    type = models.CharField(max_length=10, default="author")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) # Unique UUID for author, which might be used in constructing the full URL in the serializer
     host = models.URLField()  # Full API URL for author's node
     display_name = models.CharField(max_length=100)  # Display name of the author
     github = models.URLField(blank=True)  # Author's GitHub profile URL

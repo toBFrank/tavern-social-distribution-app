@@ -31,9 +31,9 @@ const Login = () => {
       }
       const { refresh_token, access_token, author_id } = response;
 
-      Cookies.set('author_id', author_id, { sameSite: 'None' }); 
-      Cookies.set('access_token', access_token, { sameSite: 'None' });
-      Cookies.set('refresh_token', refresh_token, { sameSite: 'None' });
+      Cookies.set('author_id', author_id); 
+      Cookies.set('access_token', access_token);
+      Cookies.set('refresh_token', refresh_token);
 
       setLoading(false);
       navigate('/');
