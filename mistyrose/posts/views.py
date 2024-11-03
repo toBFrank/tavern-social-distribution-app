@@ -248,6 +248,9 @@ class LikedView(APIView):
         
 
 class LikesView(APIView):
+    """
+    get likes on a post
+    """
     def get(self, request, author_serial, post_id):
         """
         Get likes on a post
@@ -280,8 +283,10 @@ class LikesViewByFQIDView(APIView):
     Get likes by FQID
     """
     def get(self, request, post_fqid):
+        """
+        get likes for post with fqid
+        """
         #decoding fqid from chatGPT: asked chatGPT how to decode the FQID 2024-11-02
-
         # Decode the FQID
         decoded_fqid = urllib.parse.unquote(post_fqid)
 
@@ -316,10 +321,6 @@ class LikesViewByFQIDView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
     
-
-
-
-
 
 #endview
    
