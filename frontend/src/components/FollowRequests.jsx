@@ -10,6 +10,13 @@ const FollowRequests = () => {
     const [followRequests, setFollowRequests] = useState([]);
     const authorId = Cookies.get('author_id');
 
+    // Function to extract only the UUID from a full URL
+    const extractUUID = (url) => {
+        const match = url.match(/[0-9a-fA-F-]{36}/);  // Regex to find UUID
+        return match ? match[0] : url;  // Return UUID if found, else return original URL
+    };
+
+
     useEffect(() => {
         const fetchFollowRequests = async () => {
             // Fetch follow requests for the author
@@ -27,7 +34,8 @@ const FollowRequests = () => {
     const handleAccept = async (followerId) => {
         // Accept follow request
         try {
-            await acceptFollowRequest(authorId, followerId);
+            const uuidFollowerId = extractUUID(followerId);  // Use only UUID
+            await acceptFollowRequest(authorId, uuidFollowerId);
             setFollowRequests(prevRequests => prevRequests.filter(request => request.actor.id !== followerId));
         } catch (error) {
             console.error(error);
@@ -37,7 +45,8 @@ const FollowRequests = () => {
     const handleReject = async (followerId) => {
         // Deny follow request
         try {
-            await rejectFollowRequest(authorId, followerId);
+            const uuidFollowerId = extractUUID(followerId);  // Use only UUID
+            await rejectFollowRequest(authorId, uuidFollowerId);
             setFollowRequests(prevRequests => prevRequests.filter(request => request.actor.id !== followerId));
         } catch (error) {
             console.error(error);
