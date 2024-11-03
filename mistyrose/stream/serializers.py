@@ -23,8 +23,9 @@ class FollowSerializer(serializers.Serializer):
 
         # Extract the UUID from the 'page' URL if 'id' is not present
         actor_id = self.extract_uuid_from_url(actor_data.get('page'))
-        object_id = self.extract_uuid_from_url(object_data.get('page'))
 
+        object_id = self.extract_uuid_from_url(object_data.get('page'))
+    
         # Greg wants to follow lara 
         #local_follower = Author.objects.get(id=actor_data['id']) #Greg TODO: returns 500 if not found, maybe wanna return 404?
         #followed = Author.objects.get(id=object_data['id']) #Lara
