@@ -10,7 +10,7 @@ export const getAuthorProfile = async (authorId) => {
         }
 
         // Make the request with the Authorization header
-        const response = await fetch(`http://localhost:8000/authors/${authorId}/profile/`, {
+        const response = await fetch(`http://localhost:8000/api/authors/${authorId}/profile/`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

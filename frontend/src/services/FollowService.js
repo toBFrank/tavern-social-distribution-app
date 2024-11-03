@@ -44,7 +44,7 @@ export const checkIfFollowing = async (authorId, followerId) => {
   const token = Cookies.get('access_token');
     try {
       const response = await api.get(
-        `/authors/${authorId}/followers/${followerId}/`,
+        `authors/${authorId}/followers/${followerId}/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
