@@ -259,7 +259,7 @@ class LikedView(APIView):
         #TODO: return "type": "likes" format as specified in the project description, right now just returning a list of likes for ease
 
 
-   
+ 
 class PublicPostsView(APIView):
     # To view all of the public posts in the home page
     permission_classes = [IsAuthenticatedOrReadOnly] 
@@ -278,29 +278,35 @@ class PublicPostsView(APIView):
 
         authorized_authors_per_post = []
 
+        # Get a list of authors that the current author follows
+        following_ids = set(Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True))
+        followers_ids = set(Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True))  
+        mutual_friend_ids = following_ids.intersection(followers_ids)
+
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
+            post_author_id = post_data['author_id']
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
                 authorized_authors.update(all_authors)
-
+            
+            
+            
             elif post_visibility == 'UNLISTED':
-                followers = Follows.objects.filter(
-                    followed_id=current_author,
-                    status='ACCEPTED'
-                ).select_related('local_follower_id')
-                followers_data = [follower.local_follower_id.id for follower in followers]
-                authorized_authors.update(followers_data)
+                accepted_following_ids = Follows.objects.filter(
+                local_follower_id=current_author, 
+                status='ACCEPTED'
+                ).values_list('followed_id', flat=True)
+                # Show the unlisted post if the post's author is someone the current author follows
+                if post_author_id in accepted_following_ids:
+                    authorized_authors.add(current_author.id)
 
+            
             elif post_visibility == 'FRIENDS':
-                following_ids = Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True)
-                followers_ids = Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True)
-
-                mutual_friend_ids = set(following_ids).intersection(set(followers_ids))
-                friends = Author.objects.filter(id__in=mutual_friend_ids)
-                friends_data = [friend.id for friend in friends]
-                authorized_authors.update(friends_data)
+                # Only show FRIENDS posts if the post's author is a mutual friend
+                if post_author_id in mutual_friend_ids:
+                    authorized_authors.add(current_author.id)
 
             elif post_visibility == 'SHARED':
                 original_url = post_data.get('original_url')  
@@ -324,3 +330,8 @@ class PublicPostsView(APIView):
             'authorized_authors_per_post': authorized_authors_per_post
         }
         return Response(response_data, status=status.HTTP_200_OK)
+    
+
+
+
+            

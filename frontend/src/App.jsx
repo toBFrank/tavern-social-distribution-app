@@ -5,9 +5,13 @@ import Cookies from 'js-cookie';
 import { useState, useEffect } from 'react';
 
 function App() {
+  // State for checking if the author ID cookie exists
   const [authorIdExists, setAuthorIdExists] = useState(
     !!Cookies.get('author_id')
   );
+
+  // State to track if the navbar is expanded or minimized
+  const [expanded, setExpanded] = useState(true); 
 
   useEffect(() => {
     const checkCookie = () => {
@@ -26,9 +30,14 @@ function App() {
     };
   }, []);
 
+  const handleToggleExpanded = (newExpanded) => {
+    setExpanded(newExpanded);
+    // console.log(`Navbar is now ${newExpanded ? 'expanded' : 'minimized'}`); 
+  };
+
   return (
-    <div className="App">
-      {authorIdExists && <NavigationBar />}
+    <div className="App" style={{ paddingLeft: expanded ? '15%' : '5%' }}>
+      {authorIdExists && <NavigationBar expanded={expanded} onToggleExpanded={handleToggleExpanded} />}
       <AppRoutes />
     </div>
   );
