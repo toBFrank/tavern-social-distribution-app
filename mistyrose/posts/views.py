@@ -278,6 +278,38 @@ class LikesView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
     
+class LikedCommentsView(APIView):
+    """
+    Get likes for a comment
+    """
+    def get(self, request, author_id, post_id, comment_id):
+        """
+        get likes for a comment
+        """
+        post = get_object_or_404(Post, id=post_id)
+        comment = get_object_or_404(Comment, id=comment_id, post_id=post)
+
+        likes = comment.likes.all().order_by('-published')
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/author/{author_id}/commented/{comment_id}",
+            "id": f"http://{host}/api/author/{author_id}/commented/{comment_id}/likes",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": comment.likes.count(),
+            "src": serializer.data  
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
 class LikesViewByFQIDView(APIView):
     """
     Get likes by FQID
@@ -286,6 +318,7 @@ class LikesViewByFQIDView(APIView):
         """
         get likes for post with fqid
         """
+        # example post url: http://nodebbbb/authors/222/posts/249
         #decoding fqid from chatGPT: asked chatGPT how to decode the FQID 2024-11-02
         # Decode the FQID
         decoded_fqid = urllib.parse.unquote(post_fqid)
@@ -321,6 +354,30 @@ class LikesViewByFQIDView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
     
+class LikeViewByFQIDView(APIView):
+    """
+    Get a single like
+    """
+    def get(self, request, like_fqid):
+        """
+        Get a single like 
+        """
+        # example like url http://nodeaaaa/api/authors/222/liked/255
+        # Decode the FQID
+        decoded_fqid = urllib.parse.unquote(like_fqid)
+
+        # Split the decoded FQID to extract author_id and like_id
+        try:
+            parts = decoded_fqid.split('/')
+            #author_id = parts[parts.index('authors') + 1] 
+            like_id = parts[parts.index('liked') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        like = get_object_or_404(Like, id=like_id)
+        serializer = LikeSerializer(like)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 #endview
    
