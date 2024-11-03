@@ -41,13 +41,11 @@ urlpatterns = [
     path('api/posts/', include('posts.urls')),
     path('api/authors/<uuid:author_id>/inbox/', include('stream.urls')),
     path('api/users/', include('users.urls')),
-    path('api/authors/<uuid:author_serial>/commented/', CommentedView.as_view(), name='commented'),
-    path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/comments/', CommentedView.as_view(), name='post_comments'),
     path('admin/', admin.site.urls),
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
     path('', include('users.urls')),
-    path('api/authors/<uuid:author_serial>/liked/', LikedView.as_view(), name='liked'),
-    path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/likes/', LikesView.as_view(), name='post_likes'),
+    path('api/authors/', include('posts.authors_urls')),
+    path('api/authors/', include('users.authors_urls')),
 ]
 
 if settings.DEBUG:  # Only serve media files in development mode
