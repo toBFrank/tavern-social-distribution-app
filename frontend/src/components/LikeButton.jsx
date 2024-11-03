@@ -25,9 +25,11 @@ const LikeButton = ({ postId }) => {
         setLikesCount(likesResponse.count);
 
         //check if user liked post already
-        const userLike = likesResponse.src.find( //authors who liked post
-          (like) => like.author.id === authorId
-        );
+        const userLike = likesResponse.src.find((like) => {
+          const authorUuid = like.author.id.split("authors/")[1].replace("/", "");
+          return authorUuid === authorId
+        }); //authors who liked post
+
         if (userLike) {
           setIsLiked(true);
         }
