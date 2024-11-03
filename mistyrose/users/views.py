@@ -24,7 +24,7 @@ from posts.models import Post
 from django.middleware.csrf import get_token  
 from django.contrib.auth import authenticate  
 from .pagination import AuthorsPagination  
-from .serializers import PostSerializer  
+from posts.serializers import PostSerializer  
 from uuid import UUID 
 
 # Default profile picture URL to be used when no image is provided
@@ -197,7 +197,7 @@ class AuthorDetailView(generics.RetrieveAPIView):
     serializer_class = AuthorSerializer  # Use the AuthorSerializer for serialization
     lookup_field = 'pk'  # The lookup field used for retrieving a specific author is the primary key
 
-
+'''
 class AuthorProfileView(APIView):
     def get(self, request, pk):
         # Retrieve the author instance by primary key (pk)
@@ -241,7 +241,56 @@ class AuthorProfileView(APIView):
         
         # Return the prepared response
         return Response(data)
+'''
 
+class AuthorProfileView(APIView):
+    def get_friends_count(self, request, author_id):
+        """Retrieve the count of mutual friends using FriendsView."""
+        friends_view = FriendsView()
+        friends_response = friends_view.get(request, author_id=author_id)
+        return len(friends_response.data.get('friends', []))
+
+    def get_follower_count(self, author):
+        """Retrieve the count of followers with accepted follow requests."""
+        return Follows.objects.filter(followed_id=author, status='ACCEPTED').count()
+
+    def get_following_count(self, author):
+        """Retrieve the count of authors that the user is following with accepted follow requests."""
+        return Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
+
+    def get_author_posts(self, author, visibility):
+        """Retrieve posts by visibility and serialize them."""
+        return PostSerializer(
+            Post.objects.filter(author_id=author, visibility=visibility).order_by('-published'), many=True
+        ).data
+
+    def get(self, request, pk):
+        # Retrieve the author instance by primary key (pk)
+        author = get_object_or_404(Author, pk=pk)
+        
+        # Serialize author data
+        author_data = AuthorSerializer(author).data
+        
+        # Gather counts and categorized posts
+        friends_count = self.get_friends_count(request, author_id=pk)
+        followers_count = self.get_follower_count(author)
+        following_count = self.get_following_count(author)
+        public_posts = self.get_author_posts(author, 'PUBLIC')
+        friends_posts = self.get_author_posts(author, 'FRIENDS')
+        unlisted_posts = self.get_author_posts(author, 'UNLISTED')
+        
+        # Prepare the response data
+        data = {
+            **author_data,
+            'friends_count': friends_count,
+            'followers_count': followers_count,
+            'following_count': following_count,
+            'public_posts': public_posts,
+            'friends_posts': friends_posts,
+            'unlisted_posts': unlisted_posts,
+        }
+        
+        return Response(data)
 
 class AuthorEditProfileView(APIView):
     def get(self, request, pk):
