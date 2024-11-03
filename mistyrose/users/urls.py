@@ -5,16 +5,9 @@ from .views import (
     SignUpView,
     AuthorDetailView,
     LogoutView,
-    # send_follow_request,
-    # manage_follow_request,
     AuthorProfileView,
     AuthorEditProfileView,
     VerifyTokenView,
-    FollowerView, 
-    AuthorsView,
-    UnfollowView,
-    FollowersDetailView,
-    FriendsView,
     ProfileImageUploadView
 )
 

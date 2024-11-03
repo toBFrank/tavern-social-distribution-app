@@ -44,8 +44,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
     path('', include('users.urls')),
-    path('api/authors/', include('posts.authors_urls')),
-    path('api/authors/', include('users.authors_urls')),
+    path('api/authors/', include('posts.authors_urls')), #api/authors/ urls for posts, likes, comments
+    path('api/authors/', include('users.authors_urls')), #api/authors/ for urls like following and authors
 ]
 
 if settings.DEBUG:  # Only serve media files in development mode
