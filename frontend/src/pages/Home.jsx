@@ -127,9 +127,16 @@ const Home = () => {
     const postAuthorization = authorizedAuthors.find(
       (auth) => auth.post_id === post.id
     );
+
+    // If this post is public, it should be displayed to everyone
+    if (post.visibility === 'PUBLIC' && selectedFilter === 'Public') {
+      return true; // Public posts should always be included
+    }
+    const currentUserId = Cookies.get('author_id');
     const isAuthorized = postAuthorization?.authorized_authors.includes(
-      post.author_id
+      currentUserId
     );
+
     if (!isAuthorized) {
       return false; // Skip unauthorized posts
     }
@@ -138,15 +145,17 @@ const Home = () => {
     if (selectedFilter === 'Public') {
       return post.visibility === 'PUBLIC';
     } else if (selectedFilter === 'Unlisted') {
-    if (post.visibility === 'UNLISTED') {
-      return true; 
-    }
+      if (post.visibility === 'UNLISTED') {
+        return  followingStatus[post.author_id];
+       }
     if (post.visibility === 'SHARED') {
       return followingStatus[post.author_id]; // Show shared posts of people the current user follows
     }
     return false; 
     } else if (selectedFilter === 'Friends') {
-      return post.visibility === 'FRIENDS';
+        console.log(1);
+        console.log(post.visibility === 'FRIENDS');
+        return post.visibility === 'FRIENDS';
     }
     return true; // Fallback case, should return all posts if no filter is selected
   });

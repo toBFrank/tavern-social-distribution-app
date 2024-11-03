@@ -329,11 +329,11 @@ const Post = ( ) => {
         <button className="post-button" onClick={handlePostClick}>
           Post
         </button>
-        {/* {postId && (
+        { postId && (
           <button className="delete-button" onClick={handleDeleteClick}>
             Delete
           </button>
-        )} */}
+        )} 
       </div>
     </div>
   );
