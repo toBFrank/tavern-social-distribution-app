@@ -74,7 +74,7 @@ const CommentsModal = ({ postId }) => {
           <Typography id="comments-modal-title" variant="h6" component="h2">
             Comments
           </Typography>
-          <Typography id="comments-modal-description" sx={{ mt: 2 }}>
+          <div className="comments-container">
             {comments.length > 0 ? (
               comments.map((comment, index) => (
                 <Typography key={index} variant="body1" sx={{ mt: 1 }}>
@@ -84,7 +84,7 @@ const CommentsModal = ({ postId }) => {
             ) : (
               <Typography variant="body1">No comments available.</Typography>
             )}
-          </Typography>
+          </div>
           <div className="comment-input-box">
             <textarea
               className="comment-textbox"
@@ -99,6 +99,7 @@ const CommentsModal = ({ postId }) => {
           </div>
         </Box>
       </Modal>
+
       <div
         className="comments-button-container"
         style={{ display: 'flex', alignItems: 'center' }}
