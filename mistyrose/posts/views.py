@@ -271,9 +271,18 @@ class LikedView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-
-
+class LikeView(APIView):
+    """
+    Get a single like by author and like serial
+    """
+    def get(self, request, author_serial, like_serial):
+        """
+        Get a single like by author serial and like serial
+        """
         
+        like = get_object_or_404(Like, id=like_serial)
+        serializer = LikeSerializer(like)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class LikesView(APIView):
     """
