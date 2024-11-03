@@ -10,6 +10,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemButton from '@mui/material/ListItemButton';
 import { useNavigate } from 'react-router-dom';
+import '../styles/components/AuthorsListModal.css'
 
 const AuthorsListModal = ({ authors, onModalClose }) => { /* authors is the list of Author objects that should be displayed in modal*/
 const navigate = useNavigate();
@@ -29,9 +30,9 @@ return (
             <Typography id="authors-modal-title" variant="h6" component="h2">
             Authors
             </Typography>
-            <List>
+            <List className={'authors-list-container'}>
             {authors.map((author) => (
-                <ListItemButton key={author.id} onClick={() => handleClickProfile(author)}>
+                <ListItemButton key={author.id} className={'authors-list-item'} onClick={() => handleClickProfile(author)}>
                 <ListItemAvatar>
                     <Avatar src={author.profileImage} alt={author.displayName}>
                     {author.displayName[0]} {/* Fallback for initials */}

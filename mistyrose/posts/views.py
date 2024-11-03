@@ -13,6 +13,7 @@ from .models import Post
 from users.models import Author, Follows  
 from .pagination import LikesPagination
 from django.http import JsonResponse
+import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -181,8 +182,6 @@ class CommentedView(APIView):
     #TODO: return "type": "comments" format as specified in the project description, right now just returning a list of comments for ease
            
 #endregion
-
-
     
 #region Like views   
 class LikedView(APIView):
@@ -217,7 +216,15 @@ class LikedView(APIView):
             object_content_type = ContentType.objects.get_for_model(Comment)
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        #check if user has already liked the object
+        existing_like = Like.objects.filter(
+            author_id=author,
+            object_url=object_url
+        ).first()
 
+        if existing_like:
+            return Response(LikeSerializer(existing_like).data, status=200) #if they've already liked, can't like again
 
         like_serializer = LikeSerializer(data=request.data) #asked chatGPT how to set the host in the serializer, need to add context 2024-11-02
         if like_serializer.is_valid():
@@ -267,6 +274,52 @@ class LikesView(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+    
+class LikesViewByFQIDView(APIView):
+    """
+    Get likes by FQID
+    """
+    def get(self, request, post_fqid):
+        #decoding fqid from chatGPT: asked chatGPT how to decode the FQID 2024-11-02
+
+        # Decode the FQID
+        decoded_fqid = urllib.parse.unquote(post_fqid)
+
+        # Split the decoded FQID to extract author_id and post_id
+        try:
+            parts = decoded_fqid.split('/')
+            author_id = parts[parts.index('authors') + 1] 
+            post_id = parts[parts.index('posts') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        post = get_object_or_404(Post, id=post_id)
+
+        likes = post.likes.all().order_by('-published')
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/author/{author_id}/posts/{post_id}",
+            "id": f"http://{host}/api/author/{author_id}/posts/{post_id}/likes",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": post.likes.count(),
+            "src": serializer.data  # List of serialized like data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+
+
+
+
 
 #endview
    

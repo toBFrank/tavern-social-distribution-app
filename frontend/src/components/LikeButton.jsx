@@ -61,12 +61,14 @@ const LikeButton = ({ postId }) => {
 
       try {
         const response = await createLike(authorId, likeData);
-        console.log(response);
+        console.log(response.data);
 
         // only updating likes if request is successful
         if (response.status === 201) {
           setLikesCount(likesCount + 1);
           setIsLiked(true);
+        } else if (response.status === 200) {
+          console.log(response.data);
         } else {
           console.error('Creating like failed with ', response.status);
         }
