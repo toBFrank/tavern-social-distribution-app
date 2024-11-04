@@ -106,7 +106,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
 
     fetchOriginalAuthorProfile();
   }, [originalPost]);
-
+  //console.log(originalPost);
   return (
     <div className="post-box">
       {originalPost && (
@@ -116,7 +116,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         </div>
       )}
       <div className="post-header">
-        <Link to={`/profile/${post.author.id}`} style={{ display: 'flex' }}>
+        <Link to={`/profile/${post.author.id.split('/')[5]}`} style={{ display: 'flex' }}>
           {' '}
           {/* Add display: flex */}
           <div className="profile-image-container">
@@ -168,7 +168,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         <LikeButton postId={post.id} />
         <CommentsModal postId={post.id} />
         {(post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && post.visibility !== 'SHARED') && (
-          <ShareButton postId={post.id} authorId={post.author.id} postContent={post} />
+          <ShareButton postId={post.id} authorId={post.author.id.split('/')[5]} postContent={post} />
         )}
         {(post.visibility === 'PUBLIC' || post.visibility === 'UNLISTED' || post.visibility === 'FRIENDS'|| post.visibility === 'SHARED') && (
           <button onClick={handleCopyLink} className="share-link-button">
