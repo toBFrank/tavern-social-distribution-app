@@ -9,6 +9,7 @@ import CommentsModal from './CommentsModal';
 import ShareButton from './ShareButton';
 import { BorderColor } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
+import shareLinkIcon from '../assets/share_link.png';
 
 const PostBox = ({ post, poster, isUserEditable }) => {
   const [imageUrl, setImageUrl] = useState(null);
@@ -16,9 +17,20 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   const [originalAuthor, setOriginalAuthor] = useState(null);
   const [originalImageUrl, setOriginalImageUrl] = useState(null);
   const [posterImageUrl, setPosterImageUrl] = useState(poster ? poster.profileImage : null);
+  const [showCopyNotification, setShowCopyNotification] = useState(false); // State for notification
   const posterName = originalPost ? originalAuthor?.displayName : poster?.displayName || 'Anonymous';
   const postPublishedDate = originalPost ? originalPost.published : post.published;
   const navigate = useNavigate();
+  const postLink = `${window.location.origin}/post/${post.id}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(postLink)
+      .then(() => {
+        setShowCopyNotification(true);
+        setTimeout(() => setShowCopyNotification(false), 2000); // Hide notification after 2 seconds
+      })
+      .catch((err) => console.error('Failed to copy link: ', err));
+  };
 
   useEffect(() => {
     const getImgUrlFromServer = async () => {
@@ -133,6 +145,13 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         {(post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && post.visibility !== 'SHARED') && (
           <ShareButton postId={post.id} authorId={post.author_id} postContent={post} />
         )}
+        {(post.visibility === 'PUBLIC' || post.visibility === 'UNLISTED') && (
+          <button onClick={handleCopyLink} className="share-link-button">
+            <img src={shareLinkIcon} alt="Share Link" className="share-link-icon" />
+            <span>Share Link</span>
+          </button>
+        )}
+        {showCopyNotification && <span className="copy-notification">Post link copied!</span>}
       </div>
     </div>
   );
