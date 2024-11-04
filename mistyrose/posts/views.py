@@ -281,8 +281,27 @@ class CommentRemoteByFQIDView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CommentByFQIDView(APIView):
+    """
+    get comment by comment fqid
+    """
     def get(self, request, comment_fqid):
+        """
+        get comment by comment fqid
+        """
+        #example comment url: http://nodeaaaa/api/authors/111/commented/130
+        #decode comment fqid
+        decoded_fqid = urllib.parse.unquote(comment_fqid)
 
+        try:
+            parts = decoded_fqid.split('/')
+            author_id = parts[parts.index('authors') + 1] 
+            comment_serial = parts[parts.index('commented') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comment = get_object_or_404(Comment, id=comment_serial)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
 #endregion
     

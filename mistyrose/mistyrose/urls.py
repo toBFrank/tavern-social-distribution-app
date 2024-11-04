@@ -49,6 +49,7 @@ urlpatterns = [
     path('api/authors/', include('posts.authors_urls')), #api/authors/ urls for posts, likes, comments
     path('api/authors/', include('users.authors_urls')), #api/authors/ for urls like following and authors
     path('api/liked/', include('posts.liked_urls')), #api/liked urls
+    path('api/comment/', include('posts.comment_urls')), #api/comment urls
 ]
 
 if settings.DEBUG:  # Only serve media files in development mode
