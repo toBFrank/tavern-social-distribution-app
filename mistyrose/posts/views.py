@@ -661,7 +661,6 @@ class PublicPostsView(APIView):
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
             post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
-            print(f"POST AUTHOR ID: {post_author_id}")
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
@@ -680,7 +679,6 @@ class PublicPostsView(APIView):
             elif post_visibility == 'FRIENDS':
                 # Only show FRIENDS posts if the post's author is a mutual friend
                 if post_author_id in mutual_friend_ids or post_author_id == current_author.id:
-                    print(f"Mutual friend: {post_author_id}")
                     authorized_authors.add(current_author.id)
 
             elif post_visibility == 'SHARED':
@@ -705,10 +703,7 @@ class PublicPostsView(APIView):
         response_data = {
             'posts': serializer.data,  
             'authorized_authors_per_post': authorized_authors_per_post
-        }
-        
-        print(f"AUTHORIZED AUTHORS PER POST: {authorized_authors_per_post}")
-        
+        }        
         return Response(response_data, status=status.HTTP_200_OK)
     
 #region Github Vews
