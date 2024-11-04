@@ -154,9 +154,7 @@ const Home = () => {
       }
       return false;
     } else if (selectedFilter === 'Friends') {
-      console.log(1);
-      console.log(post.visibility === 'FRIENDS');
-      return post.visibility === 'FRIENDS';
+        return post.visibility === 'FRIENDS';
     }
     return true; // Fallback case, should return all posts if no filter is selected
   });

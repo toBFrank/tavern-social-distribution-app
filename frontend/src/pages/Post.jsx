@@ -190,6 +190,8 @@ const Post = () => {
         // Create a new post when sharing
         await createPost(authorId, postData);
       } else if (postId) {
+        const currentDateTime = new Date().toISOString();
+        postData.append('published', currentDateTime);
         // Update post if postId exists
         await updatePost(authorId, postId, postData);
       } else {

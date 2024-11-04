@@ -13,6 +13,7 @@ import CommentsModal from './CommentsModal';
 import ShareButton from './ShareButton';
 import { BorderColor } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import shareLinkIcon from '../assets/share_link.png';
 
 const PostBox = ({ post, poster, isUserEditable }) => {
   const [imageUrl, setImageUrl] = useState(null);
@@ -22,6 +23,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   const [posterImageUrl, setPosterImageUrl] = useState(
     poster ? poster.profileImage : null
   );
+  const [showCopyNotification, setShowCopyNotification] = useState(false); // State for notification
   const posterName = originalPost
     ? originalAuthor?.displayName
     : poster?.displayName || 'Anonymous';
@@ -29,6 +31,16 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     ? originalPost.published
     : post.published;
   const navigate = useNavigate();
+  const postLink = `${window.location.origin}/post/${post.id}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(postLink)
+      .then(() => {
+        setShowCopyNotification(true);
+        setTimeout(() => setShowCopyNotification(false), 2000); // Hide notification after 2 seconds
+      })
+      .catch((err) => console.error('Failed to copy link: ', err));
+  };
 
   useEffect(() => {
     const getImgUrlFromServer = async () => {

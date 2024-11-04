@@ -6,14 +6,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from .models import Post, Comment, Like
-from stream.models import Inbox
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
 from .pagination import LikesPagination
-from django.http import JsonResponse
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 
 #region Post Views
@@ -390,7 +388,7 @@ class LikedView(APIView):
         ).first()
 
         if existing_like:
-            return Response(LikeSerializer(existing_like).data, status=200) #if they've already liked, can't like again
+            return Response(LikeSerializer(existing_like).data, status=status.HTTP_200_OK) #if they've already liked, can't like again
 
         like_serializer = LikeSerializer(data=request.data) #asked chatGPT how to set the host in the serializer, need to add context 2024-11-02
         if like_serializer.is_valid():
@@ -675,12 +673,14 @@ class PublicPostsView(APIView):
                     authorized_authors.add(current_author.id)
 
             elif post_visibility == 'SHARED':
-                original_url = post_data.get('original_url')  
-                if original_url:
-                    original_author_id = original_url[0]  
-                    authorized_authors.add(original_author_id) 
-                post_author_id = post_data.get('author_id')  # Get the author_id from post data
-                authorized_authors.add(post_author_id) 
+                #original_url = post_data.get('original_url')  
+                #if original_url:
+                #    original_author_id = original_url[0]  
+                 #   authorized_authors.add(original_author_id) 
+                #post_author_id = post_data.get('author_id')  # Get the author_id from post data
+                #authorized_authors.add(post_author_id)
+                if post_author_id in following_ids:
+                  authorized_authors.add(current_author.id) 
 
 
             # Include visibility_type in the authorized_authors_per_post dictionary
