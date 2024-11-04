@@ -22,7 +22,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
 from django.conf import settings
-from posts.views import CommentedView, LikedView
+from posts.views import CommentedView, LikedView, LikesView
 from django.views.generic import TemplateView
 
 
@@ -40,13 +40,15 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('api/posts/', include('posts.urls')),
     path('api/authors/<uuid:author_id>/inbox/', include('stream.urls')),
+    path('api/users/', include('users.urls')),
     path('api/authors/<uuid:author_serial>/commented/', CommentedView.as_view(), name='commented'),
     path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/comments/', CommentedView.as_view(), name='post_comments'),
     path('admin/', admin.site.urls),
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
     path('', include('users.urls')),
-    path('api/authors/<uuid:author_serial>/liked/', LikedView.as_view(), name='liked'),
-    path('api/authors/<uuid:author_serial>/posts/<uuid:post_id>/likes/', LikedView.as_view(), name='post_likes'),
+    path('api/authors/', include('posts.authors_urls')), #api/authors/ urls for posts, likes, comments
+    path('api/authors/', include('users.authors_urls')), #api/authors/ for urls like following and authors
+    path('api/liked/', include('posts.liked_urls')), #api/liked urls
 ]
 
 if settings.DEBUG:  # Only serve media files in development mode

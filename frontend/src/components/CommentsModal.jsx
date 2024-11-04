@@ -15,11 +15,13 @@ const CommentsModal = ({ postId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [commentsLength, setCommentsLength] = useState(0);
 
   useEffect(() => {
     const fetchComments = async () => {
       try {
         const fetchComments = await getComments(authorId, postId);
+        setCommentsLength(fetchComments ? fetchComments.length : 0);
         setComments(fetchComments);
       } catch (error) {
         console.error(error);
@@ -75,7 +77,7 @@ const CommentsModal = ({ postId }) => {
             Comments
           </Typography>
           <div className="comments-container">
-            {comments.length > 0 ? (
+            {commentsLength > 0 ? (
               comments.map((comment, index) => (
                 <div key={index} className="comment-box">
                   <Typography variant="body1">
@@ -112,7 +114,7 @@ const CommentsModal = ({ postId }) => {
         </button>
         <p className="comments-text">
           {' '}
-          {comments.length} {comments.length === 1 ? 'comment' : 'comments'}{' '}
+          {commentsLength} {commentsLength === 1 ? 'comment' : 'comments'}{' '}
         </p>
       </div>
     </>

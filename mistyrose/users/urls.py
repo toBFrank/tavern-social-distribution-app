@@ -5,16 +5,9 @@ from .views import (
     SignUpView,
     AuthorDetailView,
     LogoutView,
-    # send_follow_request,
-    # manage_follow_request,
     AuthorProfileView,
     AuthorEditProfileView,
     VerifyTokenView,
-    FollowerView, 
-    AuthorsView,
-    UnfollowView,
-    FollowersDetailView,
-    FriendsView,
     ProfileImageUploadView
 )
 
@@ -27,10 +20,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),  # User logout endpoint
     path('api/authors/<uuid:pk>/profile/', AuthorProfileView.as_view(), name='author-profile'),  # Author profile view
     path('api/authors/<uuid:pk>/profile/edit/', AuthorEditProfileView.as_view(), name='author-edit-profile'),  # Edit author profile
-    path('api/authors/<str:author_id>/followers/<str:follower_id>/', FollowerView.as_view(), name='manage_follow_request'), #Manage Follow Request
-    path('api/authors/', AuthorsView.as_view(), name='authors-list'),
-    path('authors/<str:author_id>/followers/<str:follower_id>/unfollow/', UnfollowView.as_view(), name='unfollow'),
-    path('followers/', FollowersDetailView.as_view(), name='followers'),
-    path('friends/', FriendsView.as_view(), name='friends'),
     path('authors/<str:username>/upload_image/', ProfileImageUploadView.as_view(), name='upload-profile-image'),
 ]
