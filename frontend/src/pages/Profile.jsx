@@ -15,7 +15,7 @@ const Profile = () => {
   const { authorId } = useParams();
   const currentUserId = Cookies.get('author_id');
   const [profileData, setProfileData] = useState(null);
-  const [currentProfileData] = useState(null);
+  const [currentProfileData, setcurrentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);
@@ -39,9 +39,14 @@ const Profile = () => {
 
   // Close the modal when the route changes
   useEffect(() => {
-    setShowModal(false);
-  }, [location]);
-
+    getAuthorProfile(currentUserId)
+      .then((data) => {
+        setcurrentProfileData(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
   const closeModal = () => {
     setShowModal(false);
   };
