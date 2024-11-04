@@ -48,6 +48,8 @@ urlpatterns = [
     path('api/authors/', include('users.authors_urls')), #api/authors/ for urls like following and authors
     path('api/liked/', include('posts.liked_urls')), #api/liked urls
     path('api/comment/', include('posts.comment_urls')), #api/comment urls
+    path('api/commented/', include('posts.comment_urls')) #TODO: asked if there is an error in the project description, is this supposed to be the same one as the comments/comment_fqid?
+
 ]
 
 if settings.DEBUG:  # Only serve media files in development mode
