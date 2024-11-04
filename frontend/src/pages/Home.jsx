@@ -106,8 +106,15 @@ const Home = () => {
 
         setFollowingStatus(followingStatusMap);
       } catch (err) {
-        console.error('Fetch Error:', err.message);
-        setError(err.message);
+        if (
+          err.response &&
+          err.response.data &&
+          err.response.data.status === 'Follow request not found'
+        ) {
+          console.log('Follow request not found');
+        } else {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -154,7 +161,7 @@ const Home = () => {
       }
       return false;
     } else if (selectedFilter === 'Friends') {
-        return post.visibility === 'FRIENDS';
+      return post.visibility === 'FRIENDS';
     }
     return true; // Fallback case, should return all posts if no filter is selected
   });
