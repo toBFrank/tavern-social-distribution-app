@@ -120,7 +120,6 @@ const Home = () => {
   if (error) {
     return <p>Error: {error}</p>;
   }
-
   // Filter posts based on visibility and selected filter
   const filteredPosts = posts.filter((post) => {    
     // Find the corresponding entry in authorizedAuthors for the current post
@@ -204,6 +203,7 @@ const Home = () => {
                   (auth) => auth.post_id === post.id
                 );
                 const authorizedAuthorsForPost = postAuthorization?.authorized_authors || [];
+      
                 return (
                   <li key={post.id}>
                     {/* Temporarily removed the Link component */}
