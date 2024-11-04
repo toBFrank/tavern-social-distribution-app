@@ -36,7 +36,9 @@ const Profile = () => {
         setLoading(false);
       });
   }, [authorId]);
-  
+  useEffect(() => {
+    setShowModal(false);
+  }, [location]);
   const closeModal = () => {
     setShowModal(false);
   };
