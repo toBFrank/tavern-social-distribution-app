@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom'; // Import Link from React Router
 import { getMarkdownText } from '../utils/getMarkdownText';
-import { getPostImageUrl, getPost, getPostByFqid } from '../services/PostsService';
+import { getPostImageUrl, getPost } from '../services/PostsService';
 import { getAuthorProfile } from '../services/profileService';
 import '../styles/components/PostBox.css';
 import LikeButton from './LikeButton';
@@ -47,7 +47,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     if (post.content_type === 'image' & post.visibility !== 'SHARED') {
       getImgUrlFromServer();
     } 
-  }, [post.author_id, post.content_type, post.id]);
+  }, [post.author_id, post.content_type, post.id, post.visibility]);
 
   // Fetch post have visibility of SHARED it will take the original posts info
   useEffect(() => {
@@ -145,7 +145,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         {(post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && post.visibility !== 'SHARED') && (
           <ShareButton postId={post.id} authorId={post.author_id} postContent={post} />
         )}
-        {(post.visibility === 'PUBLIC' || post.visibility === 'UNLISTED') && (
+        {(post.visibility === 'PUBLIC' || post.visibility === 'UNLISTED' || post.visibility === 'FRIENDS'|| post.visibility === 'SHARED') && (
           <button onClick={handleCopyLink} className="share-link-button">
             <img src={shareLinkIcon} alt="Share Link" className="share-link-icon" />
             <span>Share Link</span>

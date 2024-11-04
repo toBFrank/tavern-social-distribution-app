@@ -41,7 +41,6 @@ return (
                 </ListItemAvatar>
                 <ListItemText
                     primary={author.displayName}
-                    secondary={author.page ? `Page: ${author.page}` : ''}
                 />
                 </ListItemButton>
             ))}
