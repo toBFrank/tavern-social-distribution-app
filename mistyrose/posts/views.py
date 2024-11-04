@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from users.models import Author
-from rest_framework import viewsets, status
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -11,7 +11,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
+from .pagination import LikesPagination
 from django.http import JsonResponse
+import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -140,51 +142,215 @@ class CommentedView(APIView):
         post = get_object_or_404(Post, id=post_id)
 
         #creating the comment object
-        request.data['author_id'] = author_serial
-        request.data['post_id'] = post_id
+
         comment_serializer = CommentSerializer(data=request.data)
         if comment_serializer.is_valid():
-            comment_instance = comment_serializer.save()
+            comment_serializer.save(
+                author_id=author,
+                post_id=post
+            )
 
             #creating Inbox object to forward to correct inbox
             post_host = post_url.split("//")[1].split("/")[0]
             if post_host != request.get_host():
                 # TODO: post not on our host, need to forward it to a remote inbox
                 pass
-            else:
-                # create and add to Inbox of the post's author
-                post_author = post.author_id
-                content_type = ContentType.objects.get_for_model(Comment)
-
-                Inbox.objects.create(
-                    type="comment",
-                    author=post_author,
-                    content_type=content_type,
-                    object_id=comment_instance.id,
-                    content_object=comment_instance,
-                )
-
+        
             return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
         
-    def get(self, request, author_serial, post_id):
+    def get(self, request, author_serial):
         """ 
-        Get comments on a post
+        Get the list of comments author has made on any post [local]
         """
-        post = get_object_or_404(Post, id=post_id) # not filtering by author so anyone can see it.... is that right? TODO: clarify
+        #TODO: get comments author has made for [remote]
+        author = get_object_or_404(Author, id=author_serial)
 
-        comments = post.comments.all()
+        comments = author.comments.all().order_by('-published')
+
         serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
-        return Response(serializer.data)
-    #TODO: return "type": "comments" format as specified in the project description, right now just returning a list of comments for ease
-           
+        #host is the host of commenter
+        host = author.host.rstrip('/')
 
+        response_data = {
+            "type": "comments",
+            "page": f"{host}/api/authors/{author_serial}",
+            "id": f"{host}/api/authors/{author_serial}",
+            "page_number": 1,
+            "size": author.comments.count(),
+            "count": author.comments.count(),
+            "src": serializer.data  
+        }
 
+        return Response(response_data, status=status.HTTP_200_OK)
     
+class CommentsByAuthorFQIDView(APIView):
+    """
+    Get the list of comments author has made on any post
+    """
+    def get(self, request, author_fqid):
+        decoded_fqid = urllib.parse.unquote(author_fqid)
+
+        # example author fqid: http://localhost/api/authors/1d6dfebf-63a6-47a9-8e88-5cda73675db5/
+        try:
+            parts = decoded_fqid.split('/')
+            author_serial = parts[parts.index('authors') + 1] 
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        author = get_object_or_404(Author, id=author_serial)
+
+        comments = author.comments.all().order_by('-published')
+
+        serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
+        #host is the host of commenter
+        host = author.host.rstrip('/')
+
+        response_data = {
+            "type": "comments",
+            "page": f"{host}/api/authors/{author_serial}",
+            "id": f"{host}/api/authors/{author_serial}",
+            "page_number": 1,
+            "size": author.comments.count(),
+            "count": author.comments.count(),
+            "src": serializer.data  
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
     
+class CommentView(APIView):
+    """
+    Get a single comment
+    """
+    def get(self, request, author_serial, comment_serial):
+        """
+        Get a single comment
+        """
+        comment = get_object_or_404(Comment, id=comment_serial)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class CommentsView(APIView):
+    """
+    get comments on a post
+    """
+    def get(self, request, author_serial, post_serial):
+        """
+        get comments on a post 
+        """
+        post = get_object_or_404(Post, id=post_serial) 
+
+        comments = post.comments.all().order_by('-published')
+
+        serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
+        #host is the host from the post
+        host = post.author_id.host.rstrip('/')
+        post_author_id = post.author_id.id
+
+        # "page":"http://nodebbbb/authors/222/posts/249",
+        # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
+        response_data = {
+            "type": "comments",
+            "page": f"{host}/api/authors/{post_author_id}/posts/{post_serial}",
+            "id": f"{host}/api/authors/{post_author_id}/posts/{post_serial}/comments",
+            "page_number": 1,
+            "size": post.comments.count(),
+            "count": post.comments.count(),
+            "src": serializer.data  
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+class CommentsByFQIDView(APIView):
+    """
+    Get comments on a post by post FQID
+    """
+    def get(self, request, post_fqid):
+        # example post url: http://nodebbbb/authors/222/posts/249
+        #decoding fqid from chatGPT: asked chatGPT how to decode the FQID 2024-11-02
+        decoded_fqid = urllib.parse.unquote(post_fqid)
+
+        try:
+            parts = decoded_fqid.split('/')
+            author_id = parts[parts.index('authors') + 1] 
+            post_serial = parts[parts.index('posts') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        post = get_object_or_404(Post, id=post_serial) 
+
+        comments = post.comments.all().order_by('-published')
+
+        serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
+        #host is the host from the post
+        host = post.author_id.host.rstrip('/')
+        post_author_id = post.author_id.id
+
+        # "page":"http://nodebbbb/authors/222/posts/249",
+        # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
+        response_data = {
+            "type": "comments",
+            "page": f"{host}/api/authors/{post_author_id}/posts/{post_serial}",
+            "id": f"{host}/api/authors/{post_author_id}/posts/{post_serial}/comments",
+            "page_number": 1,
+            "size": post.comments.count(),
+            "count": post.comments.count(),
+            "src": serializer.data  
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+class CommentRemoteByFQIDView(APIView):
+    """
+    Get a comment by its FQID [local, remote]
+    """
+    def get(self, request, author_serial, post_serial, comment_fqid):
+        """
+        Get a comment by its FQID [local, remote]
+        """
+        #example comment url: http://nodeaaaa/api/authors/111/commented/130
+        #decode comment fqid
+        decoded_fqid = urllib.parse.unquote(comment_fqid)
+
+        try:
+            parts = decoded_fqid.split('/')
+            author_id = parts[parts.index('authors') + 1] 
+            comment_serial = parts[parts.index('commented') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comment = get_object_or_404(Comment, id=comment_serial)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CommentByFQIDView(APIView):
+    """
+    get comment by comment fqid
+    """
+    def get(self, request, comment_fqid):
+        """
+        get comment by comment fqid
+        """
+        #example comment url: http://nodeaaaa/api/authors/111/commented/130
+        #decode comment fqid
+        decoded_fqid = urllib.parse.unquote(comment_fqid)
+
+        try:
+            parts = decoded_fqid.split('/')
+            author_id = parts[parts.index('authors') + 1] 
+            comment_serial = parts[parts.index('commented') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comment = get_object_or_404(Comment, id=comment_serial)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+#endregion
+    
+#region Like views   
 class LikedView(APIView):
-    #TODO: ASK IF WE ARE SUPPOSED TO BE ABLE TO UNLIKE A POST
     """
     get or like a post
     """
@@ -215,51 +381,247 @@ class LikedView(APIView):
             object_content_type = ContentType.objects.get_for_model(Comment)
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        #check if user has already liked the object
+        existing_like = Like.objects.filter(
+            author_id=author,
+            object_url=object_url
+        ).first()
 
-        #creating the like object
-        request.data['author_id'] = author_serial
-        request.data['object_id'] = liked_object.id
-        request.data['content_type'] = object_content_type.id
+        if existing_like:
+            return Response(LikeSerializer(existing_like).data, status=200) #if they've already liked, can't like again
 
-        like_serializer = LikeSerializer(data=request.data)
+        like_serializer = LikeSerializer(data=request.data) #asked chatGPT how to set the host in the serializer, need to add context 2024-11-02
         if like_serializer.is_valid():
-            like_instance = like_serializer.save()
+
+            like_serializer.save(
+                author_id=author,  
+                object_id=liked_object.id,
+                content_type=object_content_type,
+                object_url=object_url
+            )
 
             #creating Inbox object to forward to correct inbox
             post_host = object_url.split("//")[1].split("/")[0]
             if post_host != request.get_host():
-                # TODO: post or comment not on our host, need to forward it to a remote inbox
+                # TODO: Part 3-5 post or comment not on our host, need to forward it to a remote inbox
                 pass
-            else:
-                # create and add to Inbox of the post or comment's author
-                object_author = liked_object.author_id
-                content_type = ContentType.objects.get_for_model(Like)
-
-                Inbox.objects.create(
-                    type="like",
-                    author=object_author,
-                    content_type=content_type,
-                    object_id=like_instance.id,
-                    content_object=like_instance,
-                )
-
+            
             return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
         else:
             return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
         
+    def get(self, request, author_serial):
+        """
+        get list of likes by author_id
+        """
+        author = get_object_or_404(Author, id=author_serial)
+        likes = author.likes.all()
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/authors/{author_serial}",
+            "id": f"http://{host}/api/authors/{author_serial}/liked",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": author.likes.count(),
+            "src": serializer.data  # List of serialized like data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+class LikeView(APIView):
+    """
+    Get a single like by author and like serial
+    """
+    def get(self, request, author_serial, like_serial):
+        """
+        Get a single like by author serial and like serial
+        """
+        like = get_object_or_404(Like, id=like_serial)
+        serializer = LikeSerializer(like)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class LikesView(APIView):
+    """
+    get likes on a post
+    """
     def get(self, request, author_serial, post_id):
         """
         Get likes on a post
         """
         post = get_object_or_404(Post, id=post_id)
 
-        likes = post.likes.all()
-        serializer = LikeSerializer(likes, many=True) # many=True specifies that input is not just a single like
-        return Response(serializer.data)
-        #TODO: return "type": "likes" format as specified in the project description, right now just returning a list of likes for ease
+        likes = post.likes.all().order_by('-published')
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/authors/{author_serial}/posts/{post_id}",
+            "id": f"http://{host}/api/authors/{author_serial}/posts/{post_id}/likes",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": post.likes.count(),
+            "src": serializer.data  # List of serialized like data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+class LikedCommentsView(APIView):
+    """
+    Get likes for a comment
+    """
+    def get(self, request, author_id, post_id, comment_id):
+        """
+        get likes for a comment
+        """
+        post = get_object_or_404(Post, id=post_id)
+        comment = get_object_or_404(Comment, id=comment_id, post_id=post)
+
+        likes = comment.likes.all().order_by('-published')
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/authors/{author_id}/commented/{comment_id}",
+            "id": f"http://{host}/api/authors/{author_id}/commented/{comment_id}/likes",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": comment.likes.count(),
+            "src": serializer.data  
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+class LikesViewByFQIDView(APIView):
+    """
+    Get likes by FQID
+    """
+    def get(self, request, post_fqid):
+        """
+        get likes for post with fqid
+        """
+        # example post url: http://nodebbbb/authors/222/posts/249
+        #decoding fqid from chatGPT: asked chatGPT how to decode the FQID 2024-11-02
+        # Decode the FQID
+        decoded_fqid = urllib.parse.unquote(post_fqid)
+
+        # Split the decoded FQID to extract author_id and post_id
+        try:
+            parts = decoded_fqid.split('/')
+            author_id = parts[parts.index('authors') + 1] 
+            post_id = parts[parts.index('posts') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        post = get_object_or_404(Post, id=post_id)
+
+        likes = post.likes.all().order_by('-published')
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/authors/{author_id}/posts/{post_id}",
+            "id": f"http://{host}/api/authors/{author_id}/posts/{post_id}/likes",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": post.likes.count(),
+            "src": serializer.data  # List of serialized like data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+class LikeViewByFQIDView(APIView):
+    """
+    Get a single like
+    """
+    def get(self, request, like_fqid):
+        """
+        Get a single like 
+        """
+        # example like url http://nodeaaaa/api/authors/222/liked/255
+        # Decode the FQID
+        decoded_fqid = urllib.parse.unquote(like_fqid)
+
+        # Split the decoded FQID to extract author_id and like_id
+        try:
+            parts = decoded_fqid.split('/')
+            #author_id = parts[parts.index('authors') + 1] 
+            like_id = parts[parts.index('liked') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        like = get_object_or_404(Like, id=like_id)
+        serializer = LikeSerializer(like)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class LikedFQIDView(APIView):
+    """
+    get list of likes from author with FQID
+    """
+    def get(self, request, author_fqid):
+        """
+        get list of likes from author with FQID
+        """
+        # example author url: http://nodeaaaa/api/authors/111
+        decoded_fqid = urllib.parse.unquote(author_fqid)
+
+        try:
+            parts = decoded_fqid.split('/')
+            author_serial = parts[parts.index('authors') + 1] 
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        author = get_object_or_404(Author, id=author_serial)
+        likes = author.likes.all()
+
+        # Pagination setup
+        paginator = LikesPagination()
+        paginated_likes = paginator.paginate_queryset(likes, request)
+
+        serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
+
+        host = request.get_host()
+        response_data = {
+            "type": "likes",
+            "page": f"http://{host}/api/authors/{author_serial}",
+            "id": f"http://{host}/api/authors/{author_serial}/liked",
+            "page_number": paginator.page.number,
+            "size": paginator.get_page_size(request),
+            "count": author.likes.count(),
+            "src": serializer.data  # List of serialized like data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
- 
+#endview
+   
 class PublicPostsView(APIView):
     # To view all of the public posts in the home page
     permission_classes = [IsAuthenticatedOrReadOnly] 

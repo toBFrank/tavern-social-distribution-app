@@ -247,10 +247,10 @@ class AuthorProfileView(APIView):
 '''
 
 class AuthorProfileView(APIView):
-    def get_friends_count(self, request, author_id):
+    def get_friends_count(self, request, pk):
         """Retrieve the count of mutual friends using FriendsView."""
         friends_view = FriendsView()
-        friends_response = friends_view.get(request, author_id=author_id)
+        friends_response = friends_view.get(request, pk=pk)
         return len(friends_response.data.get('friends', []))
 
     def get_follower_count(self, author):
@@ -275,12 +275,13 @@ class AuthorProfileView(APIView):
         author_data = AuthorSerializer(author).data
         
         # Gather counts and categorized posts
-        friends_count = self.get_friends_count(request, author_id=pk)
+        friends_count = self.get_friends_count(request, pk=pk)
         followers_count = self.get_follower_count(author)
         following_count = self.get_following_count(author)
         public_posts = self.get_author_posts(author, 'PUBLIC')
         friends_posts = self.get_author_posts(author, 'FRIENDS')
         unlisted_posts = self.get_author_posts(author, 'UNLISTED')
+        shared_posts = self.get_author_posts(author, 'SHARED')
         
         # Prepare the response data
         data = {
@@ -291,6 +292,7 @@ class AuthorProfileView(APIView):
             'public_posts': public_posts,
             'friends_posts': friends_posts,
             'unlisted_posts': unlisted_posts,
+            'shared_posts': shared_posts,
         }
         
         return Response(data)
@@ -455,9 +457,9 @@ class UnfollowView(APIView):
             return Response({'error': 'Follow relationship does not exist.'}, status=404)
 
 class FollowersDetailView(APIView):
-    def get(self, request):
-        # Get the current author based on the logged-in user
-        author = get_object_or_404(Author, user=request.user)
+    def get(self, request, pk):  # Add 'pk' parameter
+        # Get the author based on the provided pk
+        author = get_object_or_404(Author, id=pk)
         
         # Retrieve all followers who have an accepted follow request for the author
         followers = Follows.objects.filter(followed_id=author, status='ACCEPTED').select_related('local_follower_id')
@@ -477,16 +479,39 @@ class FollowersDetailView(APIView):
             "followers": followers_data
         }, status=status.HTTP_200_OK)
 
+class FollowingDetailView(APIView):
+    def get(self, request, pk):  # Add 'pk' parameter for the current user's ID
+        # Get the author based on the provided pk (the current user)
+        author = get_object_or_404(Author, id=pk)
+        
+        # Retrieve all users that the author is following with accepted follow requests
+        following = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').select_related('followed_id')
+        
+        # Create a list of following users' details (id, display name, profile image)
+        following_data = [
+            {
+                'id': follow.followed_id.id,
+                'displayName': follow.followed_id.display_name,
+                'profileImage': follow.followed_id.profile_image
+            }
+            for follow in following
+        ]
+
+        # Return the list of following users with HTTP 200 status
+        return Response({
+            "following": following_data
+        }, status=status.HTTP_200_OK)
+
 
 class FriendsView(APIView):
 
-    def get(self, request, author_id=None):
+    def get(self, request, pk= None):
         # Get the current logged-in user (Author instance)
         current_user = get_object_or_404(Author, user=request.user)
 
         # Check if an author_id is provided, else use the current logged-in user as the viewed author
-        if author_id:
-            viewed_author = get_object_or_404(Author, id=author_id)
+        if pk:
+            viewed_author = get_object_or_404(Author, id=pk)
         else:
             viewed_author = current_user
 

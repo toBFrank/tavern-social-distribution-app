@@ -36,6 +36,7 @@
   border: none;
   color: grey;
   cursor: pointer;
+  margin-top: 0.5rem;
   /* max-width: 100px; */
 }
 
@@ -118,8 +119,15 @@
   height: 100%;
   padding: 15px;
   display: flex;
+  flex-direction: column; /* Forces items inside to stack vertically */
   align-items: flex-start;
   overflow: auto;
+  margin-bottom: 1rem;
+}
+
+.comment-author {
+  font-weight: bold !important;
+  margin-bottom: 0.5rem;
 }
 
 .comment-input-box {

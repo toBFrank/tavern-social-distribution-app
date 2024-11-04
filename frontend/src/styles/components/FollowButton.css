@@ -19,6 +19,10 @@ background: #fff;
 color: #212529
 }
 
+.follow-button:disabled {
+  cursor: default;
+}
+
 .follow-button.requested {
     background: #fff; /* Background remains white */
     color: #212529;   /* Change text color for better visibility */
