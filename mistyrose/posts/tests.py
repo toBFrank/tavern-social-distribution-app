@@ -7,6 +7,7 @@ from posts.models import Comment, Like, Post
 import urllib.parse
 import json
 import uuid
+from django.contrib.contenttypes.models import ContentType
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -408,5 +409,335 @@ class CommentByFQIDView(BaseTestCase):
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}')
+
+#endregion
+
+#region Likes Tests
+# asked chatGPT for assistance for test case errors and general structure for writing tests 2024-11-04
+class LikedViewTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.like_url = reverse('liked', args=[self.author.id])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_like_post(self):
+        like_data = {
+            "type": "like",
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            "object": f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        }
+
+        response = self.client.post(self.like_url, like_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['type'], 'like')
+
+    def test_like_comment(self):
+        like_data = {
+            "type": "like",
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            "object": f"http://{self.author.host}/authors/{self.author.id}/commented/{self.comment.id}"
+        }
+
+        response = self.client.post(self.like_url, like_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['type'], 'like')
+
+    def test_like_invalid_type(self):
+        invalid_like_data = {
+            "type": "invalid_type",
+            "object": f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        }
+
+        response = self.client.post(self.like_url, invalid_like_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_like_already_exists(self):
+        # Create an existing like
+        Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        like_data = {
+            "type": "like",
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            "object": f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        }
+
+        response = self.client.post(self.like_url, like_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_likes(self):
+        Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        response = self.client.get(self.like_url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "likes")
+
+class LikeViewTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.like = Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        self.like_url = reverse('like', args=[self.author.id, self.like.id])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_get_like_successful(self):
+        response = self.client.get(self.like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_like_not_found(self):
+        # Attempt to retrieve a like that does not exist
+        invalid_like_url = reverse('like', args=[self.author.id, f"{uuid.uuid4()}"])  
+        response = self.client.get(invalid_like_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class LikesViewTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.like = Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        self.like_url = reverse('post_likes', args=[self.author.id, self.post.id])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_get_likes_successful(self):
+        response = self.client.get(self.like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['type'], 'likes')
+
+    def test_get_likes_post_not_found(self):
+        # Attempt to retrieve likes for a post that does not exist
+        invalid_likes_url = reverse('post_likes', args=[self.author.id, f"{uuid.uuid4()}"]) 
+        response = self.client.get(invalid_likes_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class LikedCommentsViewTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.like = Like.objects.create(
+            author_id=self.author,
+            object_id=self.comment.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/commented/{self.comment.id}"
+        )
+
+        self.like_url = reverse('comment_likes', args=[self.author.id, self.post.id, self.comment.id])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_get_likes_for_comment(self):
+        response = self.client.get(self.like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['type'], 'likes')
+
+    def test_get_likes_comment_not_found(self):
+        # Attempt to retrieve likes for a comment that does not exist
+        invalid_likes_url = reverse('comment_likes', args=[self.author.id, self.post.id, f"{uuid.uuid4()}"])
+        response = self.client.get(invalid_likes_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class LikesViewByFQIDViewTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.like = Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        self.fqid = urllib.parse.quote(f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}")
+
+        self.like_url = reverse('get_likes_fqid', args=[self.fqid])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_get_likes_by_fqid(self):
+        response = self.client.get(self.like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['type'], 'likes')
+    
+    def test_get_likes_post_not_found(self):
+        # Attempt to retrieve likes for a post that does not exist
+        invalid_fqid = urllib.parse.quote(f"http://{self.author.host}/authors/{self.author.id}/posts/{uuid.uuid4()}")  
+        invalid_likes_url = reverse('get_likes_fqid', args=[invalid_fqid])  
+        response = self.client.get(invalid_likes_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class LikeViewByFQIDViewTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.like = Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+        # Encode FQID for the like
+        self.like_fqid = urllib.parse.quote(f"http://{self.author.id}/authors/{self.author.id}/liked/{self.like.id}")
+        self.like_url = reverse('get_like_fqid', args=[self.like_fqid])  
+
+    def test_get_like_by_fqid(self):
+        response = self.client.get(self.like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['type'], 'like')
+  
+    def test_get_like_not_found(self):
+        # Attempt to retrieve a like that does not exist
+        invalid_fqid = urllib.parse.quote(f"http://{self.author.host}/authors/{self.author.id}/liked/{uuid.uuid4()}")  
+        invalid_like_url = reverse('get_like_fqid', args=[invalid_fqid])  
+        response = self.client.get(invalid_like_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class LikedFQIDViewTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.like = Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        # Encode FQID for the author
+        self.author_fqid = urllib.parse.quote(f"http://{self.author.host}/authors/{self.author.id}")
+
+        self.like_url = reverse('liked_fqid', args=[self.author_fqid])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_get_likes_by_author_fqid(self):
+        response = self.client.get(self.like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['type'], 'likes')
+
+    def test_get_likes_author_not_found(self):
+        # Attempt to retrieve likes for a non-existent author
+        invalid_fqid = urllib.parse.quote(f"http://{self.author.host}/authors/{uuid.uuid4()}")  
+        invalid_liked_url = reverse('liked_fqid', args=[invalid_fqid])  
+        response = self.client.get(invalid_liked_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
 
 #endregion
