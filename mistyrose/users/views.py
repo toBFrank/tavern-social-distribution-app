@@ -464,18 +464,22 @@ class FollowersDetailView(APIView):
         # Retrieve all followers who have an accepted follow request for the author
         followers = Follows.objects.filter(followed_id=author, status='ACCEPTED').select_related('local_follower_id')
         
-        # Create a list of followers' details (id, display name, profile image)
         followers_data = [
             {
-                'id': follower.local_follower_id.id, 
-                'displayName': follower.local_follower_id.display_name, 
-                'profileImage': follower.local_follower_id.profile_image
+                "type": "author",
+                "id": request.build_absolute_uri(f'/api/authors/{follower.local_follower_id.id}/'),  # Full URL for ID 
+                "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
+                "displayName": follower.local_follower_id.display_name, 
+                "page": request.build_absolute_uri(f'/api/authors/{follower.local_follower_id.id}/'),
+                "github": follower.local_follower_id.github,  # Assuming github is a field on the Author model
+                "profileImage": follower.local_follower_id.profile_image if follower.local_follower_id.profile_image else None
             } 
             for follower in followers
         ]
 
         # Return the list of followers with HTTP 200 status
         return Response({
+            "type": "followers",
             "followers": followers_data
         }, status=status.HTTP_200_OK)
 
@@ -487,25 +491,29 @@ class FollowingDetailView(APIView):
         # Retrieve all users that the author is following with accepted follow requests
         following = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').select_related('followed_id')
         
-        # Create a list of following users' details (id, display name, profile image)
+        # Create a list of following users' details with additional fields
         following_data = [
             {
-                'id': follow.followed_id.id,
-                'displayName': follow.followed_id.display_name,
-                'profileImage': follow.followed_id.profile_image
+                "type": "author",
+                "id": request.build_absolute_uri(f'/api/authors/{follow.followed_id.id}/'),  # Full URL for ID
+                "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
+                "displayName": follow.followed_id.display_name,
+                "page": request.build_absolute_uri(f'/api/authors/{follow.followed_id.id}/'),
+                "github": follow.followed_id.github,  # Assuming github is a field on the Author model
+                "profileImage": follow.followed_id.profile_image if follow.followed_id.profile_image else None
             }
             for follow in following
         ]
 
         # Return the list of following users with HTTP 200 status
         return Response({
+            "type": "following",
             "following": following_data
         }, status=status.HTTP_200_OK)
 
-
 class FriendsView(APIView):
 
-    def get(self, request, pk= None):
+    def get(self, request, pk=None):
         # Get the current logged-in user (Author instance)
         current_user = get_object_or_404(Author, user=request.user)
 
@@ -527,21 +535,25 @@ class FriendsView(APIView):
         # Retrieve all mutual friends (Authors)
         friends = Author.objects.filter(id__in=mutual_friend_ids)
 
-        # Create a list of friends' details (id, display name, profile image)
+        # Create a list of friends' details with additional fields
         friends_data = [
             {
-                'id': friend.id,
-                'displayName': friend.display_name,
-                'profileImage': friend.profile_image
+                "type": "author",
+                "id": request.build_absolute_uri(f'/api/authors/{friend.id}/'),  # Full URL for ID
+                "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
+                "displayName": friend.display_name,
+                "page": request.build_absolute_uri(f'/api/authors/{friend.id}/'),
+                "github": friend.github,  # Assuming github is a field on the Author model
+                "profileImage": friend.profile_image if friend.profile_image else None
             }
             for friend in friends
         ]
 
         # Return the list of friends with HTTP 200 status
         return Response({
+            "type": "friends",
             "friends": friends_data
         }, status=status.HTTP_200_OK)
-
     
 class ProfileImageUploadView(APIView):
     permission_classes = [AllowAny]  # Allow access without authentication

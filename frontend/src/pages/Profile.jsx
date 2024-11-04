@@ -8,6 +8,7 @@ import PostBox from '../components/PostBox';
 import { getFollowers } from '../services/FollowDetailService';
 import { getFriends } from '../services/FriendsDetailService';
 import { getFollowing } from '../services/FollowingDetailService';
+import AuthorsListModal from '../components/AuthorsListModal';
 
 
 const Profile = () => {
@@ -16,12 +17,9 @@ const Profile = () => {
   const [profileData, setProfileData] = useState(null);
   const [currentProfileData, setCurrentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [followers, setFollowers] = useState([]);
-  const [friends, setFriends] = useState([]); // State for friends
-  const [following, setFollowing] = useState([]);
-  const [showFollowers, setShowFollowers] = useState(false);
-  const [showFriends, setShowFriends] = useState(false);
-  const [showFollowing, setShowFollowing] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState([]);
+  const [modalTitle, setModalTitle] = useState(''); // To display the title dynamically
 
 
   const navigate = useNavigate();
@@ -52,10 +50,9 @@ const Profile = () => {
   const handleFollowersClick = async () => {
     try {
       const followersData = await getFollowers(authorId);
-      setFollowers(followersData.followers);
-      setShowFollowers(!showFollowers);  // Toggle visibility
-      setShowFriends(false); // Close followers modal if open
-      setShowFollowing(false);
+      setModalData(followersData.followers);
+      setModalTitle('Followers');
+      setShowModal(true);
     } catch (error) {
       console.error("Error fetching followers:", error);
     }
@@ -64,10 +61,9 @@ const Profile = () => {
   const handleFriendsClick = async () => {
     try {
       const friendsData = await getFriends(authorId);
-      setFriends(friendsData.friends);
-      setShowFriends(!showFriends); // Toggle visibility
-      setShowFollowers(false); // Close followers modal if open
-      setShowFollowing(false);
+      setModalData(friendsData.friends);
+      setModalTitle('Friends');
+      setShowModal(true);
     } catch (error) {
       console.error("Error fetching friends:", error);
     }
@@ -76,16 +72,17 @@ const Profile = () => {
   const handleFollowingClick = async () => {
     try {
       const followingData = await getFollowing(authorId);
-      setFollowing(followingData.following);
-      setShowFollowing(!showFollowing); // Toggle visibility
-      setShowFollowers(false); // Close followers modal if open
-      setShowFriends(false);
+      setModalData(followingData.following);
+      setModalTitle('Following');
+      setShowModal(true);
     } catch (error) {
       console.error("Error fetching following:", error);
     }
   };
   
-  
+  const closeModal = () => {
+    setShowModal(false);
+  };
 
   if (loading) {
     return <p>Loading...</p>;
@@ -221,95 +218,13 @@ const Profile = () => {
         )}
       </div>
 
-      {showFollowers && (
-  <div className="followers-modal">
-    <h3 style={{ textAlign: 'center' }}>Followers</h3>
-    <div className="followers-list">
-      {followers.length > 0 ? (
-        followers.map((follower) => (
-          <div 
-            className="follower-item" 
-            key={follower.id} 
-            onClick={() => {
-              setShowFollowers(false); // Close the modal first
-              navigate(`/profile/${follower.id}`); // Then navigate to follower's profile
-            }} 
-            style={{ cursor: 'pointer' }} // Change cursor to pointer to indicate it's clickable
-          >
-            <span className="follower-name">{follower.displayName}</span>
-          </div>
-        ))
-      ) : (
-        <div className="follower-item">
-          <span className="follower-name">No followers found.</span>
-        </div>
-      )}
-    </div>
-    <button onClick={() => setShowFollowers(false)} style={{ display: 'block', margin: '10px auto' }}>
-      Close
-    </button>
-  </div>
-)}
- {/* Friends Modal */}
- {showFriends && (
-        <div className="friends-modal">
-          <h3 style={{ textAlign: 'center' }}>Friends</h3>
-          <div className="friends-list">
-            {friends.length > 0 ? (
-              friends.map((friend) => (
-                <div 
-                  className="friend-item" 
-                  key={friend.id} 
-                  onClick={() => {
-                    setShowFriends(false); // Close the modal first
-                    navigate(`/profile/${friend.id}`); // Then navigate to friend's profile
-                  }} 
-                  style={{ cursor: 'pointer' }} // Change cursor to pointer to indicate it's clickable
-                >
-                  <span className="friend-name">{friend.displayName}</span>
-                </div>
-              ))
-            ) : (
-              <div className="friend-item">
-                <span className="friend-name">No friends found.</span>
-              </div>
-            )}
-          </div>
-          <button onClick={() => setShowFriends(false)} style={{ display: 'block', margin: '10px auto' }}>
-            Close
-          </button>
-        </div>
-      )}
-
-      {/* Following Modal */}
- {showFollowing && (
-        <div className="following-modal">
-          <h3 style={{ textAlign: 'center' }}>Following</h3>
-          <div className="following-list">
-            {following.length > 0 ? (
-              following.map((following) => (
-                <div 
-                  className="following-item" 
-                  key={following.id} 
-                  onClick={() => {
-                    setShowFollowing(false); // Close the modal first
-                    navigate(`/profile/${following.id}`); // Then navigate to friend's profile
-                  }} 
-                  style={{ cursor: 'pointer' }} // Change cursor to pointer to indicate it's clickable
-                >
-                  <span className="following-name">{following.displayName}</span>
-                </div>
-              ))
-            ) : (
-              <div className="following-item">
-                <span className="following-name">No Following found.</span>
-              </div>
-            )}
-          </div>
-          <button onClick={() => setShowFollowing(false)} style={{ display: 'block', margin: '10px auto' }}>
-            Close
-          </button>
-        </div>
+      {/* Authors List Modal for Followers, Friends, or Following */}
+      {showModal && (
+        <AuthorsListModal
+          authors={modalData}
+          onModalClose={closeModal}
+          title={modalTitle} 
+        />
       )}
 
 
