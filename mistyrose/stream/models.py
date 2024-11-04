@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 
 
 # Inbox model is designed to have foreign key to an author, and generic foreign key to the object from the Inbox request (follow, post, like, comment)
+#TODO: remove
 class Inbox(models.Model):
     OBJECT_CHOICES = [
       ('follow', 'Follow request'),
