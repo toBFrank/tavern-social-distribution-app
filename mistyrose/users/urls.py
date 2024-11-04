@@ -8,7 +8,10 @@ from .views import (
     AuthorProfileView,
     AuthorEditProfileView,
     VerifyTokenView,
-    ProfileImageUploadView
+    ProfileImageUploadView,
+    FollowersDetailView,
+    FriendsView,
+    FollowingDetailView
 )
 
 urlpatterns = [
@@ -21,4 +24,7 @@ urlpatterns = [
     path('api/authors/<uuid:pk>/profile/', AuthorProfileView.as_view(), name='author-profile'),  # Author profile view
     path('api/authors/<uuid:pk>/profile/edit/', AuthorEditProfileView.as_view(), name='author-edit-profile'),  # Edit author profile
     path('authors/<str:username>/upload_image/', ProfileImageUploadView.as_view(), name='upload-profile-image'),
+    path('api/authors/<uuid:pk>/followers/', FollowersDetailView.as_view(), name='author-followers'),  # Followers endpoint
+    path('api/authors/<uuid:pk>/friends/', FriendsView.as_view(), name='author-friends'),  # Friends endpoint
+    path('api/authors/<uuid:pk>/following/', FollowingDetailView.as_view(), name='author-following'),  # Friends endpoint
 ]
