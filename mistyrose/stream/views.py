@@ -3,13 +3,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import FollowSerializer
 from posts.serializers import CommentSerializer, LikeSerializer
-from .models import Inbox
 from users.models import Author, Follows
 from posts.models import Post, Like, Comment
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.decorators import api_view
 
 class InboxView(APIView):
     def post(self, request, author_id):
@@ -145,13 +143,16 @@ class InboxView(APIView):
         else:
             return Response({"Error": "Object type does not exist"}, status=status.HTTP_400_BAD_REQUEST)
 
-        
-@api_view(['GET'])
-def get_follow_requests(request, author_id):
-    author = get_object_or_404(Author, id=author_id)
-    pending_follow_requests = Follows.objects.filter(followed_id=author, status='PENDING')
+class FollowRequests(APIView):
+    """
+    get follow requests for user
+    """
+    def get(self, request, author_id):
+        author = get_object_or_404(Author, id=author_id)
+        pending_follow_requests = Follows.objects.filter(followed_id=author, status='PENDING')
 
-    serialized_data = FollowSerializer(pending_follow_requests, many=True).data
-    for follow_data in serialized_data:
-        follow_data['type'] = 'follow'
-    return Response(serialized_data, status=200)
+        serialized_data = FollowSerializer(pending_follow_requests, many=True).data
+        for follow_data in serialized_data:
+            follow_data['type'] = 'follow'
+        return Response(serialized_data, status=200)
+
