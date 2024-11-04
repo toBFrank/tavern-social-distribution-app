@@ -218,7 +218,72 @@ class CommentsView(APIView):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
-           
+class CommentsByFQIDView(APIView):
+    """
+    Get comments on a post by post FQID
+    """
+    def get(self, request, post_fqid):
+        # example post url: http://nodebbbb/authors/222/posts/249
+        #decoding fqid from chatGPT: asked chatGPT how to decode the FQID 2024-11-02
+        decoded_fqid = urllib.parse.unquote(post_fqid)
+
+        try:
+            parts = decoded_fqid.split('/')
+            author_id = parts[parts.index('authors') + 1] 
+            post_serial = parts[parts.index('posts') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        post = get_object_or_404(Post, id=post_serial) 
+
+        comments = post.comments.all().order_by('-published')
+
+        serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
+        #host is the host from the post
+        host = post.author_id.host.rstrip('/')
+        post_author_id = post.author_id.id
+
+        # "page":"http://nodebbbb/authors/222/posts/249",
+        # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
+        response_data = {
+            "type": "comments",
+            "page": f"{host}/api/authors/{post_author_id}/posts/{post_serial}",
+            "id": f"{host}/api/authors/{post_author_id}/posts/{post_serial}/comments",
+            "page_number": 1,
+            "size": post.comments.count(),
+            "count": post.comments.count(),
+            "src": serializer.data  
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+class CommentRemoteByFQIDView(APIView):
+    """
+    Get a comment by its FQID [local, remote]
+    """
+    def get(self, request, author_serial, post_serial, comment_fqid):
+        """
+        Get a comment by its FQID [local, remote]
+        """
+        #example comment url: http://nodeaaaa/api/authors/111/commented/130
+        #decode comment fqid
+        decoded_fqid = urllib.parse.unquote(comment_fqid)
+
+        try:
+            parts = decoded_fqid.split('/')
+            author_id = parts[parts.index('authors') + 1] 
+            comment_serial = parts[parts.index('commented') + 1]      
+        except (ValueError, IndexError):
+            return Response({"error": "Invalid FQID format"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        comment = get_object_or_404(Comment, id=comment_serial)
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CommentByFQIDView(APIView):
+    def get(self, request, comment_fqid):
+
+        
 #endregion
     
 #region Like views   
