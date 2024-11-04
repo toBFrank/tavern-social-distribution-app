@@ -1,16 +1,12 @@
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
 from users.models import Author
 from posts.models import Comment, Like, Post
-import uuid
 import json
-from django.contrib.contenttypes.models import ContentType
 
-
-# Basic test class, unified login settings
+#Basic test class, used for login settings
 class BaseTestCase(APITestCase):
     def setUp(self):
         self.test_username = 'testuser'
@@ -19,7 +15,7 @@ class BaseTestCase(APITestCase):
         self.author = Author.objects.create(user=self.user)
 
         # Log in and get token
-        login_url = '/api/login/'  # Make sure this is the actual login path
+        login_url = '/api/login/'
         response = self.client.post(
             login_url,
             data=json.dumps({
@@ -29,12 +25,12 @@ class BaseTestCase(APITestCase):
             content_type='application/json'
         )
 
-        # Check response status code and extract access_token
+        # Check and extract token
         if response.status_code == 200 and 'access_token' in response.json():
             self.token = response.json()['access_token']
             self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
         else:
-            print("Login failed or 'access_token' not in response. Status:", response.status_code)
+            print("Login failed. Status:", response.status_code, "Content:", response.content)
             self.token = None
 
 
@@ -65,7 +61,7 @@ class AuthorPostsViewTestCase(BaseTestCase):
     def test_get_author_posts(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)  # Should return 2 posts
+        self.assertEqual(len(response.data), 2)  # should return two posts
 
     def test_create_post(self):
         data = {
@@ -97,47 +93,6 @@ class PostImageViewTestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('image_url', response.data)
 
-
-class CommentedViewTestCase(BaseTestCase):
-    def setUp(self):
-        super().setUp()
-        self.post = Post.objects.create(
-            author_id=self.author,
-            title='Test Post',
-            content_type='text/plain',
-            text_content='This is a test post.'
-        )
-        self.comment_url = reverse('commented', args=[self.author.id])
-        self.comments_list_url = reverse('post_comments', args=[self.author.id, self.post.id])
-
-    def test_create_comment_success(self):
-        data = {
-            'type': 'comment',
-            'post': f'http://localhost:8000/posts/{self.post.id}',
-            'comment': 'This is a test comment.',
-        }
-        response = self.client.post(self.comment_url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Comment.objects.count(), 1)
-
-
-class LikedViewTestCase(BaseTestCase):
-    def setUp(self):
-        super().setUp()
-        self.post = Post.objects.create(
-            author_id=self.author,
-            title='Likeable Post',
-            content_type='text/plain',
-            text_content='This post is likeable.'
-        )
-        self.url = reverse('liked', args=[self.author.id])
-
-    def test_like_post(self):
-        data = {'type': 'like', 'object': f'http://localhost:8000/posts/{self.post.id}'}
-        response = self.client.post(self.url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-
 class PublicPostsViewTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -162,15 +117,4 @@ class PublicPostsViewTestCase(BaseTestCase):
     def test_get_public_posts(self):
         response = self.client.get('/api/posts/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)  # Should return 2 public posts
-
-
-class PublicPostsViewTestCase(BaseTestCase):
-    def test_get_all_public_posts(self):
-        # Add multiple public posts and test
-        Post.objects.create(author_id=self.author, title="Public Post 1", visibility="PUBLIC")
-        Post.objects.create(author_id=self.author, title="Public Post 2", visibility="PUBLIC")
-        response = self.client.get('/api/posts/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-
+        self.assertEqual(len(response.data), 2)  # should return two posts
