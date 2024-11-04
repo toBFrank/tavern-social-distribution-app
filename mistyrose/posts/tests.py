@@ -520,10 +520,71 @@ class LikedViewTest(BaseTestCase):
         self.assertEqual(response.data["type"], "likes")
 
 class LikeViewTest(BaseTestCase):
-    pass
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.like = Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        self.like_url = reverse('like', args=[self.author.id, self.like.id])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_get_like_successful(self):
+        response = self.client.get(self.like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_like_not_found(self):
+        # Attempt to retrieve a like that does not exist
+        invalid_like_url = reverse('like', args=[self.author.id, f"{uuid.uuid4()}"])  
+        response = self.client.get(invalid_like_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class LikesViewTest(BaseTestCase):
-    pass
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.like = Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        self.like_url = reverse('post_likes', args=[self.author.id, self.post.id])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_get_likes_successful(self):
+        response = self.client.get(self.like_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['type'], 'likes')
+
+    def test_get_likes_post_not_found(self):
+        # Attempt to retrieve likes for a post that does not exist
+        invalid_likes_url = reverse('post_likes', args=[self.author.id, f"{uuid.uuid4()}"]) 
+        response = self.client.get(invalid_likes_url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class LikedCommentsViewTest(BaseTestCase):
     pass
