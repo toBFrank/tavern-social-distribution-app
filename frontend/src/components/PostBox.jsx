@@ -117,7 +117,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         </div>
       )}
       <div className="post-header">
-        <Link to={`/profile/${post.author.id}`} style={{ display: 'flex' }}>
+        <Link to={`/profile/${post.author.id.split('/')[5]}`} style={{ display: 'flex' }}>
           {' '}
           {/* Add display: flex */}
           <div className="profile-image-container">
