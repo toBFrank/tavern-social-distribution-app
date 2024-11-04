@@ -7,6 +7,7 @@ from posts.models import Comment, Like, Post
 import urllib.parse
 import json
 import uuid
+from django.contrib.contenttypes.models import ContentType
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -408,5 +409,133 @@ class CommentByFQIDView(BaseTestCase):
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}')
+
+#endregion
+
+#region Likes Tests
+class LikedViewTest(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.like_url = reverse('liked', args=[self.author.id])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_like_post(self):
+        like_data = {
+            "type": "like",
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            "object": f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        }
+
+        response = self.client.post(self.like_url, like_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['type'], 'like')
+
+    def test_like_comment(self):
+        like_data = {
+            "type": "like",
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            "object": f"http://{self.author.host}/authors/{self.author.id}/commented/{self.comment.id}"
+        }
+
+        response = self.client.post(self.like_url, like_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['type'], 'like')
+
+    def test_like_invalid_type(self):
+        invalid_like_data = {
+            "type": "invalid_type",
+            "object": f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        }
+
+        response = self.client.post(self.like_url, invalid_like_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_like_already_exists(self):
+        # Create an existing like
+        Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        like_data = {
+            "type": "like",
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            "object": f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        }
+
+        response = self.client.post(self.like_url, like_data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_likes(self):
+        Like.objects.create(
+            author_id=self.author,
+            object_id=self.post.id,
+            content_type=ContentType.objects.get_for_model(self.post),
+            object_url=f"http://{self.author.host}/authors/{self.author.id}/posts/{self.post.id}"
+        )
+
+        response = self.client.get(self.like_url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "likes")
+
+class LikeViewTest(BaseTestCase):
+    pass
+
+class LikesViewTest(BaseTestCase):
+    pass
+
+class LikedCommentsViewTest(BaseTestCase):
+    pass
+
+class LikesViewByFQIDViewTest(BaseTestCase):
+    pass
+
+class LikeViewByFQIDViewTest(BaseTestCase):
+    pass
+
+class LikedFQIDViewTest(BaseTestCase):
+    pass
+
 
 #endregion

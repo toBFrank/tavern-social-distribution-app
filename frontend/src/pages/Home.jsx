@@ -98,7 +98,8 @@ const Home = () => {
         const followingStatusMap = {};
 
         followingResponses.forEach((response, index) => {
-          if (response && response.data) {
+          if (response && response.data && response.data.status) {
+            console.log(response.data);
             followingStatusMap[data.posts[index].author_id] =
               response.data.status === 'Following';
           }
