@@ -1,15 +1,17 @@
-import axios from 'axios';
 import { createPost, getAllPosts } from './PostsService';
 import { getAuthorProfile } from './profileService';
+import api from './axios';
 
 export const makeGithubActivityPosts = async (authorId) => {
+  console.log('Making Github activity posts');
   try {
     const authorProfile = await getAuthorProfile(authorId);
     const username = authorProfile.github?.split('/').pop();
     if (!username) {
+      console.log('Github username not found');
       throw new Error('Github username not found');
     }
-
+    console.log('Github username:', username);
     const posts = (await getAllPosts(authorId)).data;
 
     // 1. Get raw data from Github API
@@ -37,15 +39,15 @@ export const makeGithubActivityPosts = async (authorId) => {
 
     for (let i = 0; i < stringifiedData.length; i++) {
       const postData = new FormData();
-      postData.append('author_id', authorId);
+      postData.append('author', authorId);
       postData.append('title', 'Github Activity');
       postData.append('content', stringifiedData[i]);
-      postData.append('content_type', 'text/plain');
+      postData.append('contentType', 'text/plain');
       postData.append('visibility', 'PUBLIC');
 
       // add id to check if post already exists
       postData.append('description', String(parsedData[i].id));
-
+      console.log('Post data:', postData);
       await createPost(authorId, postData);
     }
   } catch (error) {
@@ -55,15 +57,16 @@ export const makeGithubActivityPosts = async (authorId) => {
 
 export const getGithubActivityData = async (username) => {
   try {
-    const response = await axios.get(
-      `https://api.github.com/users/${username}/events/public`,
-      {
-        headers: {
-          Accept: 'application/vnd.github+json',
-        },
-      }
-    );
-
+    const response = await api.get(`posts/github/events/${username}/`);
+    // const response = await axios.get(
+    //   `https://api.github.com/users/${username}/events/public`,
+    //   {
+    //     headers: {
+    //       Accept: 'application/vnd.github+json',
+    //     },
+    //   }
+    // );
+    console.log(`Github activity data for ${username}:`, response.data);
     return response.data ?? [];
   } catch (error) {
     console.error(error);

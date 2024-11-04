@@ -33,7 +33,7 @@ const ShareButton = ({ postId, authorId, postContent }) => {
     if (postContent.content_type === 'image') {
       console.log('content:', postContent);
       const imageUrl = await getPostImageUrl(
-        postContent.author_id,
+        postContent.author.id.split('/')[5],
         postContent.id
       );
       // console.log('Image URL:', imageUrl);
