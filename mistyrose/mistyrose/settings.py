@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'posts',
     'users',
     'stream',
-]
+    ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -74,6 +74,7 @@ SWAGGER_SETTINGS = {
 }
 
 ROOT_URLCONF = 'mistyrose.urls'
+
 
 TEMPLATES = [
     {
@@ -126,12 +127,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
 
+
+
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

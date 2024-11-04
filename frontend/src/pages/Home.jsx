@@ -99,7 +99,7 @@ const Home = () => {
 
         followingResponses.forEach((response, index) => {
           if (response && response.data) {
-            followingStatusMap[data.posts[index].author_id] =
+            followingStatusMap[data.posts[index].author.id.split('/')[5]] =
               response.data.status === 'Following';
           }
         });
