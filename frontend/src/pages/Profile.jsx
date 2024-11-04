@@ -50,6 +50,8 @@ const Profile = () => {
   const publicPosts = profileData.public_posts || [];
   const friendsPosts = profileData.friends_posts || [];
   const unlistedPosts = profileData.unlisted_posts || [];
+  const sharedPosts = profileData.shared_posts || [];
+  const UnlistedAndSharesPosts = [...unlistedPosts, ...sharedPosts];
 
   // Function to copy post link
   const handleCopyLink = (postId) => {
@@ -148,18 +150,21 @@ const Profile = () => {
             )}
 
             <h2>Unlisted Posts</h2>
-            {unlistedPosts.length > 0 ? (
-              unlistedPosts.map((post) => (
-                <div key={post.id}>
-                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
-                  <button onClick={() => handleCopyLink(post.id)}>Copy Link</button>
-                </div>
-              ))
+            {UnlistedAndSharesPosts.length > 0 ? (
+              UnlistedAndSharesPosts.sort((a, b) => new Date(b.published) - new Date(a.published)).map((post) => {
+                // console.log('Unlisted Post:', post);
+                return (
+                  <div key={post.id}>
+                    <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
+                    <button onClick={() => handleCopyLink(post.id)}>Copy Link</button>
+                  </div>
+                );
+              })
             ) : (
-              <p>No unlisted posts available.</p>
+              <p>No unlisted or shared posts available.</p>
             )}
-          </>
-        ) : (
+            </>
+          ) : (
           <>
             <h2>Public Posts</h2>
             {publicPosts.length > 0 ? (
