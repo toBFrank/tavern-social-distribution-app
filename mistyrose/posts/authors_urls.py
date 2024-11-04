@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import (
+    AuthorPostsView,
     CommentedView, 
     CommentsView, 
     LikedView, 
@@ -9,12 +10,19 @@ from .views import (
     LikedFQIDView, 
     CommentRemoteByFQIDView, 
     CommentsByAuthorFQIDView, 
-    CommentView)
+    CommentView,
+    PostDetailsView,
+    PostImageView)
 
 """
 for post urls that start with api/authors/
 """
 urlpatterns = [
+    # Post URLs
+    path('<uuid:author_serial>/posts/<uuid:post_serial>/', PostDetailsView.as_view(), name='post-detail'),
+    path('<uuid:author_serial>/posts/', AuthorPostsView.as_view(), name='author-posts'),
+    path('<uuid:author_serial>/posts/<uuid:post_serial>/image/', PostImageView.as_view(), name='post-image'),
+    
     # Comment URLs   
     path('<uuid:author_serial>/commented/', CommentedView.as_view(), name='commented'),
     path('<uuid:author_serial>/posts/<uuid:post_serial>/comments/', CommentsView.as_view(), name='get_post_comments'),

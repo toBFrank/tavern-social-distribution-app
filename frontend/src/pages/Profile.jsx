@@ -96,6 +96,13 @@ const Profile = () => {
   const sharedPosts = profileData.shared_posts || [];
   const UnlistedAndSharesPosts = [...unlistedPosts, ...sharedPosts];
 
+  // Function to copy post link
+  const handleCopyLink = (postId) => {
+    const postLink = `${window.location.origin}/post/${postId}`;
+    navigator.clipboard
+      .writeText(postLink)
+      .then((err) => console.error('Failed to copy link: ', err));
+  };
 
   return (
     <div className="profile-page">
@@ -107,12 +114,17 @@ const Profile = () => {
             className="profile-image"
           />
           {isCurrentUser ? (
-            <button className="edit-button" onClick={() => navigate(`/profile/${authorId}/edit`)}>Edit Profile</button>
+            <button
+              className="edit-button"
+              onClick={() => navigate(`/profile/${authorId}/edit`)}
+            >
+              Edit Profile
+            </button>
           ) : (
-            <FollowButton 
-              authorId={authorId} 
-              currentUserId={currentUserId} 
-              currentProfileData={currentProfileData} 
+            <FollowButton
+              authorId={authorId}
+              currentUserId={currentUserId}
+              currentProfileData={currentProfileData}
               profileData={profileData}
             />
           )}
@@ -144,16 +156,28 @@ const Profile = () => {
           {/* Profile Links */}
           <div className="profile-links">
             <div className="links-details">
-              <p>GitHub Profile:</p>
-              <a href={profileData.github} target="_blank" rel="noopener noreferrer">
-                {profileData.github || 'GitHub Profile'}
-              </a>
+              <p>
+                GitHub Profile:{' '}
+                <a
+                  href={profileData.github ?? '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {profileData.github || 'N/A'}
+                </a>
+              </p>
             </div>
             <div className="links-details">
-              <p>Profile Link:</p>
-              <a href={profileData.page} target="_blank" rel="noopener noreferrer">
-                {profileData.page || 'Profile Link'}
-              </a>
+              <p>
+                Profile Link:{' '}
+                <a
+                  href={profileData.page}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {profileData.page || 'Profile Link'}
+                </a>
+              </p>
             </div>
           </div>
         </div>
@@ -166,7 +190,14 @@ const Profile = () => {
             {publicPosts.length > 0 ? (
               publicPosts.map((post) => (
                 <div key={post.id}>
-                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
+                  <PostBox
+                    post={post}
+                    poster={profileData}
+                    isUserEditable={isCurrentUser}
+                  />
+                  <button onClick={() => handleCopyLink(post.id)}>
+                    Copy Link
+                  </button>
                 </div>
               ))
             ) : (
@@ -177,7 +208,14 @@ const Profile = () => {
             {friendsPosts.length > 0 ? (
               friendsPosts.map((post) => (
                 <div key={post.id}>
-                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
+                  <PostBox
+                    post={post}
+                    poster={profileData}
+                    isUserEditable={isCurrentUser}
+                  />
+                  <button onClick={() => handleCopyLink(post.id)}>
+                    Copy Link
+                  </button>
                 </div>
               ))
             ) : (
@@ -204,7 +242,14 @@ const Profile = () => {
             {publicPosts.length > 0 ? (
               publicPosts.map((post) => (
                 <div key={post.id}>
-                  <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
+                  <PostBox
+                    post={post}
+                    poster={profileData}
+                    isUserEditable={isCurrentUser}
+                  />
+                  <button onClick={() => handleCopyLink(post.id)}>
+                    Copy Link
+                  </button>
                 </div>
               ))
             ) : (

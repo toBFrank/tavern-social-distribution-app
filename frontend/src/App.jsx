@@ -11,7 +11,7 @@ function App() {
   );
 
   // State to track if the navbar is expanded or minimized
-  const [expanded, setExpanded] = useState(true); 
+  const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
     const checkCookie = () => {
@@ -32,12 +32,17 @@ function App() {
 
   const handleToggleExpanded = (newExpanded) => {
     setExpanded(newExpanded);
-    // console.log(`Navbar is now ${newExpanded ? 'expanded' : 'minimized'}`); 
+    // console.log(`Navbar is now ${newExpanded ? 'expanded' : 'minimized'}`);
   };
 
   return (
-    <div className="App" style={{ paddingLeft: expanded ? '15%' : '5%' }}>
-      {authorIdExists && <NavigationBar expanded={expanded} onToggleExpanded={handleToggleExpanded} />}
+    <div className="App" style={{ marginLeft: expanded ? 320 : 170 }}>
+      {authorIdExists && (
+        <NavigationBar
+          expanded={expanded}
+          onToggleExpanded={handleToggleExpanded}
+        />
+      )}
       <AppRoutes />
     </div>
   );

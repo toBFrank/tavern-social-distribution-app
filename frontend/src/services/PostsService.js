@@ -74,9 +74,12 @@ export const createPost = async (authorSerial, postData) => {
 export const getPostImageUrl = async (authorSerial, postSerial) => {
   try {
     const response = await api.get(
-      `posts/authors/${authorSerial}/posts/${postSerial}/image/`
+      `posts/authors/${authorSerial}/posts/${postSerial}/image/`,
+      { responseType: 'blob' }
     );
-    return response.data.image_url;
+
+    const imageUrl = URL.createObjectURL(response.data);
+    return imageUrl;
   } catch (error) {
     throw error;
   }
