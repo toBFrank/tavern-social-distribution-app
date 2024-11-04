@@ -145,7 +145,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         {(post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && post.visibility !== 'SHARED') && (
           <ShareButton postId={post.id} authorId={post.author_id} postContent={post} />
         )}
-        {(post.visibility === 'PUBLIC' || post.visibility === 'UNLISTED' || post.visibility === 'FRIENDS') && (
+        {(post.visibility === 'PUBLIC' || post.visibility === 'UNLISTED' || post.visibility === 'FRIENDS'|| post.visibility === 'SHARED') && (
           <button onClick={handleCopyLink} className="share-link-button">
             <img src={shareLinkIcon} alt="Share Link" className="share-link-icon" />
             <span>Share Link</span>

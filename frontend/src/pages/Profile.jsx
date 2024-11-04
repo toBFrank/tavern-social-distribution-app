@@ -15,7 +15,7 @@ const Profile = () => {
   const { authorId } = useParams();
   const currentUserId = Cookies.get('author_id');
   const [profileData, setProfileData] = useState(null);
-  const [currentProfileData, setCurrentProfileData] = useState(null);
+  const [currentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);

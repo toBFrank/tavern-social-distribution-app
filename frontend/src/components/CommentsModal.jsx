@@ -21,7 +21,7 @@ const CommentsModal = ({ postId }) => {
     const fetchComments = async () => {
       try {
         const fetchComments = await getComments(authorId, postId);
-
+        
         // Map fetched comments to have the author name and comment
         const mappedComments = fetchComments.src.map((comment) => ({
           comment: comment.comment,
