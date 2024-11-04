@@ -116,18 +116,44 @@ class AuthorDetailViewTest(APITestCase):
         non_existing_uuid = uuid.uuid4()
         response = self.client.get(reverse('author-detail', kwargs={'pk': non_existing_uuid}))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
 class AuthorProfileViewTest(APITestCase):
     def setUp(self):
+        # Creating a user and associated author
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.author = Author.objects.create(user=self.user, display_name='Test Author', github='https://github.com/testauthor')
         refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
-        Post.objects.create(author_id=self.author, title="Public Post", visibility='PUBLIC')
-        Post.objects.create(author_id=self.author, title="Friends Post", visibility='FRIENDS')
-        Post.objects.create(author_id=self.author, title="Unlisted Post", visibility='UNLISTED')
         
+        # Creating posts with various visibility statuses
+        Post.objects.create(
+            author_id=self.author,
+            title="Public Post",
+            content="This is a public post.",
+            content_type='text/plain',
+            visibility='PUBLIC'
+        )
+        Post.objects.create(
+            author_id=self.author,
+            title="Friends Post",
+            content="This is a friends-only post.",
+            content_type='text/plain',
+            visibility='FRIENDS'
+        )
+        Post.objects.create(
+            author_id=self.author,
+            title="Unlisted Post",
+            content="This is an unlisted post.",
+            content_type='text/plain',
+            visibility='UNLISTED'
+        )
+        
+        # Creating a follower relationship
         self.follower = Author.objects.create(display_name="Follower Author", github="https://github.com/followerauthor")
         Follows.objects.create(local_follower_id=self.follower, followed_id=self.author, status='ACCEPTED')
+
+        # Defining the URL for the author profile
         self.url = reverse('author-profile', kwargs={'pk': str(self.author.id)})
 
     def test_author_profile_success(self):
@@ -140,12 +166,11 @@ class AuthorProfileViewTest(APITestCase):
         self.assertEqual(len(response.data['unlisted_posts']), 1)
 
     def test_author_profile_not_found(self):
-        
         non_existing_uuid = uuid.uuid4()
         url = reverse('author-profile', kwargs={'pk': non_existing_uuid})
         response = self.client.get(url)
-        
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class AuthorEditProfileViewTest(APITestCase):
     def setUp(self):

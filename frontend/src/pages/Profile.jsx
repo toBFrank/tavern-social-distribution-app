@@ -15,7 +15,7 @@ const Profile = () => {
   const { authorId } = useParams();
   const currentUserId = Cookies.get('author_id');
   const [profileData, setProfileData] = useState(null);
-  const [currentProfileData] = useState(null);
+  const [currentProfileData, setcurrentProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);
@@ -36,15 +36,23 @@ const Profile = () => {
         setLoading(false);
       });
   }, [authorId]);
-
-  // Close the modal when the route changes
   useEffect(() => {
     setShowModal(false);
   }, [location]);
-
   const closeModal = () => {
     setShowModal(false);
   };
+
+  // Close the modal when the route changes
+  useEffect(() => {
+    getAuthorProfile(currentUserId)
+      .then((data) => {
+        setcurrentProfileData(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
 
   // Function to fetch followers and toggle the display
   const handleFollowersClick = async () => {
@@ -96,13 +104,6 @@ const Profile = () => {
   const sharedPosts = profileData.shared_posts || [];
   const UnlistedAndSharesPosts = [...unlistedPosts, ...sharedPosts];
 
-  // Function to copy post link
-  const handleCopyLink = (postId) => {
-    const postLink = `${window.location.origin}/post/${postId}`;
-    navigator.clipboard
-      .writeText(postLink)
-      .then((err) => console.error('Failed to copy link: ', err));
-  };
 
   return (
     <div className="profile-page">
@@ -195,9 +196,6 @@ const Profile = () => {
                     poster={profileData}
                     isUserEditable={isCurrentUser}
                   />
-                  {/* <button onClick={() => handleCopyLink(post.id)}>
-                    Copy Link
-                  </button> */}
                 </div>
               ))
             ) : (
@@ -213,9 +211,6 @@ const Profile = () => {
                     poster={profileData}
                     isUserEditable={isCurrentUser}
                   />
-                  {/* <button onClick={() => handleCopyLink(post.id)}>
-                    Copy Link
-                  </button> */}
                 </div>
               ))
             ) : (
@@ -247,9 +242,6 @@ const Profile = () => {
                     poster={profileData}
                     isUserEditable={isCurrentUser}
                   />
-                  {/* <button onClick={() => handleCopyLink(post.id)}>
-                    Copy Link
-                  </button> */}
                 </div>
               ))
             ) : (
