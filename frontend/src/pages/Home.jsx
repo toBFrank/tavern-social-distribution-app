@@ -147,7 +147,7 @@ const Home = () => {
       return post.visibility === 'PUBLIC';
     } else if (selectedFilter === 'Unlisted') {
       if (post.visibility === 'UNLISTED') {
-        return followingStatus[post.author.id.split('/')[5]];
+        return followingStatus[post.author.id.split('/')[5]]; 
       }
       if (post.visibility === 'SHARED') {
         return followingStatus[post.author.id.split('/')[5]]; // Show shared posts of people the current user follows

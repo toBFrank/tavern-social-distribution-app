@@ -75,7 +75,6 @@ SWAGGER_SETTINGS = {
 
 ROOT_URLCONF = 'mistyrose.urls'
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
