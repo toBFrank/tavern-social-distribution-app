@@ -1,273 +1,241 @@
 /* Profile page container */
 .profile-page {
-    width: 80%;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: transparent;
+  width: 100%;
+  height: 100vh;
+  margin-top: 100px;
+  padding: 20px;
+  background-color: transparent;
 }
 
 /* Profile header */
 .profile-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    text-align: center;
-    margin-bottom: 20px;
-    background: linear-gradient(90deg, rgba(255,222,161,1) 0%, rgba(239,198,122,1) 65%, rgba(255,217,145,1) 100%);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    border-radius: 30px;
-    /* border: 3px solid black; */
-    padding: 60px;
-    justify-content: space-between;
-    gap:30px;
-    
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 20px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 222, 161, 1) 0%,
+    rgba(239, 198, 122, 1) 65%,
+    rgba(255, 217, 145, 1) 100%
+  );
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 30px;
+  /* border: 3px solid black; */
+  padding: 40px;
+  /* justify-content: space-between; */
+  gap: 30px;
+  width: 86%;
 }
 
 /* Profile header and details */
 .profile-details {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-align: center;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 20px;
 }
 
 .profile-details h1 {
-    margin: 0;
+  margin: 0;
 }
 
-
 .Img-details {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 30px;
 }
 
 /* Profile image */
 .profile-image {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    border: 3px solid #291d07;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 3px solid #291d07;
 }
 
 /* Profile links */
 .profile-links {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    margin: 10px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 10px 0 0 0;
 }
 
 .profile-links a {
-    display: block;
-    color: rgb(73, 73, 73);
-    text-decoration: underline;
-    margin: 10px 0 0 0;
-    font-family: 'Fredoka', sans-serif;
+  display: block;
+  color: rgb(73, 73, 73);
+  text-decoration: underline;
+  margin: 10px 0 0 0;
+  font-family: 'Fredoka', sans-serif;
 }
 
 .links-details {
-    display: flex;
-    flex-direction: column;
-    margin: 0 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0 20px 0 0;
+}
+
+.links-details a {
+  color: #000;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.3s ease-in;
+  cursor: pointer;
+}
+.links-details a:hover {
+  color: #f7ebc9;
 }
 
 /* Profile stats */
 .profile-stats {
-    display: flex;
-    justify-content: space-around;
-    width: 50%;
+  display: flex;
+  justify-content: space-around;
+  width: 50%;
 }
 
 .profile-stats div {
-    text-align: center;
+  text-align: center;
 }
 
 .profile-stats h2 {
-    margin: 0;
-    font-size: 24px;
-    color: #333;
+  margin: 0;
+  font-size: 24px;
+  color: #333;
 }
 
 .profile-stats p {
-    margin: 0;
-    color: #777;
+  margin: 0;
+  color: #777;
 }
 
 /* Posts section */
 .posts-section {
-    margin-top: 30px;
+  margin-top: 20px;
+  width: 100%;
 }
 
-/* Each post card */
-.post {
-    background-color: #fff9f3;
-    border: 2px solid rgb(61, 61, 61);
-    border-radius: 30px;
-    padding: 30px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.post-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.post-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.post-content {
-    margin-top: 10px;
-}
-
-.post-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    font-size: 14px;
-    color: #777;
-}
-
-.post-edit-button {
-    padding: 5px 20px 10px 20px;
-}
-
-.userPost-details {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 5px;
-}
-.userPost-details h3, .userPost-details p{
-    margin: 0;
-}
 /* No posts message */
 .no-posts-message {
-    font-size: 18px;
-    color: #555;
-    text-align: center;
-    margin-top: 20px;
-    /* Spacing above the message */
+  font-size: 18px;
+  color: #555;
+  text-align: center;
+  margin-top: 20px;
+  /* Spacing above the message */
 }
 
 .edit-Icon {
-    width: 15px;
-    height: 15px;
-    position: absolute; 
-    top: 0; 
-    right: 0; 
-    cursor: pointer; 
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
 }
 
 .edit-textarea {
-    width: 95%; 
-    height: 150px; 
-    padding: 10px;
-    font-size: 16px; 
-    resize: vertical; 
-    margin-bottom: 10px; 
+  width: 95%;
+  height: 150px;
+  padding: 10px;
+  font-size: 16px;
+  resize: vertical;
+  margin-bottom: 10px;
 }
 
 /* New CSS for Friends and Unlisted Posts */
 /* Friends posts section */
 .friends-posts-section {
-    margin-top: 30px;
+  margin-top: 30px;
 }
 
 /* Unlisted posts section */
 .unlisted-posts-section {
-    margin-top: 30px;
+  margin-top: 30px;
 }
 
 /* Friends and unlisted posts styles, same as public posts */
 .friends-post,
 .unlisted-post {
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .friends-post-header,
 .unlisted-post-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .friends-post-avatar,
 .unlisted-post-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 
 .friends-post-content,
 .unlisted-post-content {
-    margin-top: 10px;
+  margin-top: 10px;
 }
 
 .friends-post-footer,
 .unlisted-post-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    font-size: 14px;
-    color: #777;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #777;
 }
 
 /* No posts message for Friends and Unlisted sections */
 .no-friends-posts-message,
 .no-unlisted-posts-message {
-    font-size: 18px;
-    color: #555;
-    text-align: center;
-    margin-top: 20px;
+  font-size: 18px;
+  color: #555;
+  text-align: center;
+  margin-top: 20px;
 }
 
 .post-image {
-    max-width: 100%;
-    /* Ensures the image doesn't overflow the container */
-    height: auto;
-    /* Maintains the aspect ratio of the image */
-    display: block;
-    /* Ensures the image is displayed as a block element */
-    margin: 10px auto;
-    /* Center the image within its container */
+  max-width: 100%;
+  /* Ensures the image doesn't overflow the container */
+  height: auto;
+  /* Maintains the aspect ratio of the image */
+  display: block;
+  /* Ensures the image is displayed as a block element */
+  margin: 10px auto;
+  /* Center the image within its container */
 }
 
 /* Edit Button */
 .edit-button {
-    min-width: 130px;
-    height: 40px;
-    color: #fff;
-    padding: 5px 10px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    display: inline-block;
-    outline: none;
-    border-radius: 20px;
-    border: 2px solid #212529;
-    background: #212529;
-  }
+  min-width: 130px;
+  height: 40px;
+  color: #fff;
+  padding: 5px 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+  outline: none;
+  border-radius: 20px;
+  border: 2px solid #212529;
+  background: #212529;
+}
 
 .edit-button:hover {
-background: #fff;
-color: #212529
+  background: #fff;
+  color: #212529;
 }

@@ -11,7 +11,7 @@
 }
 
 #signup-background-container {
-    flex-direction: row-reverse;
+  flex-direction: row-reverse;
 }
 
 .login-pg-title {
@@ -37,12 +37,12 @@
 }
 
 .error-message {
-    font-family: 'Fredoka', sans-serif;
-    font-weight: 400;
-    font-style: normal;
-    font-size: 16px;
-    color: rgba(0, 0, 0, 0.5);
-    margin-bottom: 20px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  margin-bottom: 20px;
 }
 
 .form-container {
@@ -53,10 +53,10 @@
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    margin: 10px;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  width: 100%;
 }
 
 .login-button {
@@ -97,6 +97,5 @@
   cursor: pointer;
 }
 .signup-link > span:hover {
-  color: #000;
-  font-size: 20px;
+  color: #f7ebc9;
 }
