@@ -688,7 +688,7 @@ class PublicPostsView(APIView):
                  #   authorized_authors.add(original_author_id) 
                 #post_author_id = post_data.get('author_id')  # Get the author_id from post data
                 #authorized_authors.add(post_author_id)
-                if post_author_id in following_ids:
+                if post_author_id in following_ids or post_author_id == current_author.id:
                   authorized_authors.add(current_author.id) 
 
 
@@ -700,6 +700,7 @@ class PublicPostsView(APIView):
             })
 
         # Create response data with posts and their respective authorized authors
+        print(f"authorized_authors_per_post: {authorized_authors_per_post}")
         response_data = {
             'posts': serializer.data,  
             'authorized_authors_per_post': authorized_authors_per_post
