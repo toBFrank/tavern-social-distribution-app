@@ -42,7 +42,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     const getImgUrlFromServer = async () => {
       try {
         const imageUrlFromServer = await getPostImageUrl(
-          post.author.id,
+          post.author.id.split('/')[5],
           post.id
         );
         setImageUrl(imageUrlFromServer);
@@ -69,7 +69,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
           // Fetch the original image URL if the post type is an image
           if (response.data.contentType?.includes('image')) {
             const originalImgUrl = await getPostImageUrl(
-              response.data.author_id,
+              response.data.author.id.split('/')[5],
               response.data.id
             );
             setOriginalImageUrl(originalImgUrl);

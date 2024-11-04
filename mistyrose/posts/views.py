@@ -2,6 +2,7 @@ import base64
 import re
 import uuid
 from django.shortcuts import render
+import requests
 from users.models import Author
 from rest_framework import status
 from rest_framework.views import APIView
@@ -629,8 +630,6 @@ class LikedFQIDView(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
-
-
 #endview
    
 class PublicPostsView(APIView):
@@ -711,3 +710,22 @@ class PublicPostsView(APIView):
         print(f"AUTHORIZED AUTHORS PER POST: {authorized_authors_per_post}")
         
         return Response(response_data, status=status.HTTP_200_OK)
+    
+#region Github Vews
+class GitHubEventsView(APIView):
+    """
+    Get public GitHub events for a username.
+    """
+
+    def get(self, request, username):
+        github_api_url = f'https://api.github.com/users/{username}/events/public'
+        headers = {
+            'Accept': 'application/vnd.github+json',
+        }
+
+        try:
+            response = requests.get(github_api_url, headers=headers)
+            response.raise_for_status()  # Raise an error for bad responses
+            return Response(response.json(), status=status.HTTP_200_OK)
+        except requests.exceptions.RequestException as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

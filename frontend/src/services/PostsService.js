@@ -4,7 +4,7 @@ import api from './axios';
 export const getPost = async (authorSerial, postSerial) => {
   try {
     const response = await api.get(
-      `posts/authors/${authorSerial}/posts/${postSerial}/`
+      `authors/${authorSerial}/posts/${postSerial}/`
     );
     return response;
   } catch (error) {
@@ -30,7 +30,7 @@ export const deletePost = async (authorSerial, postSerial) => {
 export const updatePost = async (authorSerial, postSerial, postData) => {
   try {
     const response = await api.put(
-      `posts/authors/${authorSerial}/posts/${postSerial}/`, 
+      `posts/authors/${authorSerial}/posts/${postSerial}/`,
       postData
     );
     return response;
@@ -52,7 +52,7 @@ export const getPostByFqid = async (postFqid) => {
 // URL: ://service/api/authors/{AUTHOR_SERIAL}/posts/
 export const getAllPosts = async (authorSerial) => {
   try {
-    const response = await api.get(`posts/authors/${authorSerial}/posts/`);
+    const response = await api.get(`authors/${authorSerial}/posts/`);
     return response;
   } catch (error) {
     throw error;
@@ -61,7 +61,7 @@ export const getAllPosts = async (authorSerial) => {
 export const createPost = async (authorSerial, postData) => {
   try {
     const response = await api.post(
-      `posts/authors/${authorSerial}/posts/`,
+      `authors/${authorSerial}/posts/`,
       postData
     );
     return response;
@@ -74,7 +74,7 @@ export const createPost = async (authorSerial, postData) => {
 export const getPostImageUrl = async (authorSerial, postSerial) => {
   try {
     const response = await api.get(
-      `posts/authors/${authorSerial}/posts/${postSerial}/image/`,
+      `authors/${authorSerial}/posts/${postSerial}/image/`,
       { responseType: 'blob' }
     );
 
