@@ -12,7 +12,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import { useNavigate } from 'react-router-dom';
 import '../styles/components/AuthorsListModal.css'
 
-const AuthorsListModal = ({ authors, onModalClose }) => { /* authors is the list of Author objects that should be displayed in modal*/
+const AuthorsListModal = ({ authors, onModalClose, title = "Authors" }) => { /* authors is the list of Author objects that should be displayed in modal*/
 const navigate = useNavigate();
 
 const handleClickProfile = async (author) => {
@@ -29,7 +29,7 @@ return (
     >
         <Box className={'modalBox'}>
             <Typography id="authors-modal-title" variant="h6" component="h2">
-            Authors
+                {title}
             </Typography>
             <List className={'authors-list-container'}>
             {authors.map((author) => (
@@ -41,7 +41,6 @@ return (
                 </ListItemAvatar>
                 <ListItemText
                     primary={author.displayName}
-                    secondary={author.page ? `Page: ${author.page}` : ''}
                 />
                 </ListItemButton>
             ))}

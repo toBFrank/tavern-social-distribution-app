@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
-import { signup } from '../services/signupservice'; 
-import { useNavigate } from 'react-router-dom'; 
+import { signup } from '../services/signupservice';
+import { useNavigate } from 'react-router-dom';
+import '../styles/pages/Login.css';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
     username: '',
-    email: '', 
+    email: '',
     password: '',
-    displayName: '', 
-    github: '', 
-    profileImage: '', // Will store the image file 
+    displayName: '',
+    github: '',
+    profileImage: '', // Will store the image file
   });
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [imageUploading, setImageUploading] = useState(false);  // State for tracking image upload
-  const navigate = useNavigate(); 
-
+  const [imageUploading, setImageUploading] = useState(false); // State for tracking image upload
+  const navigate = useNavigate();
 
   // Handle form field changes
   const handleChange = (e) => {
@@ -29,7 +29,7 @@ const Signup = () => {
   // Handle image upload as soon as the user selects the image
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    const username = formData.username;  // Get the username
+    const username = formData.username; // Get the username
 
     if (file && username) {
       setImageUploading(true);
@@ -39,16 +39,19 @@ const Signup = () => {
 
       try {
         // Upload image to the server
-        const response = await fetch(`http://localhost:8000/authors/${username}/upload_image/`, {
-          method: 'POST',
-          body: formDataToUpload,
-        });
+        const response = await fetch(
+          `http://localhost:8000/authors/${username}/upload_image/`,
+          {
+            method: 'POST',
+            body: formDataToUpload,
+          }
+        );
 
         const result = await response.json();
         if (response.ok) {
           setFormData({
             ...formData,
-            profileImage: result.url,  // Store the image URL in the form data
+            profileImage: result.url, // Store the image URL in the form data
           });
         } else {
           setError(result.message || 'Image upload failed.');
@@ -84,79 +87,89 @@ const Signup = () => {
   };
 
   return (
-    <div className="signup-container">
-      <h2>Sign Up</h2>
-      {error && <div className="error-message">{error}</div>}
+    <div
+      className="login-background-container"
+      id="signup-background-container"
+    >
+      <h1 className="login-pg-title">Tavern</h1>
+      <div className="login-container">
+        <h1 className="login-title">Sign Up</h1>
 
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Username</label>
-          <input
-            type="text"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
+        {error && <div className="error-message">{error}</div>}
+        <form className="form-container" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="input-label">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Email</label> 
-          <input
-            type="email" 
-            name="email" 
-            value={formData.email} 
-            onChange={handleChange}
-            required
-          />
-        </div>
+          <div className="form-group">
+            <label className="input-label">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="input-label">Username</label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Password</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
+          <div className="form-group">
+            <label className="input-label">Name</label>
+            <input
+              type="text"
+              name="displayName"
+              value={formData.displayName}
+              onChange={handleChange}
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Name</label>
-          <input
-            type="text"
-            name="displayName"
-            value={formData.displayName}
-            onChange={handleChange}
-          />
-        </div>
+          <div className="form-group">
+            <label className="input-label">GitHub</label>
+            <input
+              type="text"
+              name="github"
+              value={formData.github}
+              onChange={handleChange}
+            />
+          </div>
 
-        <div className="form-group">
-          <label>GitHub</label>
-          <input
-            type="text"
-            name="github"
-            value={formData.github}
-            onChange={handleChange}
-          />
+          <div className="form-group">
+            <label className="input-label">Profile Image</label>
+            <input
+              id="file-input"
+              type="file"
+              name="profile_image"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+            {imageUploading && <p>Uploading image...</p>}
+            {formData.profileImage && <p>Image uploaded successfully.</p>}
+          </div>
+          <button className="login-button" type="submit" disabled={loading}>
+            {loading ? 'Signing Up...' : 'Sign Up'}
+          </button>
+        </form>
+        <div className="signup-link">
+          Have an account?{' '}
+          <span onClick={() => navigate('/login')}>Log In</span>
         </div>
-
-        <div className="form-group">
-          <label>Profile Image</label>
-          <input
-            type="file"
-            name="profile_image"
-            accept="image/*"
-            onChange={handleImageUpload}  // Image is uploaded when selected
-          />
-          {imageUploading && <p>Uploading image...</p>}
-          {formData.profileImage && <p>Image uploaded successfully.</p>}
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Signing Up...' : 'Sign Up'}
-        </button>
-      </form>
+      </div>
     </div>
   );
 };

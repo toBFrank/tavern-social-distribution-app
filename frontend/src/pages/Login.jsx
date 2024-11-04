@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Cookies from 'js-cookie';
-import '../styles/pages/Login.css'
-import logInText from '../assets/logInText.png';
+import '../styles/pages/Login.css';
 import { login } from '../services/loginservice';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,12 +43,13 @@ const Login = () => {
   //#endregion
 
   return (
-<div className='login-background-container'>
+    <div className="login-background-container">
+      <h1 className="login-pg-title">Tavern</h1>
       <div className="login-container">
-        <img src={logInText} className='logIn-text' alt="Login" />
-        <form className= "form-container" onSubmit={handleSubmit} method="post">
+        <h1 className="login-title">Log In</h1>
+        <form className="form-container" onSubmit={handleSubmit} method="post">
           <div className="form-group">
-            <label className='username-text'>Username</label>
+            <label className="input-label">Username</label>
             <input
               type="text"
               value={username}
@@ -57,8 +57,9 @@ const Login = () => {
               required
             />
           </div>
+
           <div className="form-group">
-            <label className='password-text'>Password</label>
+            <label className="input-label">Password</label>
             <input
               type="password"
               value={password}
@@ -66,10 +67,14 @@ const Login = () => {
               required
             />
           </div>
-          <button className ="login-button" type="submit" disabled={loading}>
-            Enter
+          
+          <button className="login-button" type="submit" disabled={loading}>
+            Log In
           </button>
         </form>
+        <div className="signup-link">
+          No account? <span onClick={() => navigate('/signup')}>Sign Up</span>
+        </div>
       </div>
     </div>
   );

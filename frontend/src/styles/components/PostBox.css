@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  width: 88%;
+  width: 89%;
   margin-top: 20px;
   background-color: #fff9f3;
   border-radius: 40px;
@@ -17,7 +17,6 @@
   flex-direction: row;
   width: 100%;
   justify-content: flex-start;
-  
 }
 .profile-image-container {
   margin-right: 20px;
@@ -41,15 +40,13 @@
 
 .profile-image-default {
   width: 100%;
-  height: 100%; 
+  height: 100%;
   background-color: black;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
-
 
 .poster-name-date {
   display: flex;
@@ -79,9 +76,11 @@
   margin: 0;
 }
 .post-content img {
-  max-width: 50%;
+  max-width: 100%;
   height: auto;
-  object-fit: cover;
+  max-height: 200px;
+  object-fit: contain;
+  align-self: start;
 }
 
 .post-footer {

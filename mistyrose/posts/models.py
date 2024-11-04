@@ -23,18 +23,22 @@ class Post(models.Model):
     CONTENT_TYPE_CHOICES = [
       ('text/plain', 'Plain'),
       ('text/markdown', 'Markdown'),
-      ('image', 'Image'),
+      ('image/png', 'PNG Image'),
+      ('image/jpeg', 'JPEG Image'),
+      ('image/gif', 'GIF Image'),  # teehee this one is a bonus
+      
     ]
     
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='post')
+    title = models.CharField(max_length=200, blank=True, null=True, default='No Title')
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='posts')
-    title = models.CharField(max_length=200, blank=True, null=True, default='No Title')
     description = models.TextField(blank=True, null=True, editable=True)
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
-    text_content = models.TextField(blank=True, null=True)
-    # put image content to user's media folder media/posts/author_id/post_id/image_content_name
-    image_content = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
+    content = models.TextField(blank=True, null=True)
+    # text_content = models.TextField(blank=True, null=True)
+    # # put image content to user's media folder media/posts/author_id/post_id/image_content_name
+    # image_content = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='PUBLIC')
     original_url = models.JSONField(blank=True, null=True)

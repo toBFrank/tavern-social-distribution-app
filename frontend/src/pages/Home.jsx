@@ -6,8 +6,8 @@ import SearchResultsList from '../components/SearchResultsList';
 import { makeGithubActivityPosts } from '../services/GithubService';
 import Cookies from 'js-cookie';
 import { getAuthorProfile } from '../services/profileService';
-import { checkIfFollowing } from '../services/FollowService'; 
-import api from '../services/axios'; 
+import { checkIfFollowing } from '../services/FollowService';
+import api from '../services/axios';
 import PostBox from '../components/PostBox';
 
 const Home = () => {
@@ -17,7 +17,7 @@ const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState('Public');
   const [authorProfiles, setAuthorProfiles] = useState({});
   const [results, setResults] = useState([]);
-  const [authorizedAuthors, setAuthorizedAuthors] = useState([]); 
+  const [authorizedAuthors, setAuthorizedAuthors] = useState([]);
   const [followingStatus, setFollowingStatus] = useState({});
   const hasRun = useRef(false);
 
@@ -49,6 +49,7 @@ const Home = () => {
 
         // Set posts directly from the response structure
         setPosts(data.posts);
+        console.log(data.posts);
 
         // Set authorized authors
         setAuthorizedAuthors(data.authorized_authors_per_post); // Set authorized authors data
@@ -57,19 +58,21 @@ const Home = () => {
         const profiles = await Promise.all(
           data.posts.map(async (post) => {
             try {
-              const profile = await getAuthorProfile(post.author_id);
+              const profile = await getAuthorProfile(
+                post.author.id.split('/')[5]
+              );
               return {
-                authorId: post.author_id,
+                authorId: post.author.id.split('/')[5],
                 displayName: profile.displayName,
                 profileImage: profile.profileImage,
               };
             } catch (profileError) {
               console.error(
-                `Error fetching profile for author ${post.author_id}:`,
+                `Error fetching profile for author ${post.author.id.split('/')[5]}:`,
                 profileError
               );
               return {
-                authorId: post.author_id,
+                authorId: post.author.id.split('/')[5],
                 displayName: null,
                 profileImage: null,
               };
@@ -87,8 +90,8 @@ const Home = () => {
         setAuthorProfiles(profileMap);
 
         const currentUserId = Cookies.get('author_id');
-        const followingPromises = data.posts.map(post =>
-          checkIfFollowing(post.author_id, currentUserId)
+        const followingPromises = data.posts.map((post) =>
+          checkIfFollowing(post.author.id.split('/')[5], currentUserId)
         );
 
         const followingResponses = await Promise.all(followingPromises);
@@ -96,12 +99,12 @@ const Home = () => {
 
         followingResponses.forEach((response, index) => {
           if (response && response.data) {
-            followingStatusMap[data.posts[index].author_id] = response.data.status === "Following";
+            followingStatusMap[data.posts[index].author_id] =
+              response.data.status === 'Following';
           }
         });
 
-        setFollowingStatus(followingStatusMap); 
-
+        setFollowingStatus(followingStatusMap);
       } catch (err) {
         console.error('Fetch Error:', err.message);
         setError(err.message);
@@ -121,7 +124,7 @@ const Home = () => {
     return <p>Error: {error}</p>;
   }
   // Filter posts based on visibility and selected filter
-  const filteredPosts = posts.filter((post) => {    
+  const filteredPosts = posts.filter((post) => {
     // Find the corresponding entry in authorizedAuthors for the current post
     const postAuthorization = authorizedAuthors.find(
       (auth) => auth.post_id === post.id
@@ -132,9 +135,8 @@ const Home = () => {
       return true; // Public posts should always be included
     }
     const currentUserId = Cookies.get('author_id');
-    const isAuthorized = postAuthorization?.authorized_authors.includes(
-      currentUserId
-    );
+    const isAuthorized =
+      postAuthorization?.authorized_authors.includes(currentUserId);
 
     if (!isAuthorized) {
       return false; // Skip unauthorized posts
@@ -145,21 +147,19 @@ const Home = () => {
       return post.visibility === 'PUBLIC';
     } else if (selectedFilter === 'Unlisted') {
       if (post.visibility === 'UNLISTED') {
-        return  followingStatus[post.author_id];
-       }
-    if (post.visibility === 'SHARED') {
-      return followingStatus[post.author_id]; // Show shared posts of people the current user follows
-    }
-    return false; 
+        return followingStatus[post.author.id.split('/')[5]];
+      }
+      if (post.visibility === 'SHARED') {
+        return followingStatus[post.author.id.split('/')[5]]; // Show shared posts of people the current user follows
+      }
+      return false;
     } else if (selectedFilter === 'Friends') {
-        console.log(1);
-        console.log(post.visibility === 'FRIENDS');
         return post.visibility === 'FRIENDS';
     }
     return true; // Fallback case, should return all posts if no filter is selected
   });
 
-  return ( 
+  return (
     <div className="home-page-container">
       <div className="home-container">
         <h1>Feeds</h1>
@@ -202,13 +202,16 @@ const Home = () => {
                 const postAuthorization = authorizedAuthors.find(
                   (auth) => auth.post_id === post.id
                 );
-                const authorizedAuthorsForPost = postAuthorization?.authorized_authors || [];
-      
+                const authorizedAuthorsForPost =
+                  postAuthorization?.authorized_authors || [];
                 return (
                   <li key={post.id}>
                     {/* Temporarily removed the Link component */}
                     <div>
-                      <PostBox post={post} poster={authorProfiles[post.author_id]} />
+                      <PostBox
+                        post={post}
+                        poster={authorProfiles[post.author.id.split('/')[5]]}
+                      />
                     </div>
                   </li>
                 );

@@ -43,7 +43,7 @@ class PostDetailsTestCase(BaseTestCase):
             author_id=self.author,
             title='Test Post',
             content_type='text/plain',
-            text_content='This is a test post.'
+            content='This is a test post.'
         )
         self.post_url = reverse('post-detail', args=[self.author.id, self.post.id])
 
@@ -57,8 +57,8 @@ class AuthorPostsViewTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
         self.url = reverse('author-posts', args=[self.author.id])
-        self.post1 = Post.objects.create(author_id=self.author, title="Post 1", content_type="text/plain", text_content="Content 1")
-        self.post2 = Post.objects.create(author_id=self.author, title="Post 2", content_type="text/plain", text_content="Content 2")
+        self.post1 = Post.objects.create(author_id=self.author, title="Post 1", content_type="text/plain", content="Content 1")
+        self.post2 = Post.objects.create(author_id=self.author, title="Post 2", content_type="text/plain", content="Content 2")
 
     def test_get_author_posts(self):
         response = self.client.get(self.url)
@@ -67,10 +67,10 @@ class AuthorPostsViewTestCase(BaseTestCase):
 
     def test_create_post(self):
         data = {
-            'author_id': self.author.id,
+            'author': self.author.id,
             'title': 'New Post',
             'content_type': 'text/plain',
-            'text_content': 'New content',
+            'content': 'New content',
             'visibility': 'PUBLIC',
         }
         response = self.client.post(self.url, data, format='json')
@@ -84,16 +84,16 @@ class PostImageViewTestCase(BaseTestCase):
         self.post = Post.objects.create(
             author_id=self.author,
             title='Post with Image',
-            content_type='image',
-            text_content='Image content here',
-            image_content='test_image.png'
+            content_type='image/png',
+            content='image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII'
         )
         self.url = reverse('post-image', args=[self.author.id, self.post.id])
+        print(f"SELF.URL: {self.url}")
 
     def test_get_post_image(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('image_url', response.data)
+        self.assertEqual(response['Content-Type'], 'image/png')
 
 class PublicPostsViewTestCase(BaseTestCase):
     def setUp(self):
@@ -105,14 +105,14 @@ class PublicPostsViewTestCase(BaseTestCase):
             author_id=self.author,
             title='Public Post 1',
             content_type='text/plain',
-            text_content='This is a public post.',
+            content='This is a public post.',
             visibility='PUBLIC'
         )
         self.post2 = Post.objects.create(
             author_id=self.author2,
             title='Public Post 2',
             content_type='text/plain',
-            text_content='This is another public post.',
+            content='This is another public post.',
             visibility='PUBLIC'
         )
 
