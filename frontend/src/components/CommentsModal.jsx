@@ -21,8 +21,15 @@ const CommentsModal = ({ postId }) => {
     const fetchComments = async () => {
       try {
         const fetchComments = await getComments(authorId, postId);
-        setCommentsLength(fetchComments ? fetchComments.length : 0);
-        setComments(fetchComments);
+
+        // Map fetched comments to have the author name and comment
+        const mappedComments = fetchComments.src.map((comment) => ({
+          comment: comment.comment,
+          displayName: comment.author.displayName, 
+        }));
+        
+        setComments(mappedComments);
+        setCommentsLength(fetchComments ? fetchComments.count : 0);
       } catch (error) {
         console.error(error);
       }
@@ -49,7 +56,8 @@ const CommentsModal = ({ postId }) => {
       };
       const response = await createCommentLocal(authorId, commentData);
       console.log(response);
-      setComments([...comments, { comment: newComment }]);
+      setComments([...comments, { comment: newComment, displayName: currentProfileData.displayName}]);
+      setCommentsLength((prevLength) => prevLength + 1); //increment comment count
       setNewComment(''); // Clear the input after posting the comment
     }
   };
@@ -80,7 +88,10 @@ const CommentsModal = ({ postId }) => {
             {commentsLength > 0 ? (
               comments.map((comment, index) => (
                 <div key={index} className="comment-box">
-                  <Typography variant="body1">
+                  <Typography className="comment-author">
+                    {comment.displayName} 
+                  </Typography>
+                  <Typography className="comment-body">
                     {comment.comment}
                   </Typography>
                 </div>
