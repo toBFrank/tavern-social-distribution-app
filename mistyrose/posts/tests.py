@@ -325,11 +325,88 @@ class CommentsViewTestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class CommentsByFQIDView(BaseTestCase):
-    pass
+    def setUp(self):
+        super().setUp()  
 
-class CommentRemoteByFQIDView(BaseTestCase):
-    pass
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            text_content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comments_fqid_url = f'http://localhost/api/authors/{self.author.id}/posts/{self.post.id}'
+
+    def test_get_comments_by_fqid_success(self):
+        Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment='This is a comment.'
+        )
+
+        response = self.client.get(reverse('get_comments_fqid', args=[self.comments_fqid_url]))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "comments")
+
+class CommentRemoteByFQIDViewTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            text_content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.author.host = 'http://localhost'
+        self.author.save()
+        self.comment_fqid = f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}'
+
+    def test_get_comment_by_fqid_success(self):
+        response = self.client.get(reverse('get_remote_comment_fqid', args=[self.author.id, self.post.id, self.comment_fqid]))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}')
+
 
 class CommentByFQIDView(BaseTestCase):
-    pass
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            text_content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.author.host = 'http://localhost'
+        self.author.save()
+        self.comment_fqid = f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}'
+
+    def test_get_comment_by_fqid_success(self):
+        response = self.client.get(reverse('comment_fqid', args=[self.comment_fqid]))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}')
+
 #endregion
