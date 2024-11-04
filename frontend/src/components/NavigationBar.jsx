@@ -11,9 +11,8 @@ import {
 import '../styles/components/NavigationBar.css';
 import Cookies from 'js-cookie';
 
-const NavigationBar = () => {
+const NavigationBar = ({ expanded, onToggleExpanded }) => {
   //#region Variables
-  const [expanded, setExpanded] = useState(true);
   const authorId = Cookies.get('author_id');
   const pages = [
     ['Home', <CottageOutlined fontSize="inherit" />, '/'],
@@ -25,8 +24,9 @@ const NavigationBar = () => {
   //#endregion
 
   //#region Functions
-  const changeExpanded = () => {
-    setExpanded(!expanded);
+
+  const handleToggle = () => {
+    onToggleExpanded(!expanded); 
   };
 
   const handleLogout = () => {
@@ -40,7 +40,7 @@ const NavigationBar = () => {
     <nav className="navbar-menu" style={{ width: expanded ? 300 : 150 }}>
       <div className={`navbar-header${expanded ? '' : ' minimized'}`}>
         {expanded && <span className="navbar-title">Tavern</span>}
-        <div className="burger" onClick={changeExpanded}>
+        <div className="burger" onClick={handleToggle}>
           <div className="navbar-icon">
             <MenuOutlined fontSize="inherit" />
           </div>

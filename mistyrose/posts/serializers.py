@@ -1,5 +1,14 @@
 from rest_framework import serializers
 from .models import Post, Comment, Like
+# from users.serializers import AuthorSerializer #TODO:uncomment after Author Serializer fix
+import importlib
+from django.urls import reverse
+
+#TODO: remove - this is a temporary fix for the circular dependency issue in Authors which is importing PostSerializer
+def get_author_serializer():
+    users_serializers = importlib.import_module("users.serializers")
+    return users_serializers.AuthorSerializer
+
 
 #region Post Serializers
 class PostSerializer(serializers.ModelSerializer):
@@ -22,7 +31,6 @@ class PostSerializer(serializers.ModelSerializer):
             'original_url'
         ]
    
-        
         read_only_fields = [
             'id',
             'published', 
@@ -55,13 +63,32 @@ class CommentSerializer(serializers.ModelSerializer):
         
 #region Like Serializers
 class LikeSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(default='like', read_only=True)
+    author = serializers.SerializerMethodField()
+    # author = AuthorSerializer(source='author_id')  #TODO: uncomment after Author serializer issue is fixed
+    object = serializers.SerializerMethodField() # calls get_object with current Like instance -> method will get the object_url
+    id = serializers.SerializerMethodField()
     class Meta:
         model = Like
         fields = [
-            'id',
-            'author_id',
+            'type',
+            'author',
             'published',
-            'content_type',
-            'object_id',
+            'id',
+            'object',
         ]
+
+    #asked chatGPT how to set the host in the serializer, need to send context from the view and call it as shown 2024-11-02
+    def get_id(self, like_object): #get is for turning into JSON response
+        author_host = like_object.author_id.host.rstrip('/')
+        return f"{author_host}/authors/{like_object.author_id.id}/liked/{like_object.id}"
+
+
+    def get_object(self, like_object):
+        return like_object.object_url
+    
+    def get_author(self, like_object): #TODO: remove - this is temporary fix to circular dependency in AuthorSerializer importing PostSerializer
+        AuthorSerializer = get_author_serializer()
+        return AuthorSerializer(like_object.author_id).data
+
 #endregion

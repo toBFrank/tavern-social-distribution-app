@@ -1,0 +1,13 @@
+.authors-list-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; 
+    width: 100%;
+}
+
+.authors-list-item {
+    width: 100%; /* Ensure each list item spans full width */
+    padding: 8px 0; /* Optional for vertical spacing */
+    display: flex;
+    align-items: center;
+}

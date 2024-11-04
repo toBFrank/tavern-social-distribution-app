@@ -27,6 +27,7 @@
 
 .like-text {
     font-family: 'Fredoka', sans-serif;
+    cursor: pointer;
 }
 
 #liked {

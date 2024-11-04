@@ -1,51 +1,49 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import api from '../services/axios';
 import { getAuthorProfile } from '../services/profileService';
 import PostBox from '../components/PostBox';
 import Cookies from 'js-cookie';
 
 const PostDetail = () => {
-  const { postFqid } = useParams();
-  const location = useLocation();
+  const { postId } = useParams(); // Get postId from URL parameters
   const [post, setPost] = useState(null);
   const [author, setAuthor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const authorizedAuthors = useMemo(() => location.state?.authorizedAuthors || [], [location.state]);
-
-  const postFromState = location.state?.post;
+  const [authorizedAuthors, setAuthorizedAuthors] = useState([]);
 
   useEffect(() => {
     const fetchPostDetail = async () => {
-      if (postFromState) {
-        setPost(postFromState);
-        const profile = await getAuthorProfile(postFromState.author_id);
-        setAuthor(profile);
-        setLoading(false);
-        return;
-      }
-
       try {
-        const response = await api.get(`posts/${postFqid}/`);
-        if (!response || !response.data) {
-          throw new Error("Post data is unavailable");
+        const response = await api.get('posts/'); // Fetch all posts
+        const data = response.data;
+        console.log('postId:', postId);
+        console.log('data.posts:', data.posts);    
+        // Find the specific post using postId
+        const postData = data.posts.find(post => post.id === postId);
+        console.log(postData);
+        if (!postData) {
+          throw new Error('Post not found');
         }
 
-        const postData = response.data;
+        // Set authorized authors
+        const postAuthorization = data.authorized_authors_per_post.find(auth => auth.post_id === postData.id);
+        setAuthorizedAuthors(postAuthorization?.authorized_authors || []);
 
-        const currentAuthorId = Cookies.get('author_id');
+        const currentUserId = Cookies.get('author_id');
+
+        // Check visibility and authorization
         if (
           postData.visibility === 'PUBLIC' || 
           postData.visibility === 'UNLISTED' || 
-          authorizedAuthors.includes(currentAuthorId)
+          (postAuthorization && postAuthorization.authorized_authors.includes(currentUserId))
         ) {
           setPost(postData);
           const profile = await getAuthorProfile(postData.author_id);
           setAuthor(profile);
         } else {
-          setError('This post is not allowed to be viewed.');
+          setError('You are not authorized to view this post.');
         }
       } catch (err) {
         console.error('Error fetching post detail:', err.message);
@@ -56,7 +54,7 @@ const PostDetail = () => {
     };
 
     fetchPostDetail();
-  }, [postFqid, authorizedAuthors, postFromState]);
+  }, [postId]);
 
   if (loading) {
     return <p>Loading...</p>;
@@ -71,7 +69,7 @@ const PostDetail = () => {
       {post && author && (
         <PostBox post={post} poster={author} />
       )}
-      {/* Additional components like comments, likes, etc. */}
+      {/* You can add more components here like comments, likes, etc. */}
     </div>
   );
 };

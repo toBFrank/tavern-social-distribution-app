@@ -15,11 +15,13 @@ const CommentsModal = ({ postId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [commentsLength, setCommentsLength] = useState(0);
 
   useEffect(() => {
     const fetchComments = async () => {
       try {
         const fetchComments = await getComments(authorId, postId);
+        setCommentsLength(fetchComments ? fetchComments.length : 0);
         setComments(fetchComments);
       } catch (error) {
         console.error(error);
@@ -74,17 +76,20 @@ const CommentsModal = ({ postId }) => {
           <Typography id="comments-modal-title" variant="h6" component="h2">
             Comments
           </Typography>
-          <Typography id="comments-modal-description" sx={{ mt: 2 }}>
-            {comments.length > 0 ? (
+          <div className="comments-container">
+            {commentsLength > 0 ? (
               comments.map((comment, index) => (
-                <Typography key={index} variant="body1" sx={{ mt: 1 }}>
-                  <div className="comment-box">{comment.comment}</div>
-                </Typography>
+                <div key={index} className="comment-box">
+                  <Typography variant="body1">
+                    {comment.comment}
+                  </Typography>
+                </div>
               ))
             ) : (
               <Typography variant="body1">No comments available.</Typography>
             )}
-          </Typography>
+          </div>
+
           <div className="comment-input-box">
             <textarea
               className="comment-textbox"
@@ -99,6 +104,7 @@ const CommentsModal = ({ postId }) => {
           </div>
         </Box>
       </Modal>
+
       <div
         className="comments-button-container"
         style={{ display: 'flex', alignItems: 'center' }}
@@ -108,7 +114,7 @@ const CommentsModal = ({ postId }) => {
         </button>
         <p className="comments-text">
           {' '}
-          {comments.length} {comments.length === 1 ? 'comment' : 'comments'}{' '}
+          {commentsLength} {commentsLength === 1 ? 'comment' : 'comments'}{' '}
         </p>
       </div>
     </>
