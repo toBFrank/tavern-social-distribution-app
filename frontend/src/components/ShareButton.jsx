@@ -21,16 +21,16 @@ const ShareButton = ({ postId, authorId, postContent }) => {
     const originalUrl = [authorId, postId];
 
     const sharedPostData = {
-      author_id: storedAuthorId,
+      author: storedAuthorId,
       title: postContent.title || 'Untitled',
       content: postContent.content || '',
       visibility: 'SHARED',
-      content_type: postContent.content_type,
+      contentType: postContent.contentType,
       original_url: originalUrl,
     };
 
     // Check if content type is an image
-    if (postContent.content_type === 'image') {
+    if (postContent.contentType.startsWith('image/')) {
       console.log('content:', postContent);
       const imageUrl = await getPostImageUrl(
         postContent.author.id.split('/')[5],
