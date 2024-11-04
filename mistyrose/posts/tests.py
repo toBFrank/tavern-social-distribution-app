@@ -282,7 +282,47 @@ class CommentViewTestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class CommentsViewTestCase(BaseTestCase):
-    pass
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            text_content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment1 = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.comment2 = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the second comment.",
+            content_type="text/plain",
+        )
+
+        self.url = reverse('get_post_comments', args=[self.author.id, self.post.id])  
+
+    def test_get_comments_on_post_success(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)  
+        self.assertEqual(len(response.data['src']), 2)  
+
+    def test_get_comments_on_post_not_found(self):
+        non_existent_post_id = f"{uuid.uuid4()}"  
+        url = reverse('get_post_comments', args=[self.author.id, non_existent_post_id])  
+        response = self.client.get(url)
+
+        # 404 not found response
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class CommentsByFQIDView(BaseTestCase):
     pass
