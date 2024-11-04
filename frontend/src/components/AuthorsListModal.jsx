@@ -1,6 +1,6 @@
 // https://mui.com/material-ui/react-modal/ for 'Basic Modal' code from MUI to show comments, 2024-10-31
 // https://mui.com/material-ui/react-list/ for List of Avatars, sections 'Align list items' and 'Selected ListItem', 2024-10-31
-import React, { useState } from 'react';
+import React from 'react';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -41,7 +41,6 @@ return (
                 </ListItemAvatar>
                 <ListItemText
                     primary={author.displayName}
-                    secondary={author.page ? `Page: ${author.page}` : ''}
                 />
                 </ListItemButton>
             ))}

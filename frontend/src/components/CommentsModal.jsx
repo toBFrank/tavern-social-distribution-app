@@ -70,7 +70,7 @@ const CommentsModal = ({ postId }) => {
       .catch((error) => {
         console.error(error);
       });
-  }, []); //empty dependency list so that its only called once to get author info when component mounts
+  }); //empty dependency list so that its only called once to get author info when component mounts
 
   return (
     <>
