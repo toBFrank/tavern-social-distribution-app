@@ -662,7 +662,7 @@ class PublicPostsView(APIView):
                 status='ACCEPTED'
                 ).values_list('followed_id', flat=True)
                 # Show the unlisted post if the post's author is someone the current author follows
-                if post_author_id in accepted_following_ids:
+                if post_author_id in accepted_following_ids or post_author_id == current_author.id:
                     authorized_authors.add(current_author.id)
 
             
