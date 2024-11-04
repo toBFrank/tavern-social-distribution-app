@@ -669,12 +669,14 @@ class PublicPostsView(APIView):
                     authorized_authors.add(current_author.id)
 
             elif post_visibility == 'SHARED':
-                original_url = post_data.get('original_url')  
-                if original_url:
-                    original_author_id = original_url[0]  
-                    authorized_authors.add(original_author_id) 
-                post_author_id = post_data.get('author_id')  # Get the author_id from post data
-                authorized_authors.add(post_author_id) 
+                #original_url = post_data.get('original_url')  
+                #if original_url:
+                #    original_author_id = original_url[0]  
+                 #   authorized_authors.add(original_author_id) 
+                #post_author_id = post_data.get('author_id')  # Get the author_id from post data
+                #authorized_authors.add(post_author_id)
+                if post_author_id in following_ids:
+                  authorized_authors.add(current_author.id) 
 
 
             # Include visibility_type in the authorized_authors_per_post dictionary
