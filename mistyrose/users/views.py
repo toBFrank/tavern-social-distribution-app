@@ -281,6 +281,7 @@ class AuthorProfileView(APIView):
         public_posts = self.get_author_posts(author, 'PUBLIC')
         friends_posts = self.get_author_posts(author, 'FRIENDS')
         unlisted_posts = self.get_author_posts(author, 'UNLISTED')
+        shared_posts = self.get_author_posts(author, 'SHARED')
         
         # Prepare the response data
         data = {
@@ -291,6 +292,7 @@ class AuthorProfileView(APIView):
             'public_posts': public_posts,
             'friends_posts': friends_posts,
             'unlisted_posts': unlisted_posts,
+            'shared_posts': shared_posts,
         }
         
         return Response(data)
