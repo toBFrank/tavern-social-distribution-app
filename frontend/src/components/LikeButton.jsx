@@ -63,7 +63,6 @@ const LikeButton = ({ postId }) => {
 
       try {
         const response = await createLike(authorId, likeData);
-        console.log(response.data);
 
         // only updating likes if request is successful
         if (response.status === 201) {
@@ -83,7 +82,6 @@ const LikeButton = ({ postId }) => {
   const handleShowAuthors = async () => {
     try {
       const likesResponse = await getLikes(authorId, postId) //hitting endpoint again because if you like, you'll have to call getLikes anyways
-      console.log(likesResponse);
 
       // store authors who liked the post
       const authors = likesResponse.src.map(

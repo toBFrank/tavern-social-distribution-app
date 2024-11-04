@@ -142,30 +142,20 @@ class CommentedView(APIView):
         post = get_object_or_404(Post, id=post_id)
 
         #creating the comment object
-        request.data['author_id'] = author_serial
-        request.data['post_id'] = post_id
+
         comment_serializer = CommentSerializer(data=request.data)
         if comment_serializer.is_valid():
-            comment_instance = comment_serializer.save()
+            comment_serializer.save(
+                author_id=author,
+                post_id=post
+            )
 
             #creating Inbox object to forward to correct inbox
             post_host = post_url.split("//")[1].split("/")[0]
             if post_host != request.get_host():
                 # TODO: post not on our host, need to forward it to a remote inbox
                 pass
-            else:
-                # create and add to Inbox of the post's author
-                post_author = post.author_id
-                content_type = ContentType.objects.get_for_model(Comment)
-
-                Inbox.objects.create(
-                    type="comment",
-                    author=post_author,
-                    content_type=content_type,
-                    object_id=comment_instance.id,
-                    content_object=comment_instance,
-                )
-
+        
             return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
@@ -174,12 +164,60 @@ class CommentedView(APIView):
         """ 
         Get comments on a post
         """
-        post = get_object_or_404(Post, id=post_id) # not filtering by author so anyone can see it.... is that right? TODO: clarify
+        post = get_object_or_404(Post, id=post_id) 
 
-        comments = post.comments.all()
+        comments = post.comments.all().order_by('-published')
+
         serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
-        return Response(serializer.data)
-    #TODO: return "type": "comments" format as specified in the project description, right now just returning a list of comments for ease
+        #host is the host from the post
+        host = post.author_id.host.rstrip('/')
+        post_author_id = post.author_id.id
+
+        # "page":"http://nodebbbb/authors/222/posts/249",
+        # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
+        response_data = {
+            "type": "comments",
+            "page": f"{host}/api/authors/{post_author_id}/posts/{post_id}",
+            "id": f"{host}/api/authors/{post_author_id}/posts/{post_id}/comments",
+            "page_number": 1,
+            "size": post.comments.count(),
+            "count": post.comments.count(),
+            "src": serializer.data  
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+class CommentsView(APIView):
+    """
+    get comments on a post
+    """
+    def get(self, request, author_serial, post_serial):
+        """
+        get comments on a post 
+        """
+        post = get_object_or_404(Post, id=post_serial) 
+
+        comments = post.comments.all().order_by('-published')
+
+        serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
+        #host is the host from the post
+        host = post.author_id.host.rstrip('/')
+        post_author_id = post.author_id.id
+
+        # "page":"http://nodebbbb/authors/222/posts/249",
+        # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
+        response_data = {
+            "type": "comments",
+            "page": f"{host}/api/authors/{post_author_id}/posts/{post_serial}",
+            "id": f"{host}/api/authors/{post_author_id}/posts/{post_serial}/comments",
+            "page_number": 1,
+            "size": post.comments.count(),
+            "count": post.comments.count(),
+            "src": serializer.data  
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
            
 #endregion
     

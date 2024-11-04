@@ -21,8 +21,9 @@ const CommentsModal = ({ postId }) => {
     const fetchComments = async () => {
       try {
         const fetchComments = await getComments(authorId, postId);
-        setCommentsLength(fetchComments ? fetchComments.length : 0);
-        setComments(fetchComments);
+        console.log(fetchComments);
+        setCommentsLength(fetchComments ? fetchComments.count : 0);
+        setComments(fetchComments.src);
       } catch (error) {
         console.error(error);
       }
