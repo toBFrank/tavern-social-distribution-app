@@ -18,8 +18,6 @@ from .models import Author, Follows
 from django.utils import timezone  
 from django.conf import settings  
 import uuid  
-from stream.models import Inbox  
-from django.contrib.contenttypes.models import ContentType  
 from posts.models import Post  
 from django.middleware.csrf import get_token  
 from django.contrib.auth import authenticate  
@@ -370,7 +368,7 @@ class FollowerView(APIView):
         if is_pending:
             return Response({"status": "Follow request pending"}, status=status.HTTP_202_ACCEPTED)
 
-        # TO DO: Update documentation!
+        # TODO: Update documentation!
         # return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
         return Response({"detail": "Follower not found"}, status=status.HTTP_204_NO_CONTENT)
 
@@ -388,16 +386,6 @@ class FollowerView(APIView):
         follow_request.status = 'ACCEPTED'
         follow_request.save()
         
-        # delete corresponding inbox_entry
-        content_type = ContentType.objects.get_for_model(Follows)
-        inbox_entry = Inbox.objects.filter(author__id=author_id, object_id=follow_request.id, content_type=content_type).first()
-        
-        if inbox_entry:
-            print(f"Deleting Inbox entry: {inbox_entry}")
-            inbox_entry.delete()
-        else:
-            print("Inbox entry not found")
-        
         return Response({"status": "Follow request accepted"}, status=status.HTTP_200_OK)
 
 
@@ -411,14 +399,6 @@ class FollowerView(APIView):
         if not follow_request:
             print("Follow request not found in database")
             return Response({"error": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # delete inbox_entry
-        content_type = ContentType.objects.get_for_model(Follows)
-        inbox_entry = Inbox.objects.filter(author__id=author_id, object_id=follow_request.id, content_type=content_type).first()
-
-        if inbox_entry:
-            print(f"Found Inbox entry: {inbox_entry}")
-            inbox_entry.delete()
 
         print(f"Deleting Follow Request: {follow_request.id}")
         
