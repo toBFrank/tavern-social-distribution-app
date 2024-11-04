@@ -673,7 +673,7 @@ class PublicPostsView(APIView):
             
             elif post_visibility == 'FRIENDS':
                 # Only show FRIENDS posts if the post's author is a mutual friend
-                if post_author_id in mutual_friend_ids or post_author_id == current_author.id:
+                if post_author_id in mutual_friend_ids:
                     authorized_authors.add(current_author.id)
 
             elif post_visibility == 'SHARED':
