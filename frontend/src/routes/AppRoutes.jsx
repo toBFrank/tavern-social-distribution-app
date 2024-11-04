@@ -74,7 +74,7 @@ const AppRoutes = () => {
         }
       />
        <Route
-        path="/post/:postFqid"
+        path="/post/:postId/"
         element={
           <ProtectedRoute>
             <PostDetail />

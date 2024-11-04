@@ -12,10 +12,10 @@ from .views import (
 )
 
 urlpatterns = [
-    path('login/', LoginView.as_view(), name='login'),  # Use JWT for login
+    path('api/login/', LoginView.as_view(), name='login'),  # Use JWT for login
     path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),  # Refresh JWT token endpoint
     path('verify/', VerifyTokenView.as_view(), name='verify-token'),  # Verify JWT token endpoint
-    path('signup/', SignUpView.as_view(), name='signup'),  # User signup endpoint
+    path('api/signup/', SignUpView.as_view(), name='signup'),  # User signup endpoint
     path('api/authors/<uuid:pk>/', AuthorDetailView.as_view(), name='author-detail'),  # Author detail view
     path('logout/', LogoutView.as_view(), name='logout'),  # User logout endpoint
     path('api/authors/<uuid:pk>/profile/', AuthorProfileView.as_view(), name='author-profile'),  # Author profile view
