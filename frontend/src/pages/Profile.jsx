@@ -36,6 +36,10 @@ const Profile = () => {
         setLoading(false);
       });
   }, [authorId]);
+  
+  const closeModal = () => {
+    setShowModal(false);
+  };
 
   // Close the modal when the route changes
   useEffect(() => {
@@ -47,9 +51,6 @@ const Profile = () => {
         console.error(error);
       });
   }, []);
-  const closeModal = () => {
-    setShowModal(false);
-  };
 
   // Function to fetch followers and toggle the display
   const handleFollowersClick = async () => {
