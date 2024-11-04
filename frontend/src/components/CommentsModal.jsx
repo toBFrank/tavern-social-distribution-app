@@ -1,10 +1,11 @@
-// https://mui.com/material-ui/react-modal/ for 'Basic Modal' code from MUI to show comments, 2024-10-19
+// Import necessary libraries and components
 import React, { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import { Comment } from '@mui/icons-material';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import Cookies from 'js-cookie';
+import { Link } from 'react-router-dom'; // Import Link for navigation
 import { getComments, createCommentLocal } from '../services/CommentsService';
 import { getAuthorProfile } from '../services/profileService';
 import '../styles/components/CommentsModal.css';
@@ -17,15 +18,17 @@ const CommentsModal = ({ postId }) => {
   const [newComment, setNewComment] = useState('');
   const [commentsLength, setCommentsLength] = useState(0);
 
+  // Fetch comments when the component mounts or postId changes
   useEffect(() => {
     const fetchComments = async () => {
       try {
         const fetchComments = await getComments(authorId, postId);
-
+        
         // Map fetched comments to have the author name and comment
         const mappedComments = fetchComments.src.map((comment) => ({
           comment: comment.comment,
           displayName: comment.author.displayName, 
+          authorId: comment.author.id.split('/').slice(-2, -1)[0], // Extracting authorId from URL
         }));
         
         setComments(mappedComments);
@@ -38,15 +41,18 @@ const CommentsModal = ({ postId }) => {
     fetchComments();
   }, [authorId, postId]);
 
+  // Open modal handler
   const handleOpen = async () => {
     setIsModalOpen(true);
   };
 
+  // Close modal handler
   const handleClose = () => setIsModalOpen(false);
 
+  // Handle new comment submission
   const handleCommentSubmit = async () => {
     if (newComment.trim()) {
-      const currentHost = window.location.origin; //getting host for post url
+      const currentHost = window.location.origin; // Get host for post URL
       const commentData = {
         type: 'comment',
         author: currentProfileData,
@@ -56,12 +62,13 @@ const CommentsModal = ({ postId }) => {
       };
       const response = await createCommentLocal(authorId, commentData);
       console.log(response);
-      setComments([...comments, { comment: newComment, displayName: currentProfileData.displayName}]);
-      setCommentsLength((prevLength) => prevLength + 1); //increment comment count
-      setNewComment(''); // Clear the input after posting the comment
+      setComments([...comments, { comment: newComment, displayName: currentProfileData.displayName, authorId }]);
+      setCommentsLength((prevLength) => prevLength + 1); // Increment comment count
+      setNewComment(''); // Clear input after posting
     }
   };
 
+  // Fetch current author profile on component mount
   useEffect(() => {
     getAuthorProfile(authorId)
       .then((data) => {
@@ -70,7 +77,7 @@ const CommentsModal = ({ postId }) => {
       .catch((error) => {
         console.error(error);
       });
-  }, []); //empty dependency list so that its only called once to get author info when component mounts
+  }, []); // Empty dependency list to run only once
 
   return (
     <>
@@ -89,7 +96,10 @@ const CommentsModal = ({ postId }) => {
               comments.map((comment, index) => (
                 <div key={index} className="comment-box">
                   <Typography className="comment-author">
-                    {comment.displayName} 
+                    {/* Author name as a clickable link */}
+                    <Link to={`/profile/${comment.authorId}`} className="author-link">
+                      {comment.displayName}
+                    </Link>
                   </Typography>
                   <Typography className="comment-body">
                     {comment.comment}
@@ -124,8 +134,7 @@ const CommentsModal = ({ postId }) => {
           <Comment />
         </button>
         <p className="comments-text">
-          {' '}
-          {commentsLength} {commentsLength === 1 ? 'comment' : 'comments'}{' '}
+          {commentsLength} {commentsLength === 1 ? 'comment' : 'comments'}
         </p>
       </div>
     </>

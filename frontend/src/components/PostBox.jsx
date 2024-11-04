@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom'; // Import Link from React Router
 import { getMarkdownText } from '../utils/getMarkdownText';
-import {
-  getPostImageUrl,
-  getPost,
-  getPostByFqid,
-} from '../services/PostsService';
+import { getPostImageUrl, getPost } from '../services/PostsService';
 import { getAuthorProfile } from '../services/profileService';
 import '../styles/components/PostBox.css';
 import LikeButton from './LikeButton';
@@ -171,15 +167,16 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       <div className="post-footer">
         <LikeButton postId={post.id} />
         <CommentsModal postId={post.id} />
-        {post.visibility !== 'FRIENDS' &&
-          post.visibility !== 'UNLISTED' &&
-          post.visibility !== 'SHARED' && (
-            <ShareButton
-              postId={post.id}
-              authorId={post.author.id}
-              postContent={post}
-            />
-          )}
+        {(post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && post.visibility !== 'SHARED') && (
+          <ShareButton postId={post.id} authorId={post.author.id} postContent={post} />
+        )}
+        {(post.visibility === 'PUBLIC' || post.visibility === 'UNLISTED' || post.visibility === 'FRIENDS'|| post.visibility === 'SHARED') && (
+          <button onClick={handleCopyLink} className="share-link-button">
+            <img src={shareLinkIcon} alt="Share Link" className="share-link-icon" />
+            <span>Share Link</span>
+          </button>
+        )}
+        {showCopyNotification && <span className="copy-notification">Post link copied!</span>}
       </div>
     </div>
   );
