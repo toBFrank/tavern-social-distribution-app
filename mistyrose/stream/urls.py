@@ -1,7 +1,7 @@
 from django.urls import path
-from . import views
+from .views import FollowRequests, InboxView
 
 urlpatterns = [
-    path('', views.InboxView.as_view(), name="inbox"),
-    path('follow_requests/', views.get_follow_requests, name="follow_requests") #TODO: might be temporary depending on when stream gets implemented
+    path('', InboxView.as_view(), name="inbox"),
+    path('follow_requests/', FollowRequests.as_view(), name="follow_requests") 
 ]

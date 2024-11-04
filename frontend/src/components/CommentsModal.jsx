@@ -51,7 +51,7 @@ const CommentsModal = ({ postId }) => {
         type: 'comment',
         author: currentProfileData,
         comment: newComment,
-        contentType: 'text/markdown',
+        contentType: 'text/plain',
         post: `${currentHost}/api/authors/${authorId}/posts/${postId}/`,
       };
       const response = await createCommentLocal(authorId, commentData);
