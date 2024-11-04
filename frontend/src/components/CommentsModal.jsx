@@ -21,7 +21,6 @@ const CommentsModal = ({ postId }) => {
     const fetchComments = async () => {
       try {
         const fetchComments = await getComments(authorId, postId);
-        console.log(fetchComments);
         setCommentsLength(fetchComments ? fetchComments.count : 0);
         setComments(fetchComments.src);
       } catch (error) {
@@ -51,6 +50,7 @@ const CommentsModal = ({ postId }) => {
       const response = await createCommentLocal(authorId, commentData);
       console.log(response);
       setComments([...comments, { comment: newComment }]);
+      setCommentsLength((prevLength) => prevLength + 1); //increment comment count
       setNewComment(''); // Clear the input after posting the comment
     }
   };

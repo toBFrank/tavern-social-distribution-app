@@ -21,7 +21,6 @@ const LikeButton = ({ postId }) => {
     const fetchLikes = async () => {
       try {
         const likesResponse = await getLikes(authorId, postId);
-        console.log(likesResponse);
         setLikesCount(likesResponse.count);
 
         //check if user liked post already
