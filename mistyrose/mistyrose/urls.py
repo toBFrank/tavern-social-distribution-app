@@ -49,7 +49,6 @@ urlpatterns = [
     path('api/liked/', include('posts.liked_urls')), #api/liked urls
     path('api/comment/', include('posts.comment_urls')), #api/comment urls
     path('api/commented/', include('posts.comment_urls')), #TODO: asked if there is an error in the project description, is this supposed to be the same one as the comments/comment_fqid?  
-    re_path(r'^(?!api/).*$', TemplateView.as_view(template_name='index.html')),  
 
 ]
 
