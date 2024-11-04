@@ -40,7 +40,7 @@ const PostDetail = () => {
           (postAuthorization && postAuthorization.authorized_authors.includes(currentUserId))
         ) {
           setPost(postData);
-          const profile = await getAuthorProfile(postData.author_id);
+          const profile = await getAuthorProfile(postData.author.id.split('/')[5]);
           setAuthor(profile);
         } else {
           setError('You are not authorized to view this post.');

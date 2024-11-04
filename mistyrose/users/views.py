@@ -373,14 +373,11 @@ class FollowerView(APIView):
         # Return 404 if follower not found or follow request doesn't exist
         return Response({"status": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    def put(self, request, author_id, follower_id):
-        print(f"Received Author ID: {author_id}, Received Follower ID: {follower_id}")
-        
+    def put(self, request, author_id, follower_id):        
         # get follow_request
         follow_request = Follows.objects.filter(followed_id=author_id, local_follower_id=follower_id).first()
         
         if not follow_request:
-            print("Follow request not found in database for PUT")
             return Response({"error": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
         
         # update status to "ACCEPTED"
@@ -392,16 +389,13 @@ class FollowerView(APIView):
 
 
     def delete(self, request, author_id, follower_id):
-        print(f"Received Author ID: {author_id}, Received Follower ID: {follower_id}")
         
         # get follow_request
         follow_request = Follows.objects.filter(followed_id=author_id, local_follower_id=follower_id).first()
 
         if not follow_request:
-            print("Follow request not found in database")
             return Response({"error": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        print(f"Deleting Follow Request: {follow_request.id}")
         
         # delete follow_request
         follow_request.delete()
