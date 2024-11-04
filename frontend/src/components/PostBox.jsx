@@ -30,7 +30,8 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   const postLink = `${window.location.origin}/post/${post.id}`;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(postLink)
+    navigator.clipboard
+      .writeText(postLink)
       .then(() => {
         setShowCopyNotification(true);
         setTimeout(() => setShowCopyNotification(false), 2000); // Hide notification after 2 seconds
@@ -155,7 +156,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         {post.contentType === 'text/plain' && <p>{post.content}</p>}
         {post.contentType?.startsWith('image/') &&
           (originalPost && post.visibility === 'SHARED' ? (
-            <img src={originalImageUrl} alt="post share" />
+            <img src={post.content} alt="post share" />
           ) : (
             <img src={post.content} alt="post" />
           ))}
@@ -167,16 +168,31 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       <div className="post-footer">
         <LikeButton postId={post.id} />
         <CommentsModal postId={post.id} />
-        {(post.visibility !== 'FRIENDS' && post.visibility !== 'UNLISTED' && post.visibility !== 'SHARED') && (
-          <ShareButton postId={post.id} authorId={post.author.id} postContent={post} />
-        )}
-        {(post.visibility === 'PUBLIC' || post.visibility === 'UNLISTED' || post.visibility === 'FRIENDS'|| post.visibility === 'SHARED') && (
+        {post.visibility !== 'FRIENDS' &&
+          post.visibility !== 'UNLISTED' &&
+          post.visibility !== 'SHARED' && (
+            <ShareButton
+              postId={post.id}
+              authorId={post.author.id}
+              postContent={post}
+            />
+          )}
+        {(post.visibility === 'PUBLIC' ||
+          post.visibility === 'UNLISTED' ||
+          post.visibility === 'FRIENDS' ||
+          post.visibility === 'SHARED') && (
           <button onClick={handleCopyLink} className="share-link-button">
-            <img src={shareLinkIcon} alt="Share Link" className="share-link-icon" />
+            <img
+              src={shareLinkIcon}
+              alt="Share Link"
+              className="share-link-icon"
+            />
             <span>Share Link</span>
           </button>
         )}
-        {showCopyNotification && <span className="copy-notification">Post link copied!</span>}
+        {showCopyNotification && (
+          <span className="copy-notification">Post link copied!</span>
+        )}
       </div>
     </div>
   );
