@@ -130,7 +130,7 @@ class CommentedViewTestCase(BaseTestCase):
             author_id=self.author,
             title='Public Post',
             content_type='text/plain',
-            text_content='This is a public post.',
+            content='This is a public post.',
             visibility='PUBLIC'
         )
         self.comment_url = reverse('commented', args=[self.author.id])  
@@ -196,7 +196,7 @@ class CommentsByAuthorFQIDViewTestCase(BaseTestCase):
             author_id=self.author,
             title="Test Post",
             content_type="text/plain",
-            text_content="This is a test post.",
+            content="This is a test post.",
             visibility="PUBLIC"
         )
 
@@ -253,7 +253,7 @@ class CommentViewTestCase(BaseTestCase):
             author_id=self.author,
             title="Test Post",
             content_type="text/plain",
-            text_content="This is a test post.",
+            content="This is a test post.",
             visibility="PUBLIC"
         )
 
@@ -289,7 +289,7 @@ class CommentsViewTestCase(BaseTestCase):
             author_id=self.author,
             title="Test Post",
             content_type="text/plain",
-            text_content="This is a test post.",
+            content="This is a test post.",
             visibility="PUBLIC"
         )
 
@@ -332,7 +332,7 @@ class CommentsByFQIDView(BaseTestCase):
             author_id=self.author,
             title="Test Post",
             content_type="text/plain",
-            text_content="This is a test post.",
+            content="This is a test post.",
             visibility="PUBLIC"
         )
 
@@ -358,7 +358,7 @@ class CommentRemoteByFQIDViewTestCase(BaseTestCase):
             author_id=self.author,
             title="Test Post",
             content_type="text/plain",
-            text_content="This is a test post.",
+            content="This is a test post.",
             visibility="PUBLIC"
         )
 
@@ -388,7 +388,7 @@ class CommentByFQIDView(BaseTestCase):
             author_id=self.author,
             title="Test Post",
             content_type="text/plain",
-            text_content="This is a test post.",
+            content="This is a test post.",
             visibility="PUBLIC"
         )
 
