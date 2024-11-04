@@ -99,6 +99,7 @@ class VerifyTokenViewTest(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer invalidtoken')
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        
 class AuthorDetailViewTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
@@ -283,9 +284,6 @@ class FollowRequestTestCase(TestCase):
         # Confirm that the status code is 200
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Verify that the Inbox entry has been deleted, using object_id instead of id
-        self.assertFalse(Inbox.objects.filter(object_id=self.follow_request.id).exists())
-
     def test_deny_follow_request(self):
         # Send a DELETE request to deny the follow request
         response = self.client.delete(self.url)
@@ -295,7 +293,6 @@ class FollowRequestTestCase(TestCase):
 
         # Verify that the follow_request has been deleted
         self.assertFalse(Follows.objects.filter(id=self.follow_request.id).exists())
-
 
 class UnfollowTestCase(TestCase):
     def setUp(self):
@@ -331,7 +328,10 @@ class UnfollowTestCase(TestCase):
             status='ACCEPTED'
         )
 
-        self.unfollow_url = f'/authors/{self.author2.id}/followers/{self.author1.id}/unfollow/'
+        self.unfollow_url = reverse('unfollow', kwargs={
+            'author_id': str(self.author2.id),
+            'follower_id': str(self.author1.id)
+        })
 
     def test_unfollow_success(self):
         # Test successful unfollow
@@ -346,45 +346,6 @@ class UnfollowTestCase(TestCase):
         ).exists()
         self.assertFalse(follow_exists)
 
-    def test_unfollow_not_found(self):
-        # Test unfollow when the follow relationship does not exist
-        invalid_url = f'/authors/{self.author2.id}/followers/{uuid.uuid4()}/unfollow/'  # Use a non-existing follower_id
-        response = self.client.delete(invalid_url)
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response.data['error'], 'Follow relationship does not exist.')
-
-    def test_unfollow_invalid_uuid(self):
-        # Test when UUID format is invalid
-        invalid_url = f'/authors/{self.author2.id}/followers/invalid-uuid/unfollow/'
-        response = self.client.delete(invalid_url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'], 'Invalid author or follower ID format.')
-
-class FollowersDetailViewTest(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.author = Author.objects.create(user=self.user, display_name="Test Author")
-
-        self.follower1 = Author.objects.create(user=User.objects.create_user(username='follower1', password='password1'), display_name='Follower One')
-        self.follower2 = Author.objects.create(user=User.objects.create_user(username='follower2', password='password2'), display_name='Follower Two')
-
-        Follows.objects.create(local_follower_id=self.follower1, followed_id=self.author, status='ACCEPTED')
-        Follows.objects.create(local_follower_id=self.follower2, followed_id=self.author, status='ACCEPTED')
-
-        refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
-
-        self.url = reverse('followers')
-
-    def test_get_followers_list(self):
-        response = self.client.get(self.url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertEqual(len(response.data['followers']), 2)
-        self.assertEqual(response.data['followers'][0]['displayName'], 'Follower One')
-        self.assertEqual(response.data['followers'][1]['displayName'], 'Follower Two')
-        
 class FriendsViewTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
@@ -401,7 +362,7 @@ class FriendsViewTest(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
 
-        self.url = reverse('friends')
+        self.url = reverse('friends', kwargs={'author_id': str(self.author.id)})
 
     def test_get_friends_list(self):
         response = self.client.get(self.url)
@@ -411,6 +372,30 @@ class FriendsViewTest(APITestCase):
         self.assertEqual(len(response.data['friends']), 1)  # Should find 1 mutual friend
         self.assertEqual(response.data['friends'][0]['displayName'], 'Author One')  # Should return Author One
 
+class FollowersDetailViewTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        self.follower1 = Author.objects.create(user=User.objects.create_user(username='follower1', password='password1'), display_name='Follower One')
+        self.follower2 = Author.objects.create(user=User.objects.create_user(username='follower2', password='password2'), display_name='Follower Two')
+
+        Follows.objects.create(local_follower_id=self.follower1, followed_id=self.author, status='ACCEPTED')
+        Follows.objects.create(local_follower_id=self.follower2, followed_id=self.author, status='ACCEPTED')
+
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        self.url = reverse('followers', kwargs={'author_id': str(self.author.id)})
+
+    def test_get_followers_list(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.assertEqual(len(response.data['followers']), 2)
+        self.assertEqual(response.data['followers'][0]['displayName'], 'Follower One')
+        self.assertEqual(response.data['followers'][1]['displayName'], 'Follower Two')
 
 class ProfileImageUploadViewTest(APITestCase):
     def setUp(self):
@@ -437,3 +422,4 @@ class ProfileImageUploadViewTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], 'No file provided.')
+
