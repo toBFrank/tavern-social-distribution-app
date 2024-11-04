@@ -160,32 +160,35 @@ class CommentedView(APIView):
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
         
-    def get(self, request, author_serial, post_id):
+    def get(self, request, author_serial):
         """ 
-        Get comments on a post
+        Get the list of comments author has made on any post [local]
         """
-        post = get_object_or_404(Post, id=post_id) 
+        #TODO: get comments author has made for [remote]
+        author = get_object_or_404(Author, id=author_serial)
 
-        comments = post.comments.all().order_by('-published')
+        comments = author.comments.all().order_by('-published')
 
         serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
-        #host is the host from the post
-        host = post.author_id.host.rstrip('/')
-        post_author_id = post.author_id.id
+        #host is the host of commenter
+        host = author.host.rstrip('/')
 
-        # "page":"http://nodebbbb/authors/222/posts/249",
-        # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{post_author_id}/posts/{post_id}",
-            "id": f"{host}/api/authors/{post_author_id}/posts/{post_id}/comments",
+            "page": f"{host}/api/authors/{author_serial}",
+            "id": f"{host}/api/authors/{author_serial}",
             "page_number": 1,
-            "size": post.comments.count(),
-            "count": post.comments.count(),
+            "size": author.comments.count(),
+            "count": author.comments.count(),
             "src": serializer.data  
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+    
+class CommentsByAuthorFQIDView(APIView):
+    """
+    Get the list of comments author has made on any post
+    """
     
 class CommentsView(APIView):
     """
