@@ -8,6 +8,23 @@ import Cookies from 'js-cookie';
 const ShareButton = ({ postId, authorId, postContent }) => {
   const navigate = useNavigate();
 
+  function removeBase64Prefix(base64) {
+    // Define the prefixes to look for
+    const prefixes = [
+      'data:image/png;base64,',
+      'data:image/jpeg;base64,',
+      'data:image/gif;base64,',
+    ];
+
+    for (const prefix of prefixes) {
+      if (base64.startsWith(prefix)) {
+        return base64.substring(prefix.length);
+      }
+    }
+
+    return base64;
+  }
+
   const handleShareClick = async () => {
     console.log('Share button clicked');
     const storedAuthorId = Cookies.get('author_id');
@@ -20,10 +37,12 @@ const ShareButton = ({ postId, authorId, postContent }) => {
 
     const originalUrl = [authorId, postId];
 
+    const unlabeledBase64Img = removeBase64Prefix(postContent.content ?? '');
+
     const sharedPostData = {
       author: storedAuthorId,
       title: postContent.title || 'Untitled',
-      content: postContent.content || '',
+      content: unlabeledBase64Img || '',
       visibility: 'SHARED',
       contentType: postContent.contentType,
       original_url: originalUrl,
