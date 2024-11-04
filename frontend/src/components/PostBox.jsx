@@ -34,7 +34,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     const getImgUrlFromServer = async () => {
       try {
         const imageUrlFromServer = await getPostImageUrl(
-          post.author_id,
+          post.author.id,
           post.id
         );
         setImageUrl(imageUrlFromServer);
@@ -42,10 +42,10 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         setImageUrl(null);
       }
     };
-    if ((post.content_type === 'image') & (post.visibility !== 'SHARED')) {
+    if (post.contentType?.includes('image') && post.visibility !== 'SHARED') {
       getImgUrlFromServer();
     }
-  }, [post.author_id, post.content_type, post.id, post.visibility]);
+  }, [post.author, post.contentType, post.id, post.visibility]);
 
   // Fetch post have visibility of SHARED it will take the original posts info
   useEffect(() => {
@@ -59,7 +59,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
           setOriginalPost(response.data);
 
           // Fetch the original image URL if the post type is an image
-          if (response.data.content_type === 'image') {
+          if (response.data.contentType?.includes('image')) {
             const originalImgUrl = await getPostImageUrl(
               response.data.author_id,
               response.data.id
@@ -80,7 +80,9 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     const fetchOriginalAuthorProfile = async () => {
       if (originalPost) {
         try {
-          const authorProfile = await getAuthorProfile(originalPost.author_id);
+          const authorProfile = await getAuthorProfile(
+            originalPost.author.id.split('/')[5]
+          );
           // console.log('orig post url: ', post.visibility);
           setOriginalAuthor(authorProfile);
 
@@ -106,7 +108,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         </div>
       )}
       <div className="post-header">
-        <Link to={`/profile/${post.author_id}`} style={{ display: 'flex' }}>
+        <Link to={`/profile/${post.author.id}`} style={{ display: 'flex' }}>
           {' '}
           {/* Add display: flex */}
           <div className="profile-image-container">
@@ -142,15 +144,15 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       </div>
       <div className="post-content">
         <h2>{post.title}</h2>
-        {post.content_type === 'text/plain' && <p>{post.text_content}</p>}
-        {post.content_type === 'image' &&
+        {post.contentType === 'text/plain' && <p>{post.content}</p>}
+        {post.contentType?.startsWith('image/') &&
           (originalPost && post.visibility === 'SHARED' ? (
             <img src={originalImageUrl} alt="post share" />
           ) : (
-            <img src={imageUrl} alt="post" />
+            <img src={post.content} alt="post" />
           ))}
-        {post.content_type === 'text/markdown' && (
-          <div dangerouslySetInnerHTML={getMarkdownText(post.text_content)} />
+        {post.contentType === 'text/markdown' && (
+          <div dangerouslySetInnerHTML={getMarkdownText(post.content)} />
         )}
       </div>
 
@@ -162,7 +164,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
           post.visibility !== 'SHARED' && (
             <ShareButton
               postId={post.id}
-              authorId={post.author_id}
+              authorId={post.author.id}
               postContent={post}
             />
           )}

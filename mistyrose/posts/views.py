@@ -239,14 +239,14 @@ class CommentsView(APIView):
         """
         get comments on a post 
         """
-        post = get_object_or_404(Post, id=post_serial) 
+        post = get_object_or_404(Post, id=post_serial)
 
         comments = post.comments.all().order_by('-published')
 
         serializer = CommentSerializer(comments, many=True) # many=True specifies that input is not just a single comment
         #host is the host from the post
         host = post.author_id.host.rstrip('/')
-        post_author_id = post.author_id.id
+        post_author_id = post.author_id
 
         # "page":"http://nodebbbb/authors/222/posts/249",
         # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
@@ -632,11 +632,13 @@ class PublicPostsView(APIView):
 
         current_author = get_object_or_404(Author, user=request.user)
 
-        posts = Post.objects.exclude(author_id=current_author.id)
+        # posts = Post.objects.exclude(author_id=current_author.id)
+        posts = Post.objects.all()
 
         serializer = PostSerializer(posts, many=True)
 
-        all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
+        # all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
+        all_authors = list(Author.objects.all().values_list('id', flat=True))
 
         authorized_authors_per_post = []
 
@@ -644,16 +646,18 @@ class PublicPostsView(APIView):
         following_ids = set(Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True))
         followers_ids = set(Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True))  
         mutual_friend_ids = following_ids.intersection(followers_ids)
+        print(f"Following IDs: {following_ids}")
+        print(f"Followers IDs: {followers_ids}")
+        print(f"Mutual friend IDs: {mutual_friend_ids}")
 
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
-            post_author_id = post_data['author_id']
+            post_author_id = post_data.get('author').get('id').split('/')[-2]
+            print(f"Post author ID: {post_author_id}")
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
                 authorized_authors.update(all_authors)
-            
-            
             
             elif post_visibility == 'UNLISTED':
                 accepted_following_ids = Follows.objects.filter(

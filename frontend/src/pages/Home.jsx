@@ -49,6 +49,7 @@ const Home = () => {
 
         // Set posts directly from the response structure
         setPosts(data.posts);
+        console.log(data.posts);
 
         // Set authorized authors
         setAuthorizedAuthors(data.authorized_authors_per_post); // Set authorized authors data
@@ -57,19 +58,21 @@ const Home = () => {
         const profiles = await Promise.all(
           data.posts.map(async (post) => {
             try {
-              const profile = await getAuthorProfile(post.author_id);
+              const profile = await getAuthorProfile(
+                post.author.id.split('/')[5]
+              );
               return {
-                authorId: post.author_id,
+                authorId: post.author.id.split('/')[5],
                 displayName: profile.displayName,
                 profileImage: profile.profileImage,
               };
             } catch (profileError) {
               console.error(
-                `Error fetching profile for author ${post.author_id}:`,
+                `Error fetching profile for author ${post.author.id.split('/')[5]}:`,
                 profileError
               );
               return {
-                authorId: post.author_id,
+                authorId: post.author.id.split('/')[5],
                 displayName: null,
                 profileImage: null,
               };
@@ -88,7 +91,7 @@ const Home = () => {
 
         const currentUserId = Cookies.get('author_id');
         const followingPromises = data.posts.map((post) =>
-          checkIfFollowing(post.author_id, currentUserId)
+          checkIfFollowing(post.author.id.split('/')[5], currentUserId)
         );
 
         const followingResponses = await Promise.all(followingPromises);
@@ -144,10 +147,10 @@ const Home = () => {
       return post.visibility === 'PUBLIC';
     } else if (selectedFilter === 'Unlisted') {
       if (post.visibility === 'UNLISTED') {
-        return followingStatus[post.author_id];
+        return followingStatus[post.author.id.split('/')[5]];
       }
       if (post.visibility === 'SHARED') {
-        return followingStatus[post.author_id]; // Show shared posts of people the current user follows
+        return followingStatus[post.author.id.split('/')[5]]; // Show shared posts of people the current user follows
       }
       return false;
     } else if (selectedFilter === 'Friends') {
@@ -209,7 +212,7 @@ const Home = () => {
                     <div>
                       <PostBox
                         post={post}
-                        poster={authorProfiles[post.author_id]}
+                        poster={authorProfiles[post.author.id.split('/')[5]]}
                       />
                     </div>
                   </li>

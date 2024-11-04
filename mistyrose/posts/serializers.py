@@ -1,51 +1,9 @@
-from mistyrose.users.serializers import AuthorSerializer
+from users.serializers import AuthorSerializer
+from users.models import Author
 from rest_framework import serializers
 from .models import Post, Comment, Like
-from users.serializers import AuthorSerializer #TODO:uncomment after Author Serializer fix
 import importlib
 from django.urls import reverse
-
-#TODO: remove - this is a temporary fix for the circular dependency issue in Authors which is importing PostSerializer
-def get_author_serializer():
-    users_serializers = importlib.import_module("users.serializers")
-    return users_serializers.AuthorSerializer
-
-
-#region Post Serializers
-class PostSerializer(serializers.ModelSerializer):
-    likes_count = serializers.SerializerMethodField()  # Add likes count
-    comments_count = serializers.SerializerMethodField()  # Add comments count
-    class Meta:
-        model = Post
-        fields = [
-            'id',
-            'author_id',
-            'title',
-            'description',
-            'text_content',
-            'image_content',
-            'content_type',
-            'published',
-            'visibility',
-            'likes_count', 
-            'comments_count',
-            'original_url'
-        ]
-   
-        read_only_fields = [
-            'id',
-            'published', 
-        ]
-        # Method to get likes count for a post
-    def get_likes_count(self, post):
-        return Like.objects.filter(object_id=post.id).count()
-
-    # Method to get comments count for a post
-    def get_comments_count(self, post):
-        return Comment.objects.filter(post_id=post.id).count()
-
-
-#endregion
 
 #region Comment Serializers        
 class CommentSerializer(serializers.ModelSerializer):
@@ -125,6 +83,47 @@ class LikeSerializer(serializers.ModelSerializer):
 
     def get_object(self, like_object):
         return like_object.object_url
+
+#region Post Serializers
+class PostSerializer(serializers.ModelSerializer):
+    # author = AuthorSerializer(source='author_id')
+    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), write_only=True, source='author_id')
+    comments = CommentSerializer(many=True, read_only=True)
+    likes = LikeSerializer(many=True, read_only=True)
+    contentType = serializers.CharField(source='content_type', default='text/plain')
+    class Meta:
+        model = Post
+        fields = [
+            'type',
+            'title',
+            'id',
+            'description',
+            'contentType',
+            'content',
+            'author',
+            'comments',
+            'likes',
+            'published',
+            'visibility',
+        ]
+        # Method to get likes count for a post
+    def get_likes_count(self, post):
+        return Like.objects.filter(object_id=post.id).count()
+
+    # Method to get comments count for a post
+    def get_comments_count(self, post):
+        return Comment.objects.filter(post_id=post.id).count()
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        
+        representation['author'] = AuthorSerializer(instance.author_id).data
+        
+        if instance.content_type.startswith('image/'):
+            representation['content'] = f"data:{instance.content_type};base64,{instance.content}"
+        
+        return representation
+#endregion
     
     # def get_author(self, like_object): #TODO: remove - this is temporary fix to circular dependency in AuthorSerializer importing PostSerializer
     #     AuthorSerializer = get_author_serializer()

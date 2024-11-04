@@ -7,10 +7,10 @@ import { getAuthorProfile } from '../services/profileService'; // Import profile
 import Cookies from 'js-cookie';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 
-const Post = ( ) => {
+const Post = () => {
   //#region Properties
   const authorId = Cookies.get('author_id');
-  const { postId } = useParams(); 
+  const { postId } = useParams();
   const navigate = useNavigate();
   const [visibility, setVisibility] = useState('public');
   const [selectedOption, setSelectedOption] = useState('Plain');
@@ -26,7 +26,7 @@ const Post = ( ) => {
   const [loading, setLoading] = useState(true);
 
   // For sharing
-  const location = useLocation(); 
+  const location = useLocation();
   const sharePost = location.pathname.includes('/share');
   const sharedPostAuthor = location.state?.authorId;
 
@@ -37,16 +37,14 @@ const Post = ( ) => {
     if (sharedPostAuthor) {
       getAuthorProfile(sharedPostAuthor)
         .then((data) => {
-          console.log('Author profile data:', data); 
-          setProfileData(data); 
+          console.log('Author profile data:', data);
+          setProfileData(data);
         })
         .catch((error) => {
           console.error('Error fetching author profile:', error);
         });
     }
   }, [sharedPostAuthor, sharePost]);
-  
-  
 
   //#endregion
 
@@ -62,14 +60,20 @@ const Post = ( ) => {
           const post = response.data;
           setTitle(post.title || '');
           if (post.content_type === 'text/markdown') {
-            setMarkdown(post.text_content || '');  // Set the markdown content
-            setSelectedOption('Markdown');  // Set the editor mode to Markdown
+            setMarkdown(post.content || ''); // Set the markdown content
+            setSelectedOption('Markdown'); // Set the editor mode to Markdown
           } else {
-            setPlainText(post.text_content || '');  // Set plain text content
-            setSelectedOption('Plain');  // Set the editor mode to Plain
+            setPlainText(post.content || ''); // Set plain text content
+            setSelectedOption('Plain'); // Set the editor mode to Plain
           }
           setVisibility(post.visibility.toLowerCase());
-          setSelectedOption(post.image_content ? 'Image' : post.content_type === 'text/markdown' ? 'Markdown' : 'Plain');
+          setSelectedOption(
+            post.image_content
+              ? 'Image'
+              : post.content_type === 'text/markdown'
+                ? 'Markdown'
+                : 'Plain'
+          );
           if (post.image_content) {
             setUploadedImage(`http://localhost:8000${post.image_content}`);
           }
@@ -85,14 +89,16 @@ const Post = ( ) => {
           const post = response.data;
           const displayName = profileData?.displayName || 'Unknown Author';
           const publishedDate = new Date(post.published).toLocaleString();
-    
+
           setVisibility(post.visibility.toLowerCase());
-    
+
           if (post.content_type === 'image') {
             setSelectedOption('Image');
-            setUploadedImage(`http://localhost:8000${post.image_content}`); 
-            const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.text_content || 'No Content Available'}`;
-            setTitle(`Title: ${post.title || 'No Title Available'} \n\n ${creditsContent}`);
+            setUploadedImage(`http://localhost:8000${post.image_content}`);
+            const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.content || 'No Content Available'}`;
+            setTitle(
+              `Title: ${post.title || 'No Title Available'} \n\n ${creditsContent}`
+            );
             // Fetch the image blob
             fetch(`http://localhost:8000${post.image_content}`)
               .then((response) => {
@@ -102,22 +108,26 @@ const Post = ( ) => {
                 throw new Error('Network response was not ok.');
               })
               .then((blob) => {
-                const file = new File([blob], post.image_content.split('/').pop(), { type: blob.type });
+                const file = new File(
+                  [blob],
+                  post.image_content.split('/').pop(),
+                  { type: blob.type }
+                );
                 setImgFile(file); // Set the imgFile state to the file object
               })
               .catch((error) => {
                 console.error('Error fetching the image file:', error);
               });
           } else if (post.content_type === 'text/markdown') {
-            const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.text_content || 'No Content Available'}`;
+            const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.content || 'No Content Available'}`;
             setMarkdown(creditsContent);
             setSelectedOption('Markdown');
           } else {
-            const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.text_content || 'No Content Available'}`;
-            setPlainText(creditsContent);  
-            setSelectedOption('Plain');  // Set the editor mode to Plain
+            const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.content || 'No Content Available'}`;
+            setPlainText(creditsContent);
+            setSelectedOption('Plain'); // Set the editor mode to Plain
           }
-    
+
           setLoading(false); // Set loading to false after processing
         })
         .catch((error) => {
@@ -155,40 +165,56 @@ const Post = ( ) => {
   };
 
   const handlePostClick = async () => {
-    const postData = new FormData(); 
-  
-    postData.append('author_id', authorId);
+    const postData = new FormData();
+
+    postData.append('author', authorId);
     postData.append('title', title || 'New Post');
-  
+
     if (selectedOption === 'Plain') {
-      postData.append('text_content', plainText);
-      postData.append('content_type', 'text/plain');
+      postData.append('content', plainText);
+      postData.append('contentType', 'text/plain');
     } else if (selectedOption === 'Markdown') {
-      postData.append('text_content', markdown);
-      postData.append('content_type', 'text/markdown');
+      postData.append('content', markdown);
+      postData.append('contentType', 'text/markdown');
     } else if (selectedOption === 'Image' && imgFile) {
-      postData.append('image_content', imgFile); 
-      postData.append('content_type', 'image');
+      const base64Image = await imgToBase64(imgFile);
+      postData.append('content', base64Image);
+      postData.append('contentType', `image/${imgFile.type.split('/')[1]}`);
+      console.log(`Image type: image/${imgFile.type.split('/')[1]}`);
     }
-  
+
     postData.append('visibility', visibility.toUpperCase());
-  
+
     try {
       if (sharePost) {
         // Create a new post when sharing
-        await createPost(authorId, postData);  
+        await createPost(authorId, postData);
       } else if (postId) {
         // Update post if postId exists
         await updatePost(authorId, postId, postData);
       } else {
         // Create a new post if no postId
         await createPost(authorId, postData);
-      }  
+      }
       navigate(`/profile/${authorId}`);
     } catch (error) {
       console.error('Error during post creation/updating:', error);
     }
-  }; 
+  };
+
+  const imgToBase64 = async (imgFile) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(imgFile);
+      reader.onload = () => {
+        const base64String = reader.result.split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
 
   const handleDeleteClick = async () => {
     try {
@@ -198,7 +224,7 @@ const Post = ( ) => {
       if (!authorId) {
         throw new Error('Author ID is missing.'); // Handle case where author_id is not available
       }
-      const postData = { visibility: 'DELETED', author_id: authorId }; // Include author_id in the request
+      const postData = { visibility: 'DELETED', author: authorId }; // Include author_id in the request
       const response = await updatePost(authorId, postId, postData); // Update the post's visibility
 
       if (response.status !== 200) {
@@ -218,7 +244,6 @@ const Post = ( ) => {
     return <p>Loading...</p>; // Display a loading state while the post data is being fetched
   }
 
-
   //#region Render
   const renderOption = (option) => (
     <h3
@@ -236,7 +261,7 @@ const Post = ( ) => {
   return (
     <div className="posts-page">
       <div className="top-container">
-      <h1>{sharePost ? 'Share' : postId ? 'Edit' : 'Create'} Post</h1>
+        <h1>{sharePost ? 'Share' : postId ? 'Edit' : 'Create'} Post</h1>
         <div className={'posts-options'}>{options.map(renderOption)}</div>
       </div>
 
@@ -273,8 +298,8 @@ const Post = ( ) => {
             ref={fileInputUpload}
             style={{ display: 'none' }}
             onChange={handleFileChange}
-            readOnly={sharePost} 
-            disabled={sharePost} 
+            readOnly={sharePost}
+            disabled={sharePost}
           />
         </div>
       ) : selectedOption === 'Plain' ? (
@@ -283,17 +308,16 @@ const Post = ( ) => {
           placeholder="Type something here..."
           value={plainText}
           onChange={handlePlainTextChange}
-          readOnly={sharePost} 
-          disabled={sharePost}  
+          readOnly={sharePost}
+          disabled={sharePost}
         ></textarea>
       ) : (
         <MarkdownEditor
-          markdown={markdown} 
+          markdown={markdown}
           setMarkdown={setMarkdown}
-          readOnly={sharePost} 
-          disabled={sharePost} 
+          readOnly={sharePost}
+          disabled={sharePost}
         />
-
       )}
 
       <div className="visibility-options">
@@ -329,11 +353,11 @@ const Post = ( ) => {
         <button className="post-button" onClick={handlePostClick}>
           Post
         </button>
-        { postId && (
+        {postId && (
           <button className="delete-button" onClick={handleDeleteClick}>
             Delete
           </button>
-        )} 
+        )}
       </div>
     </div>
   );

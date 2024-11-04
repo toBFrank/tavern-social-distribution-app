@@ -23,9 +23,9 @@ class Post(models.Model):
     CONTENT_TYPE_CHOICES = [
       ('text/plain', 'Plain'),
       ('text/markdown', 'Markdown'),
-      ('image/png;base64', 'PNG Image'),
-      ('image/jpeg;base64', 'JPEG Image'),
-      ('image/gif;base64', 'GIF Image'),  # teehee this one is a bonus
+      ('image/png', 'PNG Image'),
+      ('image/jpeg', 'JPEG Image'),
+      ('image/gif', 'GIF Image'),  # teehee this one is a bonus
       
     ]
     
