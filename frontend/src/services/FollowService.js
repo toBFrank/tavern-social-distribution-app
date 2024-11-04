@@ -64,6 +64,7 @@ export const acceptFollowRequest = async (authorId, followerId) => {
   
   try {
       const response = await api.put(`/authors/${authorId}/followers/${followerId}/`,
+        null,
         {
           headers: {
             Authorization: `Bearer ${token}`,
