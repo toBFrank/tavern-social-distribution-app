@@ -122,6 +122,7 @@ class PublicPostsViewTestCase(BaseTestCase):
         self.assertEqual(len(response.data), 2)  # should return two posts
 
 #region Comments Tests
+#asked chatGPT to assist with writing test cases for comments endpoints 2024-11-04
 class CommentedViewTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -152,7 +153,6 @@ class CommentedViewTestCase(BaseTestCase):
         }
         response = self.client.post(self.comment_url, data, format='json')
         
-        # Check that the comment was created successfully
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         self.assertEqual(response.data['comment'], 'This is a test comment.')
         self.assertEqual(Comment.objects.count(), 1)
@@ -173,7 +173,7 @@ class CommentedViewTestCase(BaseTestCase):
         }
         response = self.client.post(self.comment_url, data, format='json')
         
-        # Check for 400 status with appropriate error message
+        # Check for 400 status 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Must be 'comment' type", response.data['detail'])
 
@@ -221,14 +221,13 @@ class CommentsByAuthorFQIDViewTestCase(BaseTestCase):
         url = reverse('comments_by_author_fqid', args=[urllib.parse.quote(self.fqid_url)])
         response = self.client.get(url)
 
-        # Ensure request was successful
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["type"], "comments")
         self.assertEqual(response.data["page"], f"{self.author.host}/api/authors/{self.author.id}")
         self.assertEqual(response.data["id"], f"{self.author.host}/api/authors/{self.author.id}")
 
     def test_get_comments_by_author_invalid_fqid(self):
-        # Test with an invalid FQID format
+        # Test with an invalid FQID format - 400
         invalid_fqid = "invalid_fqid"
         url = reverse('comments_by_author_fqid', args=[invalid_fqid])
         response = self.client.get(url)
@@ -238,7 +237,7 @@ class CommentsByAuthorFQIDViewTestCase(BaseTestCase):
         self.assertEqual(response.data["error"], "Invalid FQID format")
 
     def test_get_comments_by_author_nonexistent_author(self):
-        # Test with a valid FQID format but non-existent author
+        # non existent author - 404
         non_existent_fqid = f"http://localhost/api/authors/{uuid.uuid4()}/"
         url = reverse('comments_by_author_fqid', args=[urllib.parse.quote(non_existent_fqid)])
         response = self.client.get(url)
@@ -247,9 +246,42 @@ class CommentsByAuthorFQIDViewTestCase(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 class CommentViewTestCase(BaseTestCase):
-    pass
+    def setUp(self):
+        super().setUp()  
 
-class CommentsView(BaseTestCase):
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            text_content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+    
+    def test_get_comment_success(self):
+        url = reverse('comment', args=[self.author.id, self.comment.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "comment")
+        self.assertEqual(response.data["comment"], "This is the first comment.")
+
+    def test_get_comment_not_found(self):
+        # get non existent comment - 404
+        non_existent_comment_id = f'{uuid.uuid4()}'
+        url = reverse('comment', args=[self.author.id, non_existent_comment_id])
+        response = self.client.get(url)
+
+        #404 error
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class CommentsViewTestCase(BaseTestCase):
     pass
 
 class CommentsByFQIDView(BaseTestCase):
