@@ -103,13 +103,6 @@ const Profile = () => {
   const sharedPosts = profileData.shared_posts || [];
   const UnlistedAndSharesPosts = [...unlistedPosts, ...sharedPosts];
 
-  // Function to copy post link
-  const handleCopyLink = (postId) => {
-    const postLink = `${window.location.origin}/post/${postId}`;
-    navigator.clipboard.writeText(postLink).catch(
-      (err) => console.error('Failed to copy link: ', err)
-    );
-  };
 
   return (
     <div className="profile-page">
@@ -181,7 +174,6 @@ const Profile = () => {
               publicPosts.map((post) => (
                 <div key={post.id}>
                   <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
-                  <button onClick={() => handleCopyLink(post.id)}>Copy Link</button>
                 </div>
               ))
             ) : (
@@ -193,7 +185,6 @@ const Profile = () => {
               friendsPosts.map((post) => (
                 <div key={post.id}>
                   <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
-                  <button onClick={() => handleCopyLink(post.id)}>Copy Link</button>
                 </div>
               ))
             ) : (
@@ -207,7 +198,6 @@ const Profile = () => {
                 return (
                   <div key={post.id}>
                     <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
-                    <button onClick={() => handleCopyLink(post.id)}>Copy Link</button>
                   </div>
                 );
               })
@@ -222,7 +212,6 @@ const Profile = () => {
               publicPosts.map((post) => (
                 <div key={post.id}>
                   <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
-                  <button onClick={() => handleCopyLink(post.id)}>Copy Link</button>
                 </div>
               ))
             ) : (
