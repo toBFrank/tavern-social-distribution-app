@@ -4,7 +4,9 @@ from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
 from users.models import Author
 from posts.models import Comment, Like, Post
+import urllib.parse
 import json
+import uuid
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -118,3 +120,293 @@ class PublicPostsViewTestCase(BaseTestCase):
         response = self.client.get('/api/posts/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)  # should return two posts
+
+#region Comments Tests
+#asked chatGPT to assist with writing test cases for comments endpoints 2024-11-04
+class CommentedViewTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title='Public Post',
+            content_type='text/plain',
+            content='This is a public post.',
+            visibility='PUBLIC'
+        )
+        self.comment_url = reverse('commented', args=[self.author.id])  
+        self.author.host = 'http://localhost'
+        self.author.save()
+
+    def test_create_comment_success(self):
+        data = {
+            'type': 'comment',
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            'post': f'http://localhost/authors/{self.author.id}/posts/{self.post.id}/',
+            'comment': 'This is a test comment.',
+            'contentType': 'text/plain'
+        }
+        response = self.client.post(self.comment_url, data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data['comment'], 'This is a test comment.')
+        self.assertEqual(Comment.objects.count(), 1)
+
+    def test_create_comment_invalid_type(self):
+        data = {
+            'type': 'like',  # Wrong type 
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            'post': f'http://localhost:8000/authors/{self.author.id}/posts/{self.post.id}/',
+            'comment': 'This is a test comment with wrong type.',
+            'contentType': 'text/plain'
+        }
+        response = self.client.post(self.comment_url, data, format='json')
+        
+        # Check for 400 status 
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Must be 'comment' type", response.data['detail'])
+
+    def test_get_comments_by_author(self):
+        # Make a GET request for comments by the author
+        response = self.client.get(self.comment_url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        response_data = response.json()
+        self.assertEqual(response_data['type'], 'comments')
+        self.assertEqual(response_data['page'], f'http://localhost/api/authors/{self.author.id}')
+        self.assertEqual(response_data['id'], f'http://localhost/api/authors/{self.author.id}')
+
+class CommentsByAuthorFQIDViewTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment1 = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.comment2 = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the second comment.",
+            content_type="text/plain",
+        )
+
+        self.fqid_url = f"http://localhost/api/authors/{self.author.id}/"
+
+    def test_get_comments_by_author_success(self):
+        # URL encode the FQID for the request
+        url = reverse('comments_by_author_fqid', args=[urllib.parse.quote(self.fqid_url)])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "comments")
+        self.assertEqual(response.data["page"], f"{self.author.host}/api/authors/{self.author.id}")
+        self.assertEqual(response.data["id"], f"{self.author.host}/api/authors/{self.author.id}")
+
+    def test_get_comments_by_author_invalid_fqid(self):
+        # Test with an invalid FQID format - 400
+        invalid_fqid = "invalid_fqid"
+        url = reverse('comments_by_author_fqid', args=[invalid_fqid])
+        response = self.client.get(url)
+
+        # Ensure it returns 400 with appropriate error message
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["error"], "Invalid FQID format")
+
+    def test_get_comments_by_author_nonexistent_author(self):
+        # non existent author - 404
+        non_existent_fqid = f"http://localhost/api/authors/{uuid.uuid4()}/"
+        url = reverse('comments_by_author_fqid', args=[urllib.parse.quote(non_existent_fqid)])
+        response = self.client.get(url)
+
+        # Ensure it returns 404 as author does not exist
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class CommentViewTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+    
+    def test_get_comment_success(self):
+        url = reverse('comment', args=[self.author.id, self.comment.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "comment")
+        self.assertEqual(response.data["comment"], "This is the first comment.")
+
+    def test_get_comment_not_found(self):
+        # get non existent comment - 404
+        non_existent_comment_id = f'{uuid.uuid4()}'
+        url = reverse('comment', args=[self.author.id, non_existent_comment_id])
+        response = self.client.get(url)
+
+        #404 error
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class CommentsViewTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment1 = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.comment2 = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the second comment.",
+            content_type="text/plain",
+        )
+
+        self.url = reverse('get_post_comments', args=[self.author.id, self.post.id])  
+
+    def test_get_comments_on_post_success(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 2)  
+        self.assertEqual(len(response.data['src']), 2)  
+
+    def test_get_comments_on_post_not_found(self):
+        non_existent_post_id = f"{uuid.uuid4()}"  
+        url = reverse('get_post_comments', args=[self.author.id, non_existent_post_id])  
+        response = self.client.get(url)
+
+        # 404 not found response
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class CommentsByFQIDView(BaseTestCase):
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comments_fqid_url = f'http://localhost/api/authors/{self.author.id}/posts/{self.post.id}'
+
+    def test_get_comments_by_fqid_success(self):
+        Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment='This is a comment.'
+        )
+
+        response = self.client.get(reverse('get_comments_fqid', args=[self.comments_fqid_url]))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "comments")
+
+class CommentRemoteByFQIDViewTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.author.host = 'http://localhost'
+        self.author.save()
+        self.comment_fqid = f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}'
+
+    def test_get_comment_by_fqid_success(self):
+        response = self.client.get(reverse('get_remote_comment_fqid', args=[self.author.id, self.post.id, self.comment_fqid]))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}')
+
+
+class CommentByFQIDView(BaseTestCase):
+    def setUp(self):
+        super().setUp()  
+
+        self.post = Post.objects.create(
+            author_id=self.author,
+            title="Test Post",
+            content_type="text/plain",
+            content="This is a test post.",
+            visibility="PUBLIC"
+        )
+
+        self.comment = Comment.objects.create(
+            author_id=self.author,
+            post_id=self.post,
+            comment="This is the first comment.",
+            content_type="text/plain",
+        )
+
+        self.author.host = 'http://localhost'
+        self.author.save()
+        self.comment_fqid = f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}'
+
+    def test_get_comment_by_fqid_success(self):
+        response = self.client.get(reverse('comment_fqid', args=[self.comment_fqid]))
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], f'http://localhost/api/authors/{self.author.id}/commented/{self.comment.id}')
+
+#endregion
