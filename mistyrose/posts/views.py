@@ -1,3 +1,4 @@
+import uuid
 from django.shortcuts import render
 from users.models import Author
 from rest_framework import status
@@ -632,30 +633,26 @@ class PublicPostsView(APIView):
 
         current_author = get_object_or_404(Author, user=request.user)
 
-        posts = Post.objects.exclude(author_id=current_author.id)
-        # posts = Post.objects.all()
+        # posts = Post.objects.exclude(author_id=current_author.id)
+        posts = Post.objects.all()
 
         serializer = PostSerializer(posts, many=True)
 
-        all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
-        # all_authors = list(Author.objects.all().values_list('id', flat=True))
+        # all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
+        all_authors = list(Author.objects.all().values_list('id', flat=True))
 
         authorized_authors_per_post = []
 
+        # - following_ids: set of IDs of authors that the current author follows
+        # - followers_ids: set of IDs of authors that follow the current author
         following_ids = set(Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True))
         followers_ids = set(Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True))  
         mutual_friend_ids = following_ids.intersection(followers_ids)
-        print(f"ALL AUTHORS: {all_authors}")
-        follows = Follows.objects.all()
-        for follow in follows:
-            print(f"{follow.local_follower_id} follows {follow.followed_id} with status {follow.status}")
-        print(f"Following IDs: {following_ids}")
-        print(f"Followers IDs: {followers_ids}")
-        print(f"Mutual friend IDs: {mutual_friend_ids}")
 
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
-            post_author_id = post_data.get('author').get('id').split('/')[-2]
+            post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[5])
+            print(f"POST AUTHOR ID: {post_author_id}")
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
@@ -673,7 +670,8 @@ class PublicPostsView(APIView):
             
             elif post_visibility == 'FRIENDS':
                 # Only show FRIENDS posts if the post's author is a mutual friend
-                if post_author_id in mutual_friend_ids:
+                if post_author_id in mutual_friend_ids or post_author_id == current_author.id:
+                    print(f"Mutual friend: {post_author_id}")
                     authorized_authors.add(current_author.id)
 
             elif post_visibility == 'SHARED':
@@ -697,4 +695,7 @@ class PublicPostsView(APIView):
             'posts': serializer.data,  
             'authorized_authors_per_post': authorized_authors_per_post
         }
+        
+        print(f"AUTHORIZED AUTHORS PER POST: {authorized_authors_per_post}")
+        
         return Response(response_data, status=status.HTTP_200_OK)
