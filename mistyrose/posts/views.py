@@ -1,3 +1,5 @@
+import base64
+import re
 import uuid
 from django.shortcuts import render
 from users.models import Author
@@ -13,6 +15,7 @@ from .models import Post
 from users.models import Author, Follows  
 from .pagination import LikesPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
+from django.http import FileResponse
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -99,20 +102,29 @@ class PostImageView(APIView):
     # permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, author_serial, post_serial):
-        try:
-            
-            author = Author.objects.get(id=author_serial)
-            post = Post.objects.get(author_id=author, id=post_serial)
-        except Author.DoesNotExist:
-            return Response({"detail": f"Author {author_serial} not found."}, status=status.HTTP_404_NOT_FOUND)
-        except Post.DoesNotExist:
-            return Response({"detail": f"Post {post_serial} not found for {author}"}, status=status.HTTP_404_NOT_FOUND)
+        author = get_object_or_404(Author, id=author_serial)
+        post = get_object_or_404(Post, author_id=author, id=post_serial)
 
-        if post.image_content:
-            image_url = request.build_absolute_uri(post.image_content.url)
-            return Response({'image_url': image_url})
-        else:
+        if not post.content_type.startswith('image/'):
             return Response({'detail': 'No image available for this post'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            if ';base64,' in post.content:
+                header, encoded_image = post.content.split(';base64,')
+            else:
+                encoded_image = post.content
+
+            missing_padding = len(encoded_image) % 4
+            if missing_padding:
+                encoded_image += '=' * (4 - missing_padding)
+            encoded_image = re.sub(r"\s+", "", encoded_image)
+            binary_image = base64.b64decode(encoded_image)
+
+            # return Response(binary_image, content_type=post.content_type)
+            return FileResponse(binary_image, content_type=post.content_type)
+        except Exception as e:
+            print(f"Error decoding image: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 #endregion
 
 #region Comment Views
@@ -649,7 +661,7 @@ class PublicPostsView(APIView):
 
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
-            post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[5])
+            post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
             print(f"POST AUTHOR ID: {post_author_id}")
             authorized_authors = set()
 

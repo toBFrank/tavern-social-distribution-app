@@ -180,7 +180,6 @@ const Post = () => {
       const base64Image = await imgToBase64(imgFile);
       postData.append('content', base64Image);
       postData.append('contentType', `image/${imgFile.type.split('/')[1]}`);
-      console.log(`Image type: image/${imgFile.type.split('/')[1]}`);
     }
 
     postData.append('visibility', visibility.toUpperCase());
