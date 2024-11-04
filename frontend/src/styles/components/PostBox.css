@@ -118,4 +118,35 @@
   margin-bottom: 10px;
 }
 
+.copy-notification {
+  color: green;
+  font-size: 0.9em;
+  margin-left: 10px;
+}
 
+.share-link-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  /* Adjust color as needed */
+  font-size: 0.9em;
+  padding: 0;
+  margin-left: 10px;
+  /* Space between buttons */
+}
+
+.share-link-button img.share-link-icon {
+  width: 16px;
+  /* Adjust size to match other icons */
+  height: 16px;
+  margin-right: 4px;
+  /* Space between icon and text */
+}
+
+.share-link-button:hover {
+  color: #333;
+  /* Hover color */
+}
