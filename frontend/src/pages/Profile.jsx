@@ -195,9 +195,9 @@ const Profile = () => {
                     poster={profileData}
                     isUserEditable={isCurrentUser}
                   />
-                  <button onClick={() => handleCopyLink(post.id)}>
+                  {/* <button onClick={() => handleCopyLink(post.id)}>
                     Copy Link
-                  </button>
+                  </button> */}
                 </div>
               ))
             ) : (
@@ -213,9 +213,9 @@ const Profile = () => {
                     poster={profileData}
                     isUserEditable={isCurrentUser}
                   />
-                  <button onClick={() => handleCopyLink(post.id)}>
+                  {/* <button onClick={() => handleCopyLink(post.id)}>
                     Copy Link
-                  </button>
+                  </button> */}
                 </div>
               ))
             ) : (
@@ -247,9 +247,9 @@ const Profile = () => {
                     poster={profileData}
                     isUserEditable={isCurrentUser}
                   />
-                  <button onClick={() => handleCopyLink(post.id)}>
+                  {/* <button onClick={() => handleCopyLink(post.id)}>
                     Copy Link
-                  </button>
+                  </button> */}
                 </div>
               ))
             ) : (
