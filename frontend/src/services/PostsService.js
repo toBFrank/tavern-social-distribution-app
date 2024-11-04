@@ -18,7 +18,7 @@ export const deletePost = async (authorSerial, postSerial) => {
     // Update the post's visibility to 'DELETED' instead of deleting
     const postData = { visibility: 'DELETED' };
     const response = await api.patch(
-      `posts/authors/${authorSerial}/posts/${postSerial}/`,
+      `authors/${authorSerial}/posts/${postSerial}/`,
       postData
     );
     return response;
@@ -30,7 +30,7 @@ export const deletePost = async (authorSerial, postSerial) => {
 export const updatePost = async (authorSerial, postSerial, postData) => {
   try {
     const response = await api.put(
-      `posts/authors/${authorSerial}/posts/${postSerial}/`,
+      `authors/${authorSerial}/posts/${postSerial}/`,
       postData
     );
     return response;

@@ -30,17 +30,12 @@ const FollowButton = ({
           setButtonState('Follow');
         }
       } catch (error) {
-        // Check if the error response exists and has a status
-        if (error.response) {
-          if (error.response.status === 404) {
-            //DONT wanna log 404 errors
-          } else {
-            console.error(
-              'Error checking follow status:',
-              error.response.status,
-              error.message
-            );
-          }
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.status === 'Follow request not found'
+        ) {
+          console.log('Follow request not found');
         } else {
           console.error('Error checking follow status:', error.message);
         }

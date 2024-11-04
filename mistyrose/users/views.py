@@ -352,7 +352,7 @@ class FollowerView(APIView):
         """
         author = get_object_or_404(Author, id=author_id)
 
-         # Check if the follow request is accepted
+        # Check if the follow request has been accepted
         is_accepted = Follows.objects.filter(
             local_follower_id=follower_id, followed_id=author, status='ACCEPTED'
         ).exists()
@@ -362,6 +362,7 @@ class FollowerView(APIView):
             local_follower_id=follower_id, followed_id=author, status='PENDING'
         ).exists()
 
+        # Return appropriate response based on follower status
         if is_accepted:
             return Response({"status": "Following"}, status=status.HTTP_200_OK)
 
@@ -369,8 +370,8 @@ class FollowerView(APIView):
             return Response({"status": "Follow request pending"}, status=status.HTTP_202_ACCEPTED)
 
         # TODO: Update documentation!
-        # return Response({"error": "Follower not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response({"detail": "Follower not found"}, status=status.HTTP_204_NO_CONTENT)
+        # Return 404 if follower not found or follow request doesn't exist
+        return Response({"status": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, author_id, follower_id):        
         # get follow_request
