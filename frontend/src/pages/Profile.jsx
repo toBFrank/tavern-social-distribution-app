@@ -3,7 +3,7 @@ import { getAuthorProfile } from '../services/profileService';
 import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
 import Cookies from 'js-cookie';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import PostBox from '../components/PostBox';
 import { getFollowers } from '../services/FollowDetailService';
 import { getFriends } from '../services/FriendsDetailService';
@@ -20,9 +20,10 @@ const Profile = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);
   const [modalTitle, setModalTitle] = useState(''); // To display the title dynamically
-
+ 
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     getAuthorProfile(authorId)
@@ -36,15 +37,14 @@ const Profile = () => {
       });
   }, [authorId]);
 
+  // Close the modal when the route changes
   useEffect(() => {
-    getAuthorProfile(currentUserId)
-      .then((data) => {
-        setCurrentProfileData(data);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, []);
+    setShowModal(false);
+  }, [location]);
+
+  const closeModal = () => {
+    setShowModal(false);
+  };
 
   // Function to fetch followers and toggle the display
   const handleFollowersClick = async () => {
@@ -78,10 +78,6 @@ const Profile = () => {
     } catch (error) {
       console.error("Error fetching following:", error);
     }
-  };
-  
-  const closeModal = () => {
-    setShowModal(false);
   };
 
   if (loading) {
