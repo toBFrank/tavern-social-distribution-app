@@ -36,7 +36,7 @@ export const updateAuthorProfile = async (authorId, profileData) => {
 };
 
 export const uploadProfileImage = async (authorId, formData) => {
-    const response = await fetch(`http://localhost:8000/api/authors/${authorId}/upload_image/`, {
+    const response = await fetch(`http://localhost:8000/authors/${authorId}/upload_image/`, {
         method: 'POST',
         body: formData
     });

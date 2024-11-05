@@ -31,7 +31,10 @@ ALLOWED_HOSTS = []
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",  # Add your frontend URL here
+    "http://localhost:3000",  # Add your frontend URL here
+    "http://localhost:3001",
+    "http://localhost:8000",
+    
 ]
 
 # Application definition
