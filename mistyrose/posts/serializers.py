@@ -105,6 +105,7 @@ class PostSerializer(serializers.ModelSerializer):
             'likes',
             'published',
             'visibility',
+            'original_url',
         ]
         # Method to get likes count for a post
     def get_likes_count(self, post):
