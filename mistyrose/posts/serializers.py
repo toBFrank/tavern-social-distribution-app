@@ -90,7 +90,7 @@ class PostSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), write_only=True, source='author_id')
     comments = CommentSerializer(many=True, read_only=True)
     likes = LikeSerializer(many=True, read_only=True)
-    contentType = serializers.CharField(source='content_type', default='text/plain')
+    contentType = serializers.CharField(source='content_type', default='text/plain')  
     class Meta:
         model = Post
         fields = [
@@ -106,6 +106,8 @@ class PostSerializer(serializers.ModelSerializer):
             'published',
             'visibility',
         ]
+
+       
         # Method to get likes count for a post
     def get_likes_count(self, post):
         return Like.objects.filter(object_id=post.id).count()

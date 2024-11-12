@@ -46,8 +46,10 @@ const PostBox = ({ post, poster, isUserEditable }) => {
           post.author.id.split('/')[5],
           post.id
         );
+        console.log("Fetched image URL:", imageUrlFromServer); // Log the image URL
         setImageUrl(imageUrlFromServer);
       } catch {
+        console.log("Failed to fetch image URL"); // Log failure to fetch image URL
         setImageUrl(null);
       }
     };
@@ -59,12 +61,15 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   // Fetch post have visibility of SHARED it will take the original posts info
   useEffect(() => {
     const fetchSharedPostDetails = async () => {
+      console.log("Post visibility:", post.visibility);
+      console.log("Original URL:", post.original_url); // Log to check original URL
       if (post.visibility === 'SHARED' && post.original_url) {
         try {
           const response = await getPost(
             post.original_url[0],
             post.original_url[1]
           );
+          console.log("Shared Post Data:", response.data); // Log shared post data
           setOriginalPost(response.data);
 
           // Fetch the original image URL if the post type is an image
@@ -73,6 +78,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
               response.data.author.id.split('/')[5],
               response.data.id
             );
+            console.log("Original Image URL:", originalImgUrl); 
             setOriginalImageUrl(originalImgUrl);
           }
         } catch (error) {
@@ -93,6 +99,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
             originalPost.author.id.split('/')[5]
           );
           // console.log('orig post url: ', post.visibility);
+          console.log("Original Author Profile:", authorProfile); 
           setOriginalAuthor(authorProfile);
 
           // Set poster image if originalAuthor has a profile image
