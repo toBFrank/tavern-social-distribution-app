@@ -11,49 +11,6 @@ class AuthorSerializer(serializers.Serializer):
     profileImage = serializers.URLField(required=False, source='profile_image')
     page = serializers.URLField(required=False) 
 
-    # Optional fields for public posts, followers, and following
-    #public_posts = serializers.SerializerMethodField(required=False)
-    #friends_posts = serializers.SerializerMethodField(required=False)
-    #unlisted_posts = serializers.SerializerMethodField(required=False)
-    #followers_count = serializers.SerializerMethodField(required=False)
-    #following_count = serializers.SerializerMethodField(required=False)
-    #likes_count = serializers.SerializerMethodField(required=False)
-    #comments_count = serializers.SerializerMethodField(required=False)
-
-
-     # Get public posts for the author
-    #def get_public_posts(self, author):
-        # Retrieve only public posts
-        #return PostSerializer(author.posts.filter(visibility='PUBLIC').order_by('-published'), many=True).data
-    
-    # Get all friends posts for the author
-    #def get_friends_posts(self, author):
-        #return PostSerializer(author.posts.filter(visibility='FRIENDS').order_by('-published'), many=True).data
-
-    # Get all unlisted posts for the author
-    #def get_unlisted_posts(self, author):
-        #return PostSerializer(author.posts.filter(visibility='UNLISTED').order_by('-published'), many=True).data
-
-
-    # Get count of followers for the author
-    #def get_followers_count(self, author):
-        #return Follows.objects.filter(followed_id=author, status='ACCEPTED').count()
-
-    # Get count of authors the user is following
-    #def get_following_count(self, author):
-        #return Follows.objects.filter(local_follower_id=author, status='ACCEPTED').count()
-    
-
-
-    # https://dev.to/amanbothra/understanding-the-torepresentation-and-tointernalvalue-methods-in-the-django-rest-framework-naa 
-    # get internal value for id - so we can pass the UUID for id instead of url
-    #def to_internal_value(self, data):
-        #id_url = data.pop('id', None)
-        #if id_url:
-            #author_id = id_url.rstrip('/').split('/')[-1] 
-            #data['id'] = author_id
-        #return super().to_internal_value(data)
-
     def get_id(self, author):
     # Constructs the URL based on the author's host and their UUID
        return f"{author.host}/api/authors/{author.id}/"
@@ -72,6 +29,7 @@ class AuthorSerializer(serializers.Serializer):
             data.pop('github', None)
         if not data.get('profileImage'):
             data.pop('profileImage', None)
+    
         return data
     
 class AuthorEditProfileSerializer(serializers.ModelSerializer):

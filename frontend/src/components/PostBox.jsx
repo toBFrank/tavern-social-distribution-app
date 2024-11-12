@@ -61,8 +61,6 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   // Fetch post have visibility of SHARED it will take the original posts info
   useEffect(() => {
     const fetchSharedPostDetails = async () => {
-      console.log("Post visibility:", post.visibility);
-      console.log("Original URL:", post.original_url); // Log to check original URL
       if (post.visibility === 'SHARED' && post.original_url) {
         try {
           const response = await getPost(
