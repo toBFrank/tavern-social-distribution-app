@@ -36,6 +36,10 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+heroku_react_django_urls = [
+    re_path('.*', TemplateView.as_view(template_name='index.html', content_type='text/html'))
+]
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/posts/', include('posts.urls')),
@@ -48,8 +52,8 @@ urlpatterns = [
     path('api/liked/', include('posts.liked_urls')), #api/liked urls
     path('api/comment/', include('posts.comment_urls')), #api/comment urls
     path('api/commented/', include('posts.comment_urls')), #TODO: asked if there is an error in the project description, is this supposed to be the same one as the comments/comment_fqid?  
-]
+]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += [re_path(r'^.*', TemplateView.as_view(template_name='index.html'))]
+urlpatterns += heroku_react_django_urls
