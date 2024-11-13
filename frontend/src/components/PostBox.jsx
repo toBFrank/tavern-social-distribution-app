@@ -29,6 +29,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   const navigate = useNavigate();
   const postLink = `${window.location.origin}/post/${post.id}`;
 
+
   const handleCopyLink = () => {
     navigator.clipboard
       .writeText(postLink)
@@ -63,14 +64,9 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     const fetchSharedPostDetails = async () => {
       if (post.visibility === 'SHARED' && post.original_url) {
         try {
-          const response = await getPost(
-            post.original_url[0],
-            post.original_url[1]
-          );
-          console.log("Shared Post Data:", response.data); // Log shared post data
+          const response = await getPost(post.original_url[0].split('/')[5], post.original_url[1]);
           setOriginalPost(response.data);
 
-          // Fetch the original image URL if the post type is an image
           if (response.data.contentType?.includes('image')) {
             const originalImgUrl = await getPostImageUrl(
               response.data.author.id.split('/')[5],
@@ -110,9 +106,9 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       }
     };
 
+
     fetchOriginalAuthorProfile();
   }, [originalPost]);
-
   return (
     <div className="post-box">
       {originalPost && (

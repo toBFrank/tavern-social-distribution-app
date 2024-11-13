@@ -49,7 +49,6 @@ const Home = () => {
 
         // Set posts directly from the response structure
         setPosts(data.posts);
-        console.log(data.posts);
 
         // Set authorized authors
         setAuthorizedAuthors(data.authorized_authors_per_post); // Set authorized authors data

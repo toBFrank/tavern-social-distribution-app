@@ -105,6 +105,7 @@ class PostSerializer(serializers.ModelSerializer):
             'likes',
             'published',
             'visibility',
+            'original_url',
         ]
 
        
