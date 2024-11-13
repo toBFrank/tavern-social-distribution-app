@@ -108,6 +108,8 @@ class PostSerializer(serializers.ModelSerializer):
             'visibility',
             'original_url',
         ]
+
+       
         # Method to get likes count for a post
     def get_likes_count(self, post):
         return Like.objects.filter(object_id=post.id).count()

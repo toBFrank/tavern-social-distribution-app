@@ -29,6 +29,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   const navigate = useNavigate();
   const postLink = `${window.location.origin}/post/${post.id}`;
 
+
   const handleCopyLink = () => {
     navigator.clipboard
       .writeText(postLink)
@@ -46,8 +47,10 @@ const PostBox = ({ post, poster, isUserEditable }) => {
           post.author.id.split('/')[5],
           post.id
         );
+        console.log("Fetched image URL:", imageUrlFromServer); // Log the image URL
         setImageUrl(imageUrlFromServer);
       } catch {
+        console.log("Failed to fetch image URL"); // Log failure to fetch image URL
         setImageUrl(null);
       }
     };
@@ -73,6 +76,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
               response.data.author.id.split('/')[5],
               response.data.id
             );
+            console.log("Original Image URL:", originalImgUrl); 
             setOriginalImageUrl(originalImgUrl);
           }
         } catch (error) {
@@ -94,6 +98,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
             originalPost.author.id.split('/')[5]
           );
           // console.log('orig post url: ', post.visibility);
+          console.log("Original Author Profile:", authorProfile); 
           setOriginalAuthor(authorProfile);
 
           // Set poster image if originalAuthor has a profile image
@@ -104,9 +109,9 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       }
     };
 
+
     fetchOriginalAuthorProfile();
   }, [originalPost]);
-
   return (
     <div className="post-box">
       {originalPost && (
@@ -116,7 +121,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         </div>
       )}
       <div className="post-header">
-        <Link to={`/profile/${post.author.id}`} style={{ display: 'flex' }}>
+        <Link to={`/profile/${post.author.id.split('/')[5]}`} style={{ display: 'flex' }}>
           {' '}
           {/* Add display: flex */}
           <div className="profile-image-container">

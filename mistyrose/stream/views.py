@@ -45,6 +45,8 @@ class InboxView(APIView):
 
             # If no follow request exists, validate and create a new one
             if serializer.is_valid():
+                serializer.validated_data['local_follower_id']['id'] = actor_id
+                serializer.validated_data['followed_id']['id'] = object_id
                 serializer.save()
 
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
