@@ -21,10 +21,9 @@ class FollowSerializer(serializers.Serializer):
         object_data = validated_data.pop('followed_id')
         #TODO: validate that the author id in the url is the same as the object's author id
 
-        # Extract the UUID from the 'page' URL if 'id' is not present
-        actor_id = self.extract_uuid_from_url(actor_data.get('page'))
+        actor_id = self.extract_uuid_from_url(actor_data.get('id')) # Replaced 'page' with 'id'
 
-        object_id = self.extract_uuid_from_url(object_data.get('page'))
+        object_id = self.extract_uuid_from_url(object_data.get('id')) # Replaced 'page' with 'id'
     
         # Greg wants to follow lara 
         #local_follower = Author.objects.get(id=actor_data['id']) #Greg TODO: returns 500 if not found, maybe wanna return 404?
