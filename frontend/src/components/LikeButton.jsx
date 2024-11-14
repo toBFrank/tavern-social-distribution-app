@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { createLike, getLikes } from '../services/LikesService';
 import { Favorite } from '@mui/icons-material';
-import { getAuthorProfile } from '../services/profileService';
+import { getAuthor } from '../services/AuthorsService';
 import '../styles/components/LikeButton.css';
 import { Author } from '../models/Author';
 import AuthorsListModal from '../components/AuthorsListModal';
@@ -41,7 +41,7 @@ const LikeButton = ({ postId }) => {
   }, [authorId, postId]);
 
   useEffect(() => {
-    getAuthorProfile(authorId)
+    getAuthor(authorId)
       .then((data) => {
         setCurrentProfileData(data);
       })
