@@ -52,6 +52,7 @@ urlpatterns = [
     path('api/liked/', include('posts.liked_urls')), #api/liked urls
     path('api/comment/', include('posts.comment_urls')), #api/comment urls
     path('api/commented/', include('posts.comment_urls')), #TODO: asked if there is an error in the project description, is this supposed to be the same one as the comments/comment_fqid?  
+    path('api/node/', include('node.urls')),
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
