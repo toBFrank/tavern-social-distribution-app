@@ -371,7 +371,7 @@ class FollowerView(APIView):
 
         # TODO: Update documentation!
         # Return 404 if follower not found or follow request doesn't exist
-        return Response({"status": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"status": "Follow request not found"}, status=status.HTTP_204_NO_CONTENT)
 
     def put(self, request, author_id, follower_id):        
         # get follow_request
