@@ -90,7 +90,8 @@ class PostSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), write_only=True, source='author_id')
     comments = CommentSerializer(many=True, read_only=True)
     likes = LikeSerializer(many=True, read_only=True)
-    contentType = serializers.CharField(source='content_type', default='text/plain')  
+    contentType = serializers.CharField(source='content_type', default='text/plain')
+    original_url = serializers.ListField(child=serializers.CharField(), allow_null=True, required=False)
     class Meta:
         model = Post
         fields = [
