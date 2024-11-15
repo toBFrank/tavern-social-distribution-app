@@ -1,1 +1,1 @@
-web: gunicorn tavern.wsgi --chdir tavern
+web: gunicorn mistyrose.wsgi:application
