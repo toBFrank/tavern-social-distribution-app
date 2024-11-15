@@ -7,7 +7,7 @@ import Modal from '@mui/material/Modal';
 import Cookies from 'js-cookie';
 import { Link } from 'react-router-dom'; // Import Link for navigation
 import { getComments, createCommentLocal } from '../services/CommentsService';
-import { getAuthorProfile } from '../services/profileService';
+import { getAuthor } from '../services/AuthorsService';
 import '../styles/components/CommentsModal.css';
 
 const CommentsModal = ({ postId }) => {
@@ -70,7 +70,7 @@ const CommentsModal = ({ postId }) => {
 
   // Fetch current author profile on component mount
   useEffect(() => {
-    getAuthorProfile(authorId)
+    getAuthor(authorId)
       .then((data) => {
         setCurrentProfileData(data);
       })
