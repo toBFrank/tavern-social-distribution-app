@@ -1,1 +1,1 @@
-web: gunicorn mistyrose.mistyrose.wsgi
+web: gunicorn mistyrose.wsgi
