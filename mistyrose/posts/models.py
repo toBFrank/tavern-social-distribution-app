@@ -32,6 +32,7 @@ class Post(models.Model):
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='post')
     title = models.CharField(max_length=200, blank=True, null=True, default='No Title')
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    url = models.URLField(unique=True, editable=False) #identify post by url
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='posts')
     description = models.TextField(blank=True, null=True, editable=True)
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
@@ -45,6 +46,12 @@ class Post(models.Model):
 
     # generic relation for reverse lookup for 'Like' objects on the post - because we are using generic foreign key in the like
     likes = GenericRelation('Like')
+
+    def save(self, *args, **kwargs):
+        # create url using the author's url and post id 
+        if not self.url:
+            self.url = f"{self.author_id.url.rstrip('/')}/posts/{self.id}/"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -61,6 +68,7 @@ class Post(models.Model):
       
 class Like(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    url = models.URLField(unique=True, editable=False) #identify like by url
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='likes') 
     published = models.DateTimeField(null=True, auto_now_add=True)
     object_url = models.URLField(null=True, blank=True)  # can be a URL to a post or comment
@@ -72,11 +80,18 @@ class Like(models.Model):
     object_id = models.UUIDField(max_length=200, null=True, blank=True) # for storing primary key value of the model itll be relating to
     content_object = GenericForeignKey('content_type', 'object_id') # foreign key to a Comment or Post
 
+    def save(self, *args, **kwargs):
+        # create url using the author's url and like id 
+        if not self.url:
+            self.url = f"{self.author_id.url.rstrip('/')}/liked/{self.id}/"
+        super().save(*args, **kwargs)
+
     def __str__(self):
       return f'{self.author_id} like'
     
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    url = models.URLField(unique=True, editable=False) #identify comment by url
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='comments') 
     published = models.DateTimeField(auto_now_add=True)
     comment = models.TextField()
@@ -86,6 +101,12 @@ class Comment(models.Model):
 
     # generic relation for reverse lookup for 'Like' objects on the post - because we are using generic foreign key in the like
     likes = GenericRelation('Like')
+
+    def save(self, *args, **kwargs):
+        # create url using the author's url and comment id 
+        if not self.url:
+            self.url = f"{self.author_id.url.rstrip('/')}/commented/{self.id}/"
+        super().save(*args, **kwargs)
     
     def __str__(self):
       return f'{self.author_id} commented on {self.post_id}'
