@@ -13,6 +13,7 @@ const Signup = () => {
     profileImage: '', // Will store the image file
   });
 
+  const currentHost = window.location.origin; 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false); // State for tracking image upload
@@ -40,7 +41,7 @@ const Signup = () => {
       try {
         // Upload image to the server
         const response = await fetch(
-          `http://localhost:8000/authors/${username}/upload_image/`,
+          `${currentHost}/authors/${username}/upload_image/`,
           {
             method: 'POST',
             body: formDataToUpload,
