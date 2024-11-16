@@ -7,7 +7,7 @@ class Node(models.Model):
     name = models.CharField(primary_key=True, max_length=200)  # unique(?) name for the node
     # is_active = models.BooleanField(default=True)
     is_whitelisted = models.BooleanField(default=False)
-    is_authenticated = models.BooleanField(default=True)
+    is_authenticated = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.name} ({self.host})"

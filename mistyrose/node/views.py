@@ -1,3 +1,4 @@
+from .authentication import NodeAuthentication
 from rest_framework.response import Response
 from rest_framework.decorators import renderer_classes, permission_classes
 from .models import Node
@@ -10,7 +11,7 @@ from requests.auth import HTTPBasicAuth
 import requests
 
 class NodeListCreateView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     
     def get(self, request):
         """
@@ -39,6 +40,8 @@ class NodeListCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class NodeDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request, pk):
         """
         Get a node.
@@ -76,6 +79,9 @@ class NodeConnectView(APIView):
     """
     Connect to a node.
     """
+    authentication_classes = [NodeAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request, pk):
         node = get_object_or_404(Node, pk=pk)
         if node.is_whitelisted:
@@ -101,6 +107,8 @@ class NodeDisconnectView(APIView):
     """
     Disconnect from a node.
     """
+    authentication_classes = [NodeAuthentication]
+    permission_classes = [IsAuthenticated]
     def post(self, request, pk):
         node = get_object_or_404(Node, pk=pk)
         node.is_whitelisted = False
