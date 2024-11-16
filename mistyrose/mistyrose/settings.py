@@ -82,7 +82,7 @@ ROOT_URLCONF = 'mistyrose.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR.parent, 'frontend/build')],
+        'DIRS': [os.path.join(BASE_DIR.parent, 'frontend/public')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
