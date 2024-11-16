@@ -25,7 +25,6 @@ staticfiles/
 node_modules/
 
 # React build directory
-frontend/build/
 frontend/node_modules/
 
 # MacOS specific files
