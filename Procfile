@@ -1,1 +1,1 @@
-web: gunicorn mistyrose.wsgi --chdir mistyrose
+web: gunicorn mistyrose.mistyrose.wsgi:application
