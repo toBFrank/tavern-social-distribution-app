@@ -1,6 +1,6 @@
 import Cookies from 'js-cookie';  // To access cookies
 
-const API_URL = 'http://127.0.0.1:8000/api/authors/';  // Adjust the API base URL
+const API_URL = `${window.location.origin}/api/authors/`; // Adjust the API base URL
 
 // Function to fetch the author profile
 export const getAuthorProfile = async (authorId) => {
