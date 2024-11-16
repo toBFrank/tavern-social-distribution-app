@@ -1,1 +1,1 @@
-web: gunicorn lab3.wsgi --chdir mistyrose
+web: gunicorn mistyrose.wsgi --chdir mistyrose
