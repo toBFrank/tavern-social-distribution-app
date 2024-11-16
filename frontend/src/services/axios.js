@@ -1,9 +1,8 @@
-// axios.js
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/',
+  baseURL: `${window.location.origin}/api/`,
   withCredentials: true,
 });
 
@@ -30,7 +29,7 @@ api.interceptors.request.use(
   }
 );
 
-// refresh access token if expired
+// Refresh access token if expired
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -43,7 +42,7 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           const response = await axios.post(
-            'http://localhost:8000/api/users/token/refresh/',
+            `${window.location.origin}/api/users/token/refresh/`,
             {
               refresh: refreshToken,
             }
@@ -63,4 +62,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 export default api;
