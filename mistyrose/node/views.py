@@ -27,7 +27,7 @@ class NodeListCreateView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 class NodeDetailView(APIView):
-    authentication_classes = []
+    authentication_classes = [NodeAuthentication]
     permission_classes = []
     
     def get(self, request):
@@ -115,7 +115,7 @@ class NodeConnectView(APIView):
                 f"{remote_node_url}/api/node/",
                 params={"host": host_with_scheme},
                 # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
-                headers={"Authorization": f"Basic {local_node_of_remote.username}:{local_node_of_remote}"},
+                headers={"Authorization": f"Basic {local_node_of_remote.username}:{local_node_of_remote.password}"},
             )
             response.raise_for_status()  # Raise exception if >= 400                
             response_data = response.json()
