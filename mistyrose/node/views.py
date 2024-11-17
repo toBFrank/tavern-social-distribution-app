@@ -135,16 +135,3 @@ class NodeConnectView(APIView):
                 {"is_connected": False, "error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-                
-class NodeDisconnectView(APIView):
-    """
-    Disconnect from a node.
-    """
-    authentication_classes = [NodeAuthentication]
-    # permission_classes = [IsAuthenticated]
-    
-    def post(self, request, pk):
-        node = get_object_or_404(Node, pk=pk)
-        node.is_whitelisted = False
-        node.save()
-        return Response({"is_disconnected": True}, status=status.HTTP_200_OK)
