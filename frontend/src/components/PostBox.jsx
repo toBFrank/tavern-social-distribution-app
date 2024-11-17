@@ -6,7 +6,6 @@ import { getAuthorProfile } from '../services/profileService';
 import '../styles/components/PostBox.css';
 import LikeButton from './LikeButton';
 import CommentsModal from './CommentsModal';
-import ShareButton from './ShareButton';
 import { BorderColor } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import shareLinkIcon from '../assets/share_link.png';
@@ -173,18 +172,11 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         <LikeButton postId={post.id} />
         <CommentsModal postId={post.id} />
         {post.visibility !== 'FRIENDS' &&
-          post.visibility !== 'UNLISTED' &&
-          post.visibility !== 'SHARED' && (
-            <ShareButton
-              postId={post.id}
-              authorId={post.author.id}
-              postContent={post}
-            />
-          )}
+          post.visibility !== 'UNLISTED'
+          }
         {(post.visibility === 'PUBLIC' ||
           post.visibility === 'UNLISTED' ||
-          post.visibility === 'FRIENDS' ||
-          post.visibility === 'SHARED') && (
+          post.visibility === 'FRIENDS') && (
           <button onClick={handleCopyLink} className="share-link-button">
             <img
               src={shareLinkIcon}
