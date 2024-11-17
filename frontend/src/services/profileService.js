@@ -1,9 +1,5 @@
 import Cookies from 'js-cookie'; // To access cookies
 
-const apiBaseUrl =
-  process.env.NODE_ENV === 'HEROKU'
-    ? window.location.origin
-    : 'http://localhost:8000';
 
 export const getAuthorProfile = async (authorId) => {
     try {
@@ -15,7 +11,7 @@ export const getAuthorProfile = async (authorId) => {
         }
 
         // Make the request with the Authorization header
-        const response = await fetch(`${apiBaseUrl}/api/authors/${authorId}/profile/`, {
+        const response = await fetch(`${window.location.origin}/api/authors/${authorId}/profile/`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
