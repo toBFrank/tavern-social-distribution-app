@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from node.models import Node  # Import your Node model
@@ -19,11 +20,13 @@ class NodeAuthentication(BaseAuthentication):
             raise AuthenticationFailed('Invalid authorization header format.')
 
         try:
-            node = Node.objects.get(username=username, password=password)
+            parsed_url = urlparse(request.build_absolute_uri())
+            host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+            node = Node.objects.get(username=username, password=password, host=host_with_scheme)
             node.is_authenticated = True
             node.save()
         except Node.DoesNotExist:
-            raise AuthenticationFailed('Invalid username or password.')
+            raise AuthenticationFailed('Invalid username or password for the node.')
 
         # - usually, you would return (user, additional_data) here if it was user authentication
         return (node, None)
