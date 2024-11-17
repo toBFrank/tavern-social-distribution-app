@@ -83,26 +83,54 @@ class NodeConnectView(APIView):
     # permission_classes = [IsAuthenticated]
     
     def post(self, request, pk):
-        node = get_object_or_404(Node, pk=pk)
-        local_node = request.user
-        if local_node.is_whitelisted:
-            try:
-                response = requests.get(
-                    f"{node.host}/api/node/connect",
-                    auth=HTTPBasicAuth(node.username, node.password)
+        local_node = get_object_or_404(Node, pk=pk)
+
+        if not local_node.is_whitelisted:
+            local_node.is_authenticated = False
+            local_node.save()
+            return Response(
+                {"is_connected": False, "is_whitelisted": local_node.is_whitelisted, "error": "Node is not whitelisted locally"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Connect to the remote node
+            response = requests.get(
+                f"{local_node.host}/api/node/connect",
+                auth=HTTPBasicAuth(local_node.username, local_node.password)
+            )
+            response.raise_for_status()  # Raise exception for HTTP errors
+
+            # Check if the remote node is whitelisted
+            if not response.json().get("is_whitelisted"):
+                local_node.is_authenticated = False
+                local_node.save()
+                return Response(
+                    {
+                        "is_connected": False,
+                        "error": "Node is not whitelisted remotely",
+                        "is_whitelisted": False,
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
                 )
-                response.raise_for_status()  # raises exception if >= 400
-                node.is_authenticated = True
-                node.save()
-                # in body, should have is connected or not
-                return Response({"is_connected": True}, status=status.HTTP_200_OK)
-            except requests.exceptions.RequestException as e:
-                node.is_authenticated = False
-                node.save()
-                return Response({"is_connected": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        node.is_authenticated = False
-        node.save()
-        return Response({"is_connected": False, "error": "Node is not whitelisted"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Mark the node as authenticated
+            local_node.is_authenticated = True
+            local_node.save()
+
+            return Response({
+                "is_connected": True,
+                "is_whitelisted": True
+            }, status=status.HTTP_200_OK)
+
+        except requests.exceptions.RequestException as e:
+            # Handle connection errors
+            local_node.is_authenticated = False
+            local_node.save()
+            return Response(
+                {"is_connected": False, "is_whitelisted": local_node.is_whitelisted, "error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
                 
 class NodeDisconnectView(APIView):
     """
