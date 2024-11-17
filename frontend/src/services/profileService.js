@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie'; // To access cookies
 
 
+
 export const getAuthorProfile = async (authorId) => {
     try {
         // Get the access token from cookies
