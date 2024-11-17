@@ -7,6 +7,7 @@ import base64
 class NodeAuthentication(BaseAuthentication):
     def authenticate(self, request):
         auth = request.headers.get('Authorization')
+        print(f"request: {request}")
         print(f"auth: {auth}")
 
         if not auth:
