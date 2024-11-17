@@ -538,3 +538,69 @@ class AuthorApiConsistencyTestCase(APITestCase):
             self.assertTrue(
                 author["id"].startswith("http://example.com/api/authors/")  
             )
+
+# User Story #3 Test: As a node admin, I want to host multiple authors on my node, so I can have a friendly online community.
+class AdminManagementTests(APITestCase):
+    def setUp(self):
+        # Create an admin user
+        self.admin_user = User.objects.create_superuser(username="admin", password="password123")
+        Author.objects.create(
+            user=self.admin_user,
+            display_name="Admin Author",
+            github="https://github.com/admin"
+        )
+
+        # Create multiple users and their associated authors
+        for i in range(15):
+            user = User.objects.create_user(username=f"user{i}", password="password123")
+            Author.objects.create(
+                user=user,
+                display_name=f"Author{i}",
+                github=f"https://github.com/user{i}"
+            )
+
+        # Log in as administrator user and obtain JWT Token
+        response = self.client.post('/api/login/', {
+            'username': 'admin',
+            'password': 'password123'
+        })
+        # print(f"Login Response: {response.status_code}, {response.data}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Unexpected response: {response.data}")
+
+        # Dynamically extract access token
+        access_token = response.data.get('access_token')
+        self.assertIsNotNone(access_token, "Access token not found in response")
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+    
+    def test_get_all_authors(self):
+        # Test to get a list of all authors
+        response = self.client.get("/api/authors/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "authors")
+        self.assertTrue("authors" in response.data)
+        self.assertTrue(len(response.data["authors"]) <= 10)  # Assuming pagination returns a maximum of 10 authors per page
+    
+    def test_pagination_on_authors_list(self):
+        # Test paging functionality
+        response = self.client.get("/api/authors/?page=2")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "authors")
+        self.assertTrue(len(response.data["authors"]) > 0)  # The second page should have remaining authors
+    
+    def test_get_author_detail(self):
+        # Test getting details of a single author
+        author = Author.objects.first()
+        response = self.client.get(f"/api/authors/{author.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], f"/api/authors/{author.id}/")  
+        self.assertEqual(response.data["displayName"], author.display_name)
+        self.assertEqual(response.data["github"], author.github)
+    
+    def test_author_not_found(self):
+        # Test to get non-existent author
+        response = self.client.get("/api/authors/00000000-0000-0000-0000-000000000000/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["detail"], "No Author matches the given query.")
