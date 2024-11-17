@@ -117,7 +117,7 @@ class AuthorDetailViewTest(APITestCase):
         response = self.client.get(reverse('author-detail', kwargs={'pk': non_existing_uuid}))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-
+# User Story #4 Test: As an author, I want a public page with my profile information.
 class AuthorProfileViewTest(APITestCase):
     def setUp(self):
         # Creating a user and associated author
