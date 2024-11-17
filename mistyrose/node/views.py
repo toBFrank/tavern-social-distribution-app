@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 from .authentication import NodeAuthentication
 from rest_framework.response import Response
 from rest_framework.decorators import renderer_classes, permission_classes
@@ -34,7 +34,7 @@ class NodeDetailView(APIView):
         """
         Get a node.
         """
-        node = get_object_or_404(Node, host=request.query_params.get("host"))
+        node = get_object_or_404(Node, host=unquote(request.query_params.get("host")))
         serializer = NodeSerializer(node)
         response = {
             "type": "node",
