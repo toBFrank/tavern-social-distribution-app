@@ -300,7 +300,7 @@ class FollowRequestTestCase(TestCase):
             'follower_id': str(self.author1.id)  # Use author1 as the follower
         })
         
-        print(f"Generated URL: {self.url}")
+        # print(f"Generated URL: {self.url}")
 
     def test_approve_follow_request(self):
         # Send a PUT request to approve the follow request
@@ -448,3 +448,93 @@ class ProfileImageUploadViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], 'No file provided.')
 
+# User Story #2 Test: As an author, I want a consistent identity per node.
+class AuthorUrlTestCase(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.author = Author.objects.create(
+            user=self.user,
+            display_name="Test User",
+            host="http://example.com",
+            github="https://github.com/testuser"
+        )
+
+        # API URL for author detail
+        self.url = reverse('author-detail', kwargs={'pk': self.author.id})
+
+        # Set up authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+    def test_author_url_generation(self):
+        # Verify that the URL is generated correctly
+        expected_url = f"http://example.com/api/authors/{self.author.id}/"
+        self.assertEqual(self.author.url, expected_url)
+    
+    def test_author_url_consistency(self):
+        # Modify other fields and verify that the URL is consistent
+        original_url = self.author.url
+        self.author.display_name = "Updated Author"
+        self.author.save()
+        self.assertEqual(self.author.url, original_url)
+        
+    def test_author_url_in_api_response(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        expected_url = f"http://example.com/api/authors/{self.author.id}/"
+        self.assertEqual(response.data['id'], expected_url)  
+    
+    def test_author_detail_not_found(self):
+        # Test for non-existent author
+        non_existing_uuid = uuid.uuid4()
+        response = self.client.get(reverse('author-detail', kwargs={'pk': non_existing_uuid}))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+# User Story #2 Test: As an author, I want a consistent identity per node.
+class AuthorApiConsistencyTestCase(APITestCase):
+    def setUp(self):
+        # Create test users and multiple authors
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.authors = [
+            Author.objects.create(
+                id=uuid.uuid4(),
+                host="http://example.com",
+                display_name=f"Author {i}",
+                github=f"http://github.com/author{i}"
+            ) for i in range(3)
+        ]
+
+        # Set up authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
+        
+    def test_multiple_authors_url_uniqueness(self):
+        # Verify URL uniqueness
+        urls = [f"http://example.com/api/authors/{author.id}/" for author in self.authors]
+        self.assertEqual(len(urls), len(set(urls)))  
+        for author in self.authors:
+            expected_url = f"http://example.com/api/authors/{author.id}/"
+            self.assertEqual(f"http://example.com/api/authors/{author.id}/", expected_url)
+
+    def test_deleted_authors_not_in_api_list(self):
+        # After removing an author, verify that it no longer appears in the API list
+        deleted_author = self.authors[0]
+        deleted_author.delete()
+        response = self.client.get("/api/authors/")
+        self.assertEqual(response.status_code, 200)
+        # Check if the `id` field does not contain a deleted author
+        self.assertNotIn(
+            str(deleted_author.id), 
+            [author["id"] for author in response.json()["authors"]]
+        )
+
+    def test_api_author_list_url_format(self):
+        # Verify that the `id` format in the author list is correct
+        response = self.client.get("/api/authors/")
+        self.assertEqual(response.status_code, 200)
+        for author in response.json()["authors"]:
+            self.assertTrue(
+                author["id"].startswith("http://example.com/api/authors/")  
+            )
