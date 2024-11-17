@@ -114,7 +114,8 @@ class NodeConnectView(APIView):
             response = requests.get(
                 f"{remote_node_url}/api/node/",
                 params={"host": host_with_scheme},
-                auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                headers={"Authorization": f"Basic {local_node_of_remote.username}:{local_node_of_remote}"},
             )
             response.raise_for_status()  # Raise exception if >= 400                
             response_data = response.json()
