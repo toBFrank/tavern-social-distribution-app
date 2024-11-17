@@ -1,13 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const apiBaseUrl =
-  process.env.NODE_ENV === 'HEROKU'
-    ? window.location.origin
-    : 'http://localhost:8000';
-
 const api = axios.create({
-  baseURL: `${apiBaseUrl}/api/`,
+  baseURL: `${window.location.origin}/api/`,
   withCredentials: true,
 });
 
@@ -47,7 +42,7 @@ api.interceptors.response.use(
       if (refreshToken) {
         try {
           const response = await axios.post(
-            `${apiBaseUrl}/api/users/token/refresh/`,
+            `${window.location.origin}/api/users/token/refresh/`,
             {
               refresh: refreshToken,
             }
