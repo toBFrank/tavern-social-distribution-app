@@ -24,6 +24,22 @@ class NodeListCreateView(APIView):
             "items": serializer.data,
         }
         return Response(response, status=status.HTTP_200_OK)
+
+class NodeDetailView(APIView):
+    authentication_classes = [NodeAuthentication]
+    # permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get a node.
+        """
+        node = get_object_or_404(Node, pk=request.node.pk)
+        serializer = NodeSerializer(node)
+        response = {
+            "type": "node",
+            "item": serializer.data,
+        }
+        return Response(response, status=status.HTTP_200_OK)
     
     def post(self, request):
         """
@@ -38,28 +54,12 @@ class NodeListCreateView(APIView):
             }
             return Response(response, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class NodeDetailView(APIView):
-    authentication_classes = [NodeAuthentication]
-    # permission_classes = [IsAuthenticated]
     
-    def get(self, request, pk):
-        """
-        Get a node.
-        """
-        node = get_object_or_404(Node, pk=pk)
-        serializer = NodeSerializer(node)
-        response = {
-            "type": "node",
-            "item": serializer.data,
-        }
-        return Response(response, status=status.HTTP_200_OK)
-    
-    def put(self, request, pk):
+    def put(self, request):
         """
         Update a node.
         """
-        node = get_object_or_404(Node, pk=pk)
+        node = get_object_or_404(Node, pk=request.node.pk)
         serializer = NodeSerializer(node, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -70,9 +70,9 @@ class NodeDetailView(APIView):
             return Response(response, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, pk):
+    def delete(self, request):
         # likely won't use; just use node disconnect?
-        node = get_object_or_404(Node, pk=pk)
+        node = get_object_or_404(Node, pk=request.node.pk)
         node.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -84,10 +84,10 @@ class NodeConnectView(APIView):
     # permission_classes = [IsAuthenticated]
     
     # get an is_connected response
-    def get(self, request, pk):
+    def get(self, request):
         # gets the node from remote node (used for testing)
         
-        local_node = get_object_or_404(Node, pk=pk)
+        local_node = get_object_or_404(Node, pk=request.node.pk)
         
         if not local_node.is_whitelisted:
             local_node.is_authenticated = False
@@ -99,7 +99,7 @@ class NodeConnectView(APIView):
         
         try:
             response = requests.get(
-                f"{local_node.host}/api/node/{pk}/",
+                f"{local_node.host}/api/node/",
                 auth=HTTPBasicAuth(local_node.username, local_node.password),
             )
             response.raise_for_status()  # Raise exception if >= 400                
