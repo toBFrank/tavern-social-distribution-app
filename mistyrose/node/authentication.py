@@ -10,8 +10,8 @@ class NodeAuthentication(BaseAuthentication):
         print(f"request: {request}")
         print(f"auth: {auth}")
 
-        if not auth:
-            raise AuthenticationFailed('No authorization header provided.')
+        # if not auth:
+        #     raise AuthenticationFailed('No authorization header provided.')
 
         if not auth.startswith('Basic '):
             raise AuthenticationFailed('Authorization header must be Basic.')
