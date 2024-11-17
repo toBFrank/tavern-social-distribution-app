@@ -1,4 +1,3 @@
-
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from node.models import Node  # Import your Node model
