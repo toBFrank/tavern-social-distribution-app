@@ -114,7 +114,7 @@ class NodeConnectView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             
-            if remote_node_data.is_white_listed:
+            if remote_node_data.is_whitelisted:
                 local_node.is_authenticated = True
                 local_node.save()
                 return Response(
