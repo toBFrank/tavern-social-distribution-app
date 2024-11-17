@@ -85,6 +85,8 @@ class NodeConnectView(APIView):
     
     # get an is_connected response
     def get(self, request, pk):
+        # gets the node from remote node (used for testing)
+        
         local_node = get_object_or_404(Node, pk=pk)
         
         if not local_node.is_whitelisted:
@@ -108,8 +110,10 @@ class NodeConnectView(APIView):
                     {"is_connected": False, "error": "Node does not exist"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+                
+            remote_node_data = response.json().get("item")
             
-            if response.item.is_white_listed:
+            if remote_node_data.is_white_listed:
                 local_node.is_authenticated = True
                 local_node.save()
                 return Response(
