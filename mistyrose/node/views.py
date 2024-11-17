@@ -102,17 +102,17 @@ class NodeConnectView(APIView):
                 f"{local_node.host}/api/node/{pk}/",
                 auth=HTTPBasicAuth(local_node.username, local_node.password),
             )
-            response.raise_for_status()  # Raise exception if >= 400
-            if response.item == None:
+            response.raise_for_status()  # Raise exception if >= 400                
+            response_data = response.json()
+            remote_node_data = response_data["item"]
+            
+            if remote_node_data is None:
                 local_node.is_authenticated = False
                 local_node.save()
                 return Response(
                     {"is_connected": False, "error": "Node does not exist"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-                
-            response_data = response.json()
-            remote_node_data = response_data["item"]
             
             if remote_node_data.is_white_listed:
                 local_node.is_authenticated = True
