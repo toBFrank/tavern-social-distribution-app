@@ -84,7 +84,8 @@ class NodeConnectView(APIView):
     
     def post(self, request, pk):
         node = get_object_or_404(Node, pk=pk)
-        if node.is_whitelisted:
+        local_node = request.user
+        if local_node.is_whitelisted:
             try:
                 response = requests.get(
                     f"{node.host}/api/node/connect",

@@ -20,6 +20,8 @@ class NodeAuthentication(BaseAuthentication):
 
         try:
             node = Node.objects.get(username=username, password=password)
+            node.is_authenticated = True
+            node.save()
         except Node.DoesNotExist:
             raise AuthenticationFailed('Invalid username or password.')
 
