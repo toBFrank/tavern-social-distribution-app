@@ -27,7 +27,7 @@ class NodeListCreateView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 class NodeDetailView(APIView):
-    authentication_classes = [NodeAuthentication]
+    authentication_classes = []
     permission_classes = []
     
     def get(self, request):
@@ -36,6 +36,7 @@ class NodeDetailView(APIView):
         """
         decoded_url = unquote(request.query_params.get("host"))
         print(f"Decoded URL: {decoded_url}")
+        print(f"Request headers: {request.headers}")
         node = get_object_or_404(Node, host=decoded_url)
         serializer = NodeSerializer(node)
         response = {
