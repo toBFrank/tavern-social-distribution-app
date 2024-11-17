@@ -79,7 +79,7 @@ class NodeConnectView(APIView):
     """
     Connect to a node.
     """
-    # authentication_classes = [NodeAuthentication]
+    authentication_classes = [NodeAuthentication]
     # permission_classes = [IsAuthenticated]
     
     def post(self, request, pk):
@@ -108,7 +108,8 @@ class NodeDisconnectView(APIView):
     Disconnect from a node.
     """
     authentication_classes = [NodeAuthentication]
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    
     def post(self, request, pk):
         node = get_object_or_404(Node, pk=pk)
         node.is_whitelisted = False
