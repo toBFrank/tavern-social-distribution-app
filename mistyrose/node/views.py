@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from .authentication import NodeAuthentication
 from rest_framework.response import Response
 from rest_framework.decorators import renderer_classes, permission_classes
@@ -33,8 +34,9 @@ class NodeDetailView(APIView):
         """
         Get a node.
         """
-        remote_node_url = request.data.get("host")
-        node = get_object_or_404(Node, host=remote_node_url)
+        parsed_url = urlparse(request.build_absolute_uri())
+        host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        node = get_object_or_404(Node, host=host_with_scheme)
         serializer = NodeSerializer(node)
         response = {
             "type": "node",
@@ -103,13 +105,9 @@ class NodeConnectView(APIView):
             )
         
         try:
-            request_body = {
-                "host": local_node.host
-            }
             response = requests.get(
-                f"{request.get_host}/api/nodes/",
+                f"{local_node.host}/api/node/",
                 auth=HTTPBasicAuth(local_node.username, local_node.password),
-                data=request_body
             )
             response.raise_for_status()  # Raise exception if >= 400                
             response_data = response.json()
