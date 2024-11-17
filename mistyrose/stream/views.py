@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import FollowSerializer
-from posts.serializers import CommentSerializer, LikeSerializer
+from posts.serializers import CommentSerializer, LikeSerializer, PostSerializer
 from users.models import Author, Follows
 from posts.models import Post, Like, Comment
 from django.contrib.contenttypes.models import ContentType
@@ -52,6 +52,41 @@ class InboxView(APIView):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        #endregion
+        #region Post Inbox
+        elif object_type == "post":
+            # create post object type and user.
+            author = get_object_or_404(Author, id=author_id) #author whose stream we want to add post to
+
+            if request.data.get('visibility') == 'PUBLIC':
+                # check if post's author in database, create author if not
+                author_of_post = request.data["author"]["id"]
+                author_of_post_id = author_of_post.rstrip('/').split("/authors/")[-1]
+
+                author_data = request.data["author"]
+                # get or create remote author who made the post
+                author, created = Author.objects.get_or_create(
+                    id=author_of_post_id,
+                    host=author_data['host'],
+                    display_name=author_data['displayName'],
+                    github=author_data.get('github', ''),
+                    profile_image=author_data.get('profileImage', ''),
+                    page=author_data['page'],
+                )
+
+            elif request.data.get('visibility') == 'FRIENDS':
+                #check if poster's author in database and actually friends (if friends, should already be in database)
+                pass
+
+            
+            serializer = PostSerializer(data=request.data)
+            if serializer.is_valid():
+                post = serializer.save(author_id=author)  #author of the poster
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+            
         #endregion
         #region Comment Inbox
         elif object_type == "comment":

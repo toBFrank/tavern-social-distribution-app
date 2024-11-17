@@ -14,9 +14,14 @@ from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
+from node.models import Node
 from .pagination import LikesPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 from django.http import FileResponse
+import requests
+from requests.auth import HTTPBasicAuth #basic auth
+from django.db import transaction #transaction requests so that if something happens in the middle, it'll be rolled back
+
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -72,6 +77,32 @@ class PostDetailsByFqidView(APIView):
         serializer = PostSerializer(post)
         return Response(serializer.data)
 
+def get_remote_authors():
+    remote_authors = []
+    for node in Node.objects.filter(is_whitelisted=True):
+        # get authors for each remote node connection
+        #get authors 
+        get_authors_url = f"{node.host.rstrip('/')}/api/authors/"
+        response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
+        if response.status_code == 200:
+            authors_data = response.json()["authors"]
+            for author_data in authors_data:
+                author_id = author_data['id']
+                
+                # Get remote author or create
+                author, created = Author.objects.get_or_create(
+                    id=author_id,
+                    host=author_data['host'],
+                    display_name=author_data['displayName'],
+                    github=author_data.get('github', ''),
+                    profile_image=author_data.get('profileImage', ''),
+                    page=author_data['page'],
+                )
+                remote_authors.append(author)
+
+        else:
+            raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}")
+
 class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
@@ -83,17 +114,51 @@ class AuthorPostsView(APIView):
         return Response(serializer.data)
 
     def post(self, request, author_serial):
-        try:
-            author = Author.objects.get(id=author_serial)
-        except Author.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        '''
+        create post locally and send to all remote inboxes if public, and remote friends if friends only post
+        '''
+        with transaction.atomic(): #a lot of datbase operations, better to do transaction so that if something fails, we can rollback instead of half updates
+            # create post locally first 
+            try:
+                author = Author.objects.get(id=author_serial)
+            except Author.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = PostSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(author_id=author)  # Associate the post with the author
+            serializer = PostSerializer(data=request.data)
+            if serializer.is_valid():
+                post = serializer.save(author_id=author)  # Associate the post with the author
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            # get remote authors and send post to remote inboxes 
+            try:
+                remote_authors = get_remote_authors()
+                if post.visibility == 'PUBLIC':
+                    #send to all remote inboxes if public post
+                    for remote_author in remote_authors:
+                        node = Node.objects.get(host=remote_author.host)
+                        author_inbox_url = f"{remote_author.id.rstrip('/')}/inbox/"
+                        post_data = PostSerializer(post).data
+                        response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
+
+                        if response.status_code >= 200 and response.status_code < 300:
+                            pass #success response
+                        else:
+                            return Response({"error": f"Could not send post to {remote_author.url}, {response.status_code} - {response.reason}"}, status=status.HTTP_400_BAD_REQUEST)
+                        
+                elif post.visiblity == 'FRIENDS':
+                    #send only to remote friends if friends post
+                    #TODO: see how remote friends is being handled i.e. is it using remote_id?
+                    pass
+
+            except Exception as e:
+                #return an error if fetching remote authors fails
+                return Response(
+                    {"error": f"Failed to fetch remote authors: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
       
 class PostImageView(APIView):
