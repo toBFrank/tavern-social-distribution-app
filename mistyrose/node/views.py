@@ -27,7 +27,7 @@ class NodeListCreateView(APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 class NodeDetailView(APIView):
-    authentication_classes = [NodeAuthentication]
+    authentication_classes = []
     permission_classes = []
     
     def get(self, request):
