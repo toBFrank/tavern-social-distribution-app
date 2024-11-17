@@ -105,7 +105,7 @@ class NodeConnectView(APIView):
             response.raise_for_status()  # Raise exception if >= 400                
             response_data = response.json()
             remote_node_data = response_data["item"]
-            
+            print(f"Remote node data: {remote_node_data}")
             if remote_node_data is None:
                 local_node.is_authenticated = False
                 local_node.save()
@@ -114,7 +114,7 @@ class NodeConnectView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             
-            if remote_node_data.is_whitelisted:
+            if remote_node_data["is_whitelisted"]:
                 local_node.is_authenticated = True
                 local_node.save()
                 return Response(
