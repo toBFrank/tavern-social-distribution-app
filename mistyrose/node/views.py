@@ -107,8 +107,8 @@ class NodeConnectView(APIView):
         try:
             parsed_url = urlparse(request.build_absolute_uri())
             host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
-            print(f"local node of remote username: {local_node_of_remote.username} password: {local_node_of_remote.password}") 
             httpbasicauth = HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password)
+            print(f"host with scheme: {host_with_scheme}")
             print(f"local node of remote httpbasicauth: {httpbasicauth.username} {httpbasicauth.password}")
             response = requests.get(
                 f"{remote_node_url}/api/node/",
