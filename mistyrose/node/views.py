@@ -111,7 +111,8 @@ class NodeConnectView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
                 
-            remote_node_data = response.json().get("item")
+            response_data = response.json()
+            remote_node_data = response_data["item"]
             
             if remote_node_data.is_white_listed:
                 local_node.is_authenticated = True
