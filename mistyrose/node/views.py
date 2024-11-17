@@ -28,7 +28,7 @@ class NodeListCreateView(APIView):
 
 class NodeDetailView(APIView):
     authentication_classes = [NodeAuthentication]
-    # permission_classes = [IsAuthenticated]
+    permission_classes = []
     
     def get(self, request):
         """
@@ -85,8 +85,8 @@ class NodeConnectView(APIView):
     """
     Connect to a node.
     """
-    # authentication_classes = [NodeAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = []
+    permission_classes = []
     
     # get an is_connected response
     def get(self, request):
@@ -105,6 +105,7 @@ class NodeConnectView(APIView):
             )
         
         try:
+            print(f"Local node: {local_node.username} {local_node.password} {local_node.host}")
             response = requests.get(
                 f"{local_node.host}/api/node/",
                 auth=HTTPBasicAuth(local_node.username, local_node.password),
