@@ -1,1 +1,1 @@
-web: gunicorn --forward-headers mistyrose.wsgi --chdir mistyrose
+web: gunicorn mistyrose.wsgi --chdir mistyrose
