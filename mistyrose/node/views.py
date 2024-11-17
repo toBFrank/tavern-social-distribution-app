@@ -34,9 +34,7 @@ class NodeDetailView(APIView):
         """
         Get a node.
         """
-        parsed_url = urlparse(request.build_absolute_uri())
-        host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
-        node = get_object_or_404(Node, host=host_with_scheme)
+        node = get_object_or_404(Node, host=request.query_params.get("host"))
         serializer = NodeSerializer(node)
         response = {
             "type": "node",
@@ -94,51 +92,53 @@ class NodeConnectView(APIView):
         
         # get local node by host in request url
         remote_node_url = request.data.get("host")
-        local_node = get_object_or_404(Node, host=remote_node_url)
+        local_node_of_remote = get_object_or_404(Node, host=remote_node_url)
         
-        if not local_node.is_whitelisted:
-            local_node.is_authenticated = False
-            local_node.save()
+        if not local_node_of_remote.is_whitelisted:
+            local_node_of_remote.is_authenticated = False
+            local_node_of_remote.save()
             return Response(
                 {"is_connected": False, "error": "Node is not whitelisted locally"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         
         try:
-            print(f"Local node: {local_node.username} {local_node.password} {local_node.host}")
+            parsed_url = urlparse(request.build_absolute_uri())
+            host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
             response = requests.get(
-                f"{local_node.host}/api/node/",
-                auth=HTTPBasicAuth(local_node.username, local_node.password),
+                f"{remote_node_url}/api/node/",
+                params={"host": host_with_scheme},
+                auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
             )
             response.raise_for_status()  # Raise exception if >= 400                
             response_data = response.json()
             remote_node_data = response_data["item"]
             print(f"Remote node data: {remote_node_data}")
             if remote_node_data is None:
-                local_node.is_authenticated = False
-                local_node.save()
+                local_node_of_remote.is_authenticated = False
+                local_node_of_remote.save()
                 return Response(
                     {"is_connected": False, "error": "Node does not exist"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             
             if remote_node_data["is_whitelisted"]:
-                local_node.is_authenticated = True
-                local_node.save()
+                local_node_of_remote.is_authenticated = True
+                local_node_of_remote.save()
                 return Response(
                     {"is_connected": True},
                     status=status.HTTP_200_OK,
                 )
             else:
-                local_node.is_authenticated = False
-                local_node.save()
+                local_node_of_remote.is_authenticated = False
+                local_node_of_remote.save()
                 return Response(
                     {"is_connected": False, "error": "Node is not whitelisted remotely"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         except requests.exceptions.RequestException as e:
-            local_node.is_authenticated = False
-            local_node.save()
+            local_node_of_remote.is_authenticated = False
+            local_node_of_remote.save()
             return Response(
                 {"is_connected": False, "error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST,
