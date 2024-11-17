@@ -172,7 +172,8 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         <LikeButton postId={post.id} />
         <CommentsModal postId={post.id} />
         {post.visibility !== 'FRIENDS' &&
-          post.visibility !== 'UNLISTED'
+          post.visibility !== 'UNLISTED' &&
+          post.visibility !== 'SHARED'  
           }
         {(post.visibility === 'PUBLIC' ||
           post.visibility === 'UNLISTED' ||
