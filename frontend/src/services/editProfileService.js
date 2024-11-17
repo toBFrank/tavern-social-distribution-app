@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie';  // To access cookies
 
-const API_URL = 'http://127.0.0.1:8000/api/authors/';  // Adjust the API base URL
+const currentHost = window.location.origin; // Get host for post URL
+const API_URL = `${currentHost}/api/authors/`; // Adjust the API base URL
 
 // Function to fetch the author profile
 export const getAuthorProfile = async (authorId) => {
@@ -36,7 +37,7 @@ export const updateAuthorProfile = async (authorId, profileData) => {
 };
 
 export const uploadProfileImage = async (authorId, formData) => {
-    const response = await fetch(`http://localhost:8000/authors/${authorId}/upload_image/`, {
+    const response = await fetch(`${currentHost}/authors/${authorId}/upload_image/`, {
         method: 'POST',
         body: formData
     });
