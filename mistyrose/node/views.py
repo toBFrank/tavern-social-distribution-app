@@ -33,7 +33,8 @@ class NodeDetailView(APIView):
         """
         Get a node.
         """
-        node = get_object_or_404(Node, pk=request.node.pk)
+        remote_node_url = request.data.get("host")
+        node = get_object_or_404(Node, host=remote_node_url)
         serializer = NodeSerializer(node)
         response = {
             "type": "node",
@@ -59,7 +60,8 @@ class NodeDetailView(APIView):
         """
         Update a node.
         """
-        node = get_object_or_404(Node, pk=request.node.pk)
+        remote_node_url = request.data.get("host")
+        node = get_object_or_404(Node, host=remote_node_url)
         serializer = NodeSerializer(node, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -71,8 +73,9 @@ class NodeDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request):
-        # likely won't use; just use node disconnect?
-        node = get_object_or_404(Node, pk=request.node.pk)
+        # likely won't use; just set is_whitelisted to False
+        remote_node_url = request.data.get("host")
+        node = get_object_or_404(Node, host=remote_node_url)
         node.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -87,7 +90,9 @@ class NodeConnectView(APIView):
     def get(self, request):
         # gets the node from remote node (used for testing)
         
-        local_node = get_object_or_404(Node, pk=request.node.pk)
+        # get local node by host in request url
+        remote_node_url = request.data.get("host")
+        local_node = get_object_or_404(Node, host=remote_node_url)
         
         if not local_node.is_whitelisted:
             local_node.is_authenticated = False
@@ -98,9 +103,13 @@ class NodeConnectView(APIView):
             )
         
         try:
+            request_body = {
+                "host": local_node.host
+            }
             response = requests.get(
-                f"{local_node.host}/api/node/",
+                f"{request.get_host}/api/nodes/",
                 auth=HTTPBasicAuth(local_node.username, local_node.password),
+                data=request_body
             )
             response.raise_for_status()  # Raise exception if >= 400                
             response_data = response.json()
