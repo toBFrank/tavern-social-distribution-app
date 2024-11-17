@@ -85,7 +85,7 @@ class NodeConnectView(APIView):
     """
     Connect to a node.
     """
-    authentication_classes = [NodeAuthentication]
+    # authentication_classes = [NodeAuthentication]
     # permission_classes = [IsAuthenticated]
     
     # get an is_connected response
