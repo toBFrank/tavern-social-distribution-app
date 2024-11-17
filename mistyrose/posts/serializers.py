@@ -62,7 +62,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class LikeSerializer(serializers.ModelSerializer):
     type = serializers.CharField(default='like', read_only=True)
     #author = serializers.SerializerMethodField()
-    author = AuthorSerializer(source='author_id')  #TODO: uncomment after Author serializer issue is fixed
+    author = AuthorSerializer(source='author_id')  
     object = serializers.SerializerMethodField() # calls get_object with current Like instance -> method will get the object_url
     id = serializers.SerializerMethodField()
     class Meta:
@@ -86,8 +86,8 @@ class LikeSerializer(serializers.ModelSerializer):
 
 #region Post Serializers
 class PostSerializer(serializers.ModelSerializer):
-    # author = AuthorSerializer(source='author_id')
-    author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), write_only=True, source='author_id')
+    author = AuthorSerializer(source='author_id', read_only=True)
+    #author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all(), write_only=True, source='author_id')
     comments = CommentSerializer(many=True, read_only=True)
     likes = LikeSerializer(many=True, read_only=True)
     contentType = serializers.CharField(source='content_type', default='text/plain')
@@ -127,6 +127,7 @@ class PostSerializer(serializers.ModelSerializer):
             representation['content'] = f"data:{instance.content_type};base64,{instance.content}"
         
         return representation
+    
 #endregion
     
     # def get_author(self, like_object): #TODO: remove - this is temporary fix to circular dependency in AuthorSerializer importing PostSerializer

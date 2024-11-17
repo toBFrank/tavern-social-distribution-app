@@ -21,6 +21,7 @@ import uuid
 from posts.models import Post  
 from django.middleware.csrf import get_token  
 from django.contrib.auth import authenticate  
+from django.http import HttpRequest
 from .pagination import AuthorsPagination  
 from posts.serializers import PostSerializer  
 from uuid import UUID 
@@ -557,7 +558,8 @@ class ProfileImageUploadView(APIView):
                     destination.write(chunk)
 
             # Construct the media URL for accessing the profile image via HTTP
-            media_url = f'http://localhost:8000{settings.MEDIA_URL}{file_path}'
+            base_url = self.get_base_url(request)
+            media_url = f'{base_url}{settings.MEDIA_URL}{file_path}'
 
             # Return a success message along with the image URL
             return Response({"message": "Profile image uploaded successfully", "url": media_url}, status=status.HTTP_200_OK)
@@ -566,3 +568,10 @@ class ProfileImageUploadView(APIView):
             # Handle any errors and return a server error response
             return Response({"error": f"Failed to upload profile image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    def get_base_url(self, request: HttpRequest):
+        """
+        Generate the base URL (protocol + host) based on the request.
+        """
+        protocol = 'https' if request.is_secure() else 'http'
+        host = request.get_host()  # This gives the hostname and port (if not default)
+        return f'{protocol}://{host}'

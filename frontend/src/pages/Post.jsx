@@ -3,7 +3,7 @@ import '../styles/pages/Post.css';
 import { ReactComponent as ImageUploader } from './../assets/imageUploader.svg';
 import MarkdownEditor from '../components/MarkdownEditor';
 import { createPost, getPost, updatePost } from '../services/PostsService';
-import { getAuthorProfile } from '../services/profileService'; // Import profile service
+import { getAuthor } from '../services/AuthorsService';
 import Cookies from 'js-cookie';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 
@@ -24,18 +24,33 @@ const Post = () => {
   const [plainText, setPlainText] = useState('');
   const [markdown, setMarkdown] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentProfileData, setCurrentProfileData] = useState(null);
 
   // For sharing
   const location = useLocation();
   const sharePost = location.pathname.includes('/share');
   const sharedPostAuthor = location.state?.authorId;
+  const currentHost = window.location.origin; // Get host for post URL
+
 
   // console.log('authorId:', authorId, 'postId:', postId);
+
+  
+  // Fetch current author profile on component mount
+  useEffect(() => {
+    getAuthor(authorId)
+      .then((data) => {
+        setCurrentProfileData(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []); // Empty dependency list to run only once
 
   // Fetch the shared post author's profile data
   useEffect(() => {
     if (sharedPostAuthor) {
-      getAuthorProfile(sharedPostAuthor)
+      getAuthor(sharedPostAuthor)
         .then((data) => {
           console.log('Author profile data:', data);
           setProfileData(data);
@@ -75,7 +90,7 @@ const Post = () => {
                 : 'Plain'
           );
           if (post.image_content) {
-            setUploadedImage(`http://localhost:8000${post.image_content}`);
+            setUploadedImage(`${currentHost}${post.image_content}`);
           }
           setLoading(false);
         })
@@ -94,13 +109,13 @@ const Post = () => {
 
           if (post.content_type === 'image') {
             setSelectedOption('Image');
-            setUploadedImage(`http://localhost:8000${post.image_content}`);
+            setUploadedImage(`${currentHost}${post.image_content}`);
             const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.content || 'No Content Available'}`;
             setTitle(
               `Title: ${post.title || 'No Title Available'} \n\n ${creditsContent}`
             );
             // Fetch the image blob
-            fetch(`http://localhost:8000${post.image_content}`)
+            fetch(`${currentHost}${post.image_content}`)
               .then((response) => {
                 if (response.ok) {
                   return response.blob();
@@ -165,24 +180,24 @@ const Post = () => {
   };
 
   const handlePostClick = async () => {
-    const postData = new FormData();
-
-    postData.append('author', authorId);
-    postData.append('title', title || 'New Post');
-
+    const postData = {
+      type: 'post',
+      author: currentProfileData,
+      title: title || 'New Post',
+      visibility: visibility.toUpperCase(),
+    };
+    
     if (selectedOption === 'Plain') {
-      postData.append('content', plainText);
-      postData.append('contentType', 'text/plain');
+      postData.content = plainText;
+      postData.contentType = 'text/plain';
     } else if (selectedOption === 'Markdown') {
-      postData.append('content', markdown);
-      postData.append('contentType', 'text/markdown');
+      postData.content = markdown;
+      postData.contentType = 'text/markdown';
     } else if (selectedOption === 'Image' && imgFile) {
       const base64Image = await imgToBase64(imgFile);
-      postData.append('content', base64Image);
-      postData.append('contentType', `image/${imgFile.type.split('/')[1]}`);
+      postData.content = base64Image;
+      postData.contentType = `image/${imgFile.type.split('/')[1]}`;
     }
-
-    postData.append('visibility', visibility.toUpperCase());
 
     try {
       if (sharePost) {
@@ -190,7 +205,7 @@ const Post = () => {
         await createPost(authorId, postData);
       } else if (postId) {
         const currentDateTime = new Date().toISOString();
-        postData.append('published', currentDateTime);
+        postData.published = currentDateTime;
         // Update post if postId exists
         await updatePost(authorId, postId, postData);
       } else {
