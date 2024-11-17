@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import shareButton from '../assets/shareButton.png';
 import '../styles/components/ShareButton.css';
 import { useNavigate } from 'react-router-dom';
 import { createPost, getPostImageUrl } from '../services/PostsService';
 import Cookies from 'js-cookie';
+import { getAuthor } from '../services/AuthorsService';
+
 
 const ShareButton = ({ postId, authorId, postContent }) => {
   const navigate = useNavigate();
+  const [currentProfileData, setCurrentProfileData] = useState(null);
+
+  // Fetch current author profile on component mount
+  useEffect(() => {
+    getAuthor(authorId)
+      .then((data) => {
+        setCurrentProfileData(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []); // Empty dependency list to run only once
 
   function removeBase64Prefix(base64) {
     // Define the prefixes to look for
@@ -40,7 +54,7 @@ const ShareButton = ({ postId, authorId, postContent }) => {
     const unlabeledBase64Img = removeBase64Prefix(postContent.content ?? '');
 
     const sharedPostData = {
-      author: storedAuthorId,
+      author: currentProfileData,
       title: postContent.title || 'Untitled',
       content: unlabeledBase64Img || '',
       visibility: 'SHARED',
