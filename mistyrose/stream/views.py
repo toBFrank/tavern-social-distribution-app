@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .serializers import FollowSerializer
 from posts.serializers import CommentSerializer, LikeSerializer
 from users.models import Author, Follows
+from node.models import Node
 from posts.models import Post, Like, Comment
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
@@ -13,12 +14,6 @@ from django.conf import settings
 from urllib.parse import urlparse
 from urllib.parse import urlparse
 
-
-LOCAL_HOST_NAMES = ["http://127.0.0.1/", "https://rithwik-node-6a32aa4f2653.herokuapp.com/",
-                    "http://127.0.0.1:8000/", "http://127.0.0.1:8000/"]
-def is_local_author(author: Author):
-
-    return author.host in LOCAL_HOST_NAMES
 
 
 class InboxView(APIView):
@@ -34,6 +29,7 @@ class InboxView(APIView):
             # Retrieve actor and object data, and handle None case
             actor_data = request.data.get('actor')
             object_data = request.data.get('object')
+            
 
             # Check if actor_data and object_data exist
             if actor_data is None or 'id' not in actor_data:
