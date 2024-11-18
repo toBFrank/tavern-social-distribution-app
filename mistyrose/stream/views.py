@@ -33,7 +33,7 @@ class InboxView(APIView):
             # Retrieve actor and object data, and handle None case
             actor_data = request.data.get('actor')
             object_data = request.data.get('object')
-
+            print(object_data)
             # Check if actor_data and object_data exist
             if actor_data is None or 'id' not in actor_data:
                 return Response({"error": "'actor' or 'actor.id' is missing from the request"}, status=status.HTTP_400_BAD_REQUEST)
@@ -43,7 +43,7 @@ class InboxView(APIView):
 
             # Extract actor_id and object_id safely
             actor_id = actor_data['id'].rstrip('/').split('/')[-1]
-            object_id = object_data['id'].rstrip('/').split('/')[-1]
+            object_id = object_data['page'].rstrip('/').split('/')[-1]
 
             # Extract host information and normalize
             actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")
