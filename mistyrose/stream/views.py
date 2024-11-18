@@ -69,8 +69,15 @@ class InboxView(APIView):
             is_remote_object = object_host != current_host
 
             if is_remote_object:
-                # 1. Send follow request to the remote node's inbox
+                node = Node.objects.get(host=object_host)
                 remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
+                parsed_url = urlparse(request.build_absolute_uri())
+                host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                credentials = f"{node.username}:{node.password}"
+                base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                print(f"PAURST REQUEST \nget_authors_url: {remote_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
+                # 1. Send follow request to the remote node's inbox
+                
                 follow_request_payload = {
                     "type": "follow",
                     "summary": f"{actor_data['id']} wants to follow {object_data['id']}",  # Use ID for clarity
@@ -82,6 +89,9 @@ class InboxView(APIView):
                     # Send POST request to the remote node
                     response = requests.post(
                         remote_inbox_url,
+                        params={"host": host_with_scheme},
+                                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                        headers={"Authorization": f"Basic {base64_credentials}"},
                         json=follow_request_payload,
                     )
                     if response.status_code not in [200, 201]:
