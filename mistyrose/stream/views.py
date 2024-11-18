@@ -17,7 +17,7 @@ import requests
 
 
 class InboxView(APIView):
-    authentication_classes = [JWTAuthentication, NodeAuthentication]
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -161,7 +161,7 @@ class InboxView(APIView):
 
             elif request.data.get('visibility') == 'FRIENDS':
                 #check if poster's author in database and actually friends (if friends, should already be in database)
-                pass
+                pass 
 
             
             serializer = PostSerializer(data=request.data)
