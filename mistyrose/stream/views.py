@@ -8,6 +8,62 @@ from posts.models import Post, Like, Comment
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+import requests
+from django.conf import settings
+from urllib.parse import urlparse
+import logging
+
+from node.models import Node
+
+logger = logging.getLogger(__name__)
+LOCAL_HOST_NAMES = ["http://127.0.0.1/", "https://rithwik-node-6a32aa4f2653.herokuapp.com/",
+                    "http://127.0.0.1:8000/", "http://127.0.0.1:8000/"]
+
+def send_follow_request_to_remote_author(follow_request_data, author):
+    """
+    Send a follow request to a remote author's inbox.
+
+    Args:
+        follow_request_data (dict): Serialized follow request data.
+        author (Author): The remote Author object.
+
+    Returns:
+        None
+    """
+
+    try:
+        # Get the node associated with the author's host
+        node = Node.objects.get(host=author.host)
+    except Node.DoesNotExist:
+        return
+
+    # Ensure the node is connected
+    if not node.is_authenticated:
+        logger.error(f"[ERROR]: Node {node.host} is not connected")
+        return
+
+    # Construct the remote inbox URL
+    follow_request_url = f"{author.url}/inbox/"
+    logger.info(f"[INFO]: Sending follow request to {follow_request_url}")
+
+    # Send the request
+    try:
+        response = requests.post(
+            follow_request_url,
+            json=follow_request_data,
+            auth=(node.username, node.password),
+        )
+        if response.status_code >= 400:
+            logger.error(f"[ERROR]: Could not send follow request to {author.url}, {response.status_code} - {response.reason}")
+        else:
+            logger.info(f"[SUCCESS]: Follow request sent to {author.url}")
+    except requests.RequestException as e:
+        logger.error(f"[ERROR]: Failed to send follow request to {author.url} - {str(e)}")
+
+def is_local_author(author: Author):
+
+    return author.host in LOCAL_HOST_NAMES
+
 
 class InboxView(APIView):
     def post(self, request, author_id):
@@ -42,6 +98,10 @@ class InboxView(APIView):
 
             if existing_follow:
                 return Response(FollowSerializer(existing_follow).data, status=status.HTTP_200_OK)
+            
+            if not is_local_author:
+                follow_request_data = serializer.validated_data
+                send_follow_request_to_remote_author(follow_request_data, author)
 
             # If no follow request exists, validate and create a new one
             if serializer.is_valid():
