@@ -11,14 +11,17 @@ from users.models import Author, Follows
 from posts.models import Post, Like, Comment
 from node.models import Node
 from node.authentication import NodeAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.contenttypes.models import ContentType
+from rest_framework.permissions import IsAuthenticated
 from urllib.parse import urlparse
 import base64
 
 
 
 class InboxView(APIView):
-    authentication_classes = [NodeAuthentication]
+    authentication_classes = [JWTAuthentication, NodeAuthentication]
+    permission_classes = [IsAuthenticated]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -47,9 +50,6 @@ class InboxView(APIView):
             object_host = urlparse(object_data['host'])
             object_host_with_scheme = f"{object_host.scheme}://{object_host.netloc}"
             current_host = request.get_host()
-
-            print(object_host_with_scheme)
-            print("actor_host:",actor_host)
             # Determine if actor is remote or local 
             is_remote_actor = actor_host != current_host
 
