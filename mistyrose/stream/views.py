@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from .serializers import FollowSerializer
 from posts.serializers import CommentSerializer, LikeSerializer
 from users.models import Author, Follows
-from node.models import Node
 from posts.models import Post, Like, Comment
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
