@@ -178,7 +178,13 @@ class AuthorPostsView(APIView):
                                 json=post_data,
                             )
                         
-                        print(f"SUCCEEDED? {response}")
+                        print(f"Response Status Code: {response.status_code}")
+            
+                        if response.status_code == 401:
+                            # Print more details if the response is 401
+                            print(f"Authorization failed with status code 401. Response details:")
+                            print(f"Response Headers: {response.headers}")
+                            print(f"Response Content: {response.text}")
                         
                         #response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
 
