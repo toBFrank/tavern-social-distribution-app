@@ -713,7 +713,7 @@ class PublicPostsView(APIView):
 
     def get(self, request):
         if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Authentication credentials were not provided to get public posts."}, status=status.HTTP_403_FORBIDDEN)
 
         current_author = get_object_or_404(Author, user=request.user)
 
