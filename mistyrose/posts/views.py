@@ -80,6 +80,20 @@ class PostDetailsByFqidView(APIView):
         serializer = PostSerializer(post)
         return Response(serializer.data)
 
+def get_friends(author_id):
+    # Find authors that author A follows with status "ACCEPTED"
+    outgoing_follows = Follows.objects.filter(
+        local_follower_id=author_id, status='ACCEPTED'
+    ).values_list('followed_id', flat=True)
+
+    # Find authors that follow author A back with status "ACCEPTED"
+    incoming_follows = Follows.objects.filter(
+        followed_id=author_id, status='ACCEPTED', local_follower_id__in=outgoing_follows
+    ).values_list('local_follower_id', flat=True)
+
+    # Get Author objects or just their IDs for friends
+    return Author.objects.filter(id__in=incoming_follows)
+
 def get_remote_authors(request):
     remote_authors = []
     for node in Node.objects.filter(is_whitelisted=True):
@@ -108,14 +122,15 @@ def get_remote_authors(request):
                 author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
                 
                 # Get remote author or create
-                author, created = Author.objects.get_or_create(
-                    id=author_id,
-                    host=author_data['host'],
-                    display_name=author_data['displayName'],
-                    github=author_data.get('github', ''),
-                    profile_image=author_data.get('profileImage', ''),
-                    page=author_data['page'],
-                )
+                author, created = Author.objects.get_or_create(id=author_id)
+                if created:
+                    author.host = author_data['host']
+                    author.display_name = author_data['displayName']
+                    author.github = author_data.get('github', '')
+                    author.profile_image = author_data.get('profileImage', '')
+                    author.page = author_data['page']
+                    author.save()
+
                 remote_authors.append(author)
                 print(f"AN AUTHOR: {author}")
         # else:  # But what if this node is down? Or no authors in this node?
@@ -198,6 +213,7 @@ class AuthorPostsView(APIView):
                 elif post.visiblity == 'FRIENDS':
                     #send only to remote friends if friends post
                     #TODO: see how remote friends is being handled i.e. is it using remote_id?
+                    get_friends(author_serial)
                     pass
 
             except Exception as e:
