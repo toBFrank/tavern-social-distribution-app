@@ -174,13 +174,8 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         <CommentsModal postId={post.id} />
         {post.visibility !== 'FRIENDS' &&
           post.visibility !== 'UNLISTED' &&
-          post.visibility !== 'SHARED' && (
-            <ShareButton
-              postId={post.id}
-              authorId={post.author.id}
-              postContent={post}
-            />
-          )}
+          post.visibility !== 'SHARED'  
+          }
         {(post.visibility === 'PUBLIC' ||
           post.visibility === 'UNLISTED' ||
           post.visibility === 'FRIENDS' ||

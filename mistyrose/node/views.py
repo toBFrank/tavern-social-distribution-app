@@ -10,6 +10,10 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from requests.auth import HTTPBasicAuth
 import requests
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import AllowAny
 
 class NodeListCreateView(APIView):
     permission_classes = [IsAuthenticated]
