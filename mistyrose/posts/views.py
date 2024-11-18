@@ -17,6 +17,8 @@ from users.models import Author, Follows
 from .pagination import LikesPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 from django.http import FileResponse
+from node.models import Node
+from urllib.parse import unquote, urlparse
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -71,6 +73,49 @@ class PostDetailsByFqidView(APIView):
         
         serializer = PostSerializer(post)
         return Response(serializer.data)
+
+def get_remote_authors(request):
+    remote_authors = []
+    for node in Node.objects.filter(is_whitelisted=True):
+        # get authors for each remote node connection
+        #get authors 
+        get_authors_url = f"{node.host.rstrip('/')}/api/authors/"
+        parsed_url = urlparse(request.build_absolute_uri())
+        host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        credentials = f"{node.username}:{node.password}"
+        base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+        print(f"REQUEST \nget_authors_url: {get_authors_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
+        response = requests.get(
+                get_authors_url,
+                params={"host": host_with_scheme},
+                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                headers={"Authorization": f"Basic {base64_credentials}"},
+            )
+        
+        print(f"RESPONSE BRUH {response} WITH STATUS CODE {response.status_code}")
+        
+        # response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
+        if response.status_code == 200:
+            authors_data = response.json()["authors"]
+            print(f"IS IT THIS ITERABLE? {authors_data}")
+            for author_data in authors_data:
+                author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
+                
+                # Get remote author or create
+                author, created = Author.objects.get_or_create(
+                    id=author_id,
+                    host=author_data['host'],
+                    display_name=author_data['displayName'],
+                    github=author_data.get('github', ''),
+                    profile_image=author_data.get('profileImage', ''),
+                    page=author_data['page'],
+                )
+                remote_authors.append(author)
+                print(f"AN AUTHOR: {author}")
+            return remote_authors
+
+        else:
+            raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}. username: {node.username} password: {node.password} Response: {response.text}")
 
 class AuthorPostsView(APIView):
     """
