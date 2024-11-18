@@ -22,6 +22,9 @@ import requests
 from requests.auth import HTTPBasicAuth #basic auth
 from django.db import transaction #transaction requests so that if something happens in the middle, it'll be rolled back
 from urllib.parse import unquote, urlparse
+from node.authentication import NodeAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication  
+
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -96,7 +99,7 @@ def get_remote_authors(request):
         if response.status_code == 200:
             authors_data = response.json()["authors"]
             for author_data in authors_data:
-                author_id = author_data['id']
+                author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
                 
                 # Get remote author or create
                 author, created = Author.objects.get_or_create(
@@ -116,6 +119,7 @@ class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
     """
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
 
     def get(self, request, author_serial):
         posts = Post.objects.filter(author_id=author_serial)
