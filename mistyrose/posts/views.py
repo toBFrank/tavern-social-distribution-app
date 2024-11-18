@@ -93,7 +93,7 @@ def get_remote_authors(request):
                 headers={"Authorization": f"Basic {node.username}:{node.password}"},
             )
         
-        response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
+        # response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
         if response.status_code == 200:
             authors_data = response.json()["authors"]
             for author_data in authors_data:
@@ -111,7 +111,7 @@ def get_remote_authors(request):
                 remote_authors.append(author)
 
         else:
-            raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}")
+            raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}. username: {node.username} password: {node.password} Response: {response.text}")
 
 class AuthorPostsView(APIView):
     """
