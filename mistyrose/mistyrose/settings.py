@@ -110,6 +110,10 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+        },
+        "secondary8001": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db8001.sqlite3",
         }
     }
       
@@ -177,4 +181,4 @@ SIMPLE_JWT = {
     # 'AUTH_COOKIE_SECURE': True,  # Only send cookies over HTTPS
 }
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_AUTHORIZATION', 'Authorization')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
