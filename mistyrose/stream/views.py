@@ -44,7 +44,7 @@ class InboxView(APIView):
             # Extract actor_id and object_id safely
             actor_id = actor_data['id'].rstrip('/').split('/')[-1]
             object_id = object_data['page'].rstrip('/').split('/')[-1]
-
+            print(object_id)
             # Extract host information and normalize
             actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")
             object_host = urlparse(object_data['host'])
@@ -72,13 +72,16 @@ class InboxView(APIView):
             # Determine if the `object` (followed author) is local or remote
             print(f"object_host: {object_hostn} vs. current_host: {current_host}")
             is_remote_object = object_hostn != current_host
+            print(current_host)
+            print
 
             if is_remote_object:
                 # node = Node.objects.get(host=str(object_host_with_scheme) + "/")
-                node = Node.objects.filter(host=object_host_with_scheme).first()
+                node = Node.objects.filter(host=object_host_with_scheme + "/").first()
                 if not node:
                     return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
                 remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
+                print(remote_inbox_url)
                 parsed_url = urlparse(request.build_absolute_uri())
                 host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
                 credentials = f"{node.username}:{node.password}"
