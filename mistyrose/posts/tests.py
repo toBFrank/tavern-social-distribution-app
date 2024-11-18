@@ -789,6 +789,7 @@ class GitHubActivityToPostTest(TestCase):
             title="PushEvent in test-repo"
         ).exists())
 
+    # User Story #8 Test: As an author, I want to make posts.
     def test_post_creation_directly(self):
         # Test if posts can be directly created successfully
         author = Author.objects.create(
