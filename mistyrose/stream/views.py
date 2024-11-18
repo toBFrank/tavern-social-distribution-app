@@ -17,7 +17,7 @@ import requests
 
 
 class InboxView(APIView):
-    authentication_classes = [NodeAuthentication, JWTAuthentication]
+    authentication_classes = [JWTAuthentication, NodeAuthentication]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
