@@ -17,7 +17,7 @@ import base64
 from rest_framework_simplejwt.authentication import JWTAuthentication  
 
 class InboxView(APIView):
-    authentication_classes = [NodeAuthentication]
+    #authentication_classes = [NodeAuthentication]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -87,6 +87,7 @@ class InboxView(APIView):
 
                 try:
                     # Send POST request to the remote node
+                    print(f"Encoded Authorization Header: Basic {base64_credentials}")
                     response = requests.post(
                         remote_inbox_url,
                         params={"host": host_with_scheme},
