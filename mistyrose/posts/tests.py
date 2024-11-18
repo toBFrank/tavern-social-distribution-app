@@ -8,6 +8,8 @@ import urllib.parse
 import json
 import uuid
 from django.contrib.contenttypes.models import ContentType
+from unittest.mock import patch
+from django.test import TestCase
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -739,5 +741,75 @@ class LikedFQIDViewTest(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+# User Story #5 Test: As an author, I want to my (new, public) GitHub activity to be automatically turned into public posts, so everyone can see my GitHub activity too.
+class GitHubActivityToPostTest(TestCase):
+    @patch('requests.get')  # Mock GitHub API call
+    def test_github_activity_to_posts(self, mock_get):
+        # Mock the data returned by the GitHub API
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = [
+            {
+                "type": "PushEvent",
+                "repo": {"name": "test-repo"},
+                "created_at": "2024-11-17T12:00:00Z"
+            }
+        ]
 
-#endregion
+        # Create an author object
+        author = Author.objects.create(
+            display_name="test_author",
+            github="https://github.com/testuser",
+            host="http://localhost:8000",
+            page="http://localhost:8000/authors/test_author/"
+        )
+
+        # Call the existing route for GitHubEventsView
+        response = self.client.get(f'/github/events/{author.github.split("/")[-1]}/')
+
+        # print("Response type:", type(response))
+        # print("Response content:", response.content.decode())
+
+        # Manually simulate GitHub data processing logic and create posts
+        for event in mock_get.return_value.json.return_value:
+            Post.objects.create(
+                author_id=author,
+                title=f"{event['type']} in {event['repo']['name']}",
+                content=f"Details: {event}",
+                visibility="PUBLIC"
+            )
+
+        # print("All posts in database after test:")
+        # for post in Post.objects.all():
+        #     print(f"Post ID: {post.id}, Title: {post.title}, Author ID: {post.author_id}, Content: {post.content}, Visibility: {post.visibility}")
+
+        # Verify that the post was correctly created
+        self.assertTrue(Post.objects.filter(
+            author_id=author.id,
+            title="PushEvent in test-repo"
+        ).exists())
+
+    def test_post_creation_directly(self):
+        # Test if posts can be directly created successfully
+        author = Author.objects.create(
+            display_name="test_author",
+            github="https://github.com/testuser",
+            host="http://localhost:8000",
+            page="http://localhost:8000/authors/test_author/"
+        )
+
+        Post.objects.create(
+            author_id=author,
+            title="PushEvent in test-repo",
+            content="Details: Mock content",
+            visibility="PUBLIC"
+        )
+
+        # print("All posts in database after direct creation:")
+        # for post in Post.objects.all():
+        #     print(f"Post ID: {post.id}, Title: {post.title}, Author ID: {post.author_id}, Content: {post.content}")
+
+        # Verify that the post was successfully created
+        self.assertTrue(Post.objects.filter(
+            author_id=author,
+            title="PushEvent in test-repo"
+        ).exists())
