@@ -158,7 +158,9 @@ class AuthorPostsView(APIView):
                     #send to all remote inboxes if public post
                     for remote_author in remote_authors:
                         node = Node.objects.get(host=remote_author.host.rstrip('/'))
-                        author_inbox_url = f"{remote_author.url.rstrip('/')}/inbox/"
+                        author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                        #author_inbox_url = f"{remote_author_url_stripped}/inbox/"
+                        print(f"WHY TF DID IT CONCATENATE: {author_inbox_url}")
                         post_data = PostSerializer(post).data
                         print(f"ERM THIS IS POST DATAAAA {post_data}")
 
@@ -174,6 +176,8 @@ class AuthorPostsView(APIView):
                                 headers={"Authorization": f"Basic {base64_credentials}"},
                                 json=post_data,
                             )
+                        
+                        print(f"SUCCEEDED? {response}")
                         
                         #response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
 
