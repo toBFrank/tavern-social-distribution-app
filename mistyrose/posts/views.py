@@ -98,9 +98,12 @@ def get_remote_authors(request):
                 headers={"Authorization": f"Basic {base64_credentials}"},
             )
         
+        print(f"RESPONSE BRUH {response} WITH STATUS CODE {response.status_code}")
+        
         # response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
         if response.status_code == 200:
             authors_data = response.json()["authors"]
+            print(f"IS IT THIS ITERABLE? {authors_data}")
             for author_data in authors_data:
                 author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
                 
@@ -114,6 +117,7 @@ def get_remote_authors(request):
                     page=author_data['page'],
                 )
                 remote_authors.append(author)
+                print(f"AN AUTHOR: {author}")
 
         else:
             raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}. username: {node.username} password: {node.password} Response: {response.text}")
