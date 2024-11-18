@@ -946,3 +946,38 @@ class CommonMarkPostTest(APITestCase):
         get_response = self.client.get(f"{self.post_url}{post_id}/")
         self.assertEqual(get_response.status_code, status.HTTP_200_OK)
         self.assertEqual(get_response.data['content'], commonmark_content)
+
+# User Story #13 Test: As an author, posts I make can be in simple plain text, because I don't always want all the formatting features of CommonMark.
+class PlainTextPostTest(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        self.post_url = f"/api/authors/{self.author.id}/posts/"
+
+    def test_create_plain_text_post(self):
+        # Define plain text content
+        plain_text_content = "This is a simple plain text post."
+
+        # Create post
+        response = self.client.post(self.post_url, {
+            "title": "Plain Text Post",
+            "content": plain_text_content,
+            "contentType": "text/plain",
+            "visibility": "PUBLIC",
+        }, format='json')
+
+        # Verify post is created successfully
+        self.assertEqual(response.status_code, 201)
+        post_id = response.data.get('id')
+
+        # Get the post and verify that the content matches the input
+        get_response = self.client.get(f"{self.post_url}{post_id}/")
+        self.assertEqual(get_response.status_code, 200)
+        self.assertEqual(get_response.data['content'], plain_text_content)
+        self.assertEqual(get_response.data['contentType'], "text/plain")
