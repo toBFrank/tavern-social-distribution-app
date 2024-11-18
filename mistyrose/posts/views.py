@@ -53,8 +53,6 @@ class PostDetailsView(APIView):
 
         if serializer.is_valid():
             updated_post = serializer.save()
-        else:
-            # Update remote posts
             try:
                 remote_authors = get_remote_authors(request)  # Fetch remote authors
                 if updated_post.visibility == 'PUBLIC':
@@ -92,7 +90,6 @@ class PostDetailsView(APIView):
                     {"error": f"Failed to re-send updated post: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
-            return Response(serializer.data)
                 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
