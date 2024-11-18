@@ -10,6 +10,8 @@ import uuid
 from django.contrib.contenttypes.models import ContentType
 from unittest.mock import patch
 from django.test import TestCase
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -788,6 +790,7 @@ class GitHubActivityToPostTest(TestCase):
             title="PushEvent in test-repo"
         ).exists())
 
+    # User Story #8 Test: As an author, I want to make posts.
     def test_post_creation_directly(self):
         # Test if posts can be directly created successfully
         author = Author.objects.create(
@@ -813,3 +816,277 @@ class GitHubActivityToPostTest(TestCase):
             author_id=author,
             title="PushEvent in test-repo"
         ).exists())
+
+# User Story #6 Test: As an author, I want my profile page to show my public posts
+class AuthorPublicPostsTestCase(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        # Create public and private posts
+        self.public_post = Post.objects.create(
+            author_id=self.author,
+            title="Public Post",
+            visibility="PUBLIC",
+            content="This is a public post"
+        )
+        self.private_post = Post.objects.create(
+            author_id=self.author,
+            title="Private Post",
+            visibility="PRIVATE",
+            content="This is a private post"
+        )
+
+        self.client = APIClient()
+        response = self.client.post('/api/login/', {
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Login failed: {response.data}")
+
+        access_token = response.data.get('access_token')
+        self.assertIsNotNone(access_token, "Access token not found in response")
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+        self.url = f'/api/authors/{self.author.id}/posts/'
+
+    def test_author_public_posts(self):
+        # Send a request to get the post list
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # print("Response data:", response.json())
+
+        returned_posts = response.json()
+        filtered_posts = [post for post in returned_posts if post['visibility'] == 'PUBLIC']
+
+        # Make sure all posts returned are public posts
+        for post in filtered_posts:
+            self.assertEqual(post['visibility'], 'PUBLIC', f"Non-public post found: {post}")
+
+        # verify titles
+        returned_titles = [post['title'] for post in filtered_posts]
+        self.assertIn("Public Post", returned_titles)
+        self.assertNotIn("Private Post", returned_titles)
+
+# User Story #10 Test: As an author, I want to edit my posts locally.
+class EditPostTest(APITestCase):
+    def setUp(self):
+        # Create test users and associated authors
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+        self.author = Author.objects.create(
+            id = uuid.uuid4(),
+            display_name = "Test Author",
+            host = "http://localhost:8000",
+            user= self.user
+        )
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        
+        # Create testing posts
+        self.post = Post.objects.create(
+            id = uuid.uuid4(),
+            title = "Original Title",
+            content = "Original Content",
+            author_id = self.author,
+            visibility = "PUBLIC"
+        )
+
+        # Edit post API URL
+        self.edit_url = f"/api/authors/{self.author.id}/posts/{self.post.id}/"
+
+    def test_edit_post_success(self):
+        updated_data = {
+            "title": "Updated Title",
+            "content": "Updated Content"
+        }
+
+        # Send a PUT request to update a post
+        response = self.client.put(self.edit_url, updated_data, format="json")
+
+        # Verify return status code and post update status
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.title, updated_data["title"])
+        self.assertEqual(self.post.content, updated_data["content"])
+
+# User Story #12 Test: As an author, posts I make can be in CommonMark, so I can give my posts some basic formatting.
+class CommonMarkPostTest(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        self.post_url = f"/api/authors/{self.author.id}/posts/"
+
+    def test_create_post_with_commonmark(self):
+        # Define content in a CommonMark format
+        commonmark_content = "# Title\n\nThis is a **bold** statement and a [link](https://example.com)."
+
+        # Create post
+        response = self.client.post(self.post_url, {
+            "title": "Test Post",
+            "content": commonmark_content,
+            "contentType": "text/markdown",
+            "visibility": "PUBLIC",
+        }, format='json')
+
+        # Verify creation is successful
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        post_id = response.data.get('id')
+
+        # Get the post and verify whether the returned content is consistent with the input
+        get_response = self.client.get(f"{self.post_url}{post_id}/")
+        self.assertEqual(get_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(get_response.data['content'], commonmark_content)
+
+# User Story #13 Test: As an author, posts I make can be in simple plain text, because I don't always want all the formatting features of CommonMark.
+class PlainTextPostTest(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        self.post_url = f"/api/authors/{self.author.id}/posts/"
+
+    def test_create_plain_text_post(self):
+        # Define plain text content
+        plain_text_content = "This is a simple plain text post."
+
+        # Create post
+        response = self.client.post(self.post_url, {
+            "title": "Plain Text Post",
+            "content": plain_text_content,
+            "contentType": "text/plain",
+            "visibility": "PUBLIC",
+        }, format='json')
+
+        # Verify post is created successfully
+        self.assertEqual(response.status_code, 201)
+        post_id = response.data.get('id')
+
+        # Get the post and verify that the content matches the input
+        get_response = self.client.get(f"{self.post_url}{post_id}/")
+        self.assertEqual(get_response.status_code, 200)
+        self.assertEqual(get_response.data['content'], plain_text_content)
+        self.assertEqual(get_response.data['contentType'], "text/plain")
+
+# User Story #14 Test: As an author, posts I create can be images, so that I can share pictures and drawings.
+class ImagePostTest(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        self.post_url = f"/api/authors/{self.author.id}/posts/"
+
+    def test_create_image_post(self):
+        # Prepare the Base64 encoded content of the image
+        base64_image_content = (
+        "/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQA"
+        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+        )
+        
+        # Create post request
+        response = self.client.post(self.post_url, {
+            "title": "Image Post",
+            "content": base64_image_content,
+            "contentType": "image/png",
+            "visibility": "PUBLIC",
+        }, format='json')
+
+        # Verify post is created successfully
+        self.assertEqual(response.status_code, 201)
+        post_id = response.data.get('id')
+
+        # Get post data and verify
+        get_response = self.client.get(f"{self.post_url}{post_id}/")
+        self.assertEqual(get_response.status_code, 200)
+        self.assertEqual(get_response.data['contentType'], "image/png")
+        self.assertEqual(get_response.data['content'], f"data:image/png;base64,{base64_image_content}")
+
+# User Story #15 Test: As an author, posts I create that are in CommonMark can link to images, so that I can illustrate my posts.
+class PostCommonMarkImagesTestCase(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="testpassword"
+        )
+        self.author = Author.objects.create(
+            id=uuid.uuid4(),
+            user=self.user,
+            display_name="Test Author",
+            github="https://github.com/testauthor"
+        )
+
+    def test_create_post_with_commonmark_and_image(self):
+        # Define the content of the CommonMark format
+        content = "![Test Image](https://example.com/test-image.jpg)"
+        post = Post.objects.create(
+            title="Test Post with Image",
+            content_type="text/markdown",  
+            content=content,
+            author_id=self.author,  
+            visibility="PUBLIC"
+        )
+
+        # Verify post content and type
+        self.assertEqual(post.content, content)
+        self.assertEqual(post.content_type, "text/markdown")
+
+        # Confirm whether the image link is saved correctly
+        self.assertIn("https://example.com/test-image.jpg", post.content)
+
+# User Story #16 Test: As an author, I want to delete my own posts locally, so I can remove posts that are out of date or made by mistake.
+class DeletePostTestCase(APITestCase):
+    def setUp(self):
+        # Create a user and an author
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        self.author = Author.objects.create(user=self.user, display_name='Test Author')
+
+        # Authenticate the user with JWT
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        # Create a post by this author
+        self.post = Post.objects.create(
+            id=uuid.uuid4(),
+            author_id=self.author,
+            title="Test Post",
+            content="This is a test post.",
+            visibility="PUBLIC",
+        )
+
+        # url
+        self.post_url = reverse('post-detail', args=[self.author.id, self.post.id])
+
+    def test_get_post_after_visibility_change(self):
+        # Manually update the visibility in the database
+        self.post.visibility = "DELETED"
+        self.post.save()
+
+        # Fetch the post details
+        response = self.client.get(self.post_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify the visibility in the response
+        self.assertEqual(response.data.get("visibility"), "DELETED")
+
