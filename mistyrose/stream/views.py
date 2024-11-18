@@ -151,25 +151,46 @@ class InboxView(APIView):
                 # get or create remote author who made the post
                 author, created = Author.objects.get_or_create(
                     id=author_of_post_id,
-                    host=author_data['host'],
-                    display_name=author_data['displayName'],
-                    github=author_data.get('github', ''),
-                    profile_image=author_data.get('profileImage', ''),
-                    page=author_data['page'],
+                    defaults={
+                        "host": author_data['host'],
+                        "display_name": author_data['displayName'],
+                        "github": author_data.get('github', ''),
+                        "profile_image": author_data.get('profileImage', ''),
+                        "page": author_data['page'],
+                    }
                 )
 
             elif request.data.get('visibility') == 'FRIENDS':
                 #check if poster's author in database and actually friends (if friends, should already be in database)
                 pass
 
-            
-            serializer = PostSerializer(data=request.data)
-            if serializer.is_valid():
-                post = serializer.save(author_id=author)  #author of the poster
+
+                    # Extract post ID from the data
+            post_id = request.data.get("id").rstrip('/').split("/posts/")[-1]
+
+            # Check if the post already exists and create it if it doesn’t
+            post, created = Post.objects.get_or_create(
+                id=post_id,
+                defaults={
+                    "author_id": author,
+                    "title": request.data.get("title"),
+                    "description": request.data.get("description"),
+                    "content": request.data.get("content"),
+                    "content_type": request.data.get("contentType"),
+                    "visibility": request.data.get("visibility"),
+                }
+            )
+
+            if created:
+                # New post was created, return success response
+                serializer = PostSerializer(post)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-                
+                # Post already exists, return a message or existing post data
+                return Response(
+                    {"message": "Post already exists", "post": PostSerializer(post).data},
+                    status=status.HTTP_200_OK
+                )
             
         #endregion
         #region Comment Inbox
