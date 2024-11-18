@@ -20,8 +20,7 @@ import base64
 
 
 class InboxView(APIView):
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes = [JWTAuthentication, NodeAuthentication]
     
     def post(self, request, author_id):
         object_type = request.data.get('type')
