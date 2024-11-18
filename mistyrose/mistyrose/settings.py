@@ -181,4 +181,4 @@ SIMPLE_JWT = {
     # 'AUTH_COOKIE_SECURE': True,  # Only send cookies over HTTPS
 }
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_AUTHORIZATION', 'Authorization')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
