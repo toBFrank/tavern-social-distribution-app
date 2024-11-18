@@ -14,11 +14,18 @@ from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
+from node.models import Node
 from .pagination import LikesPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 from django.http import FileResponse
 from node.models import Node
+import requests
+from requests.auth import HTTPBasicAuth #basic auth
+from django.db import transaction #transaction requests so that if something happens in the middle, it'll be rolled back
 from urllib.parse import unquote, urlparse
+from node.authentication import NodeAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication  
+
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -112,10 +119,10 @@ def get_remote_authors(request):
                 )
                 remote_authors.append(author)
                 print(f"AN AUTHOR: {author}")
-            return remote_authors
-
-        else:
-            raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}. username: {node.username} password: {node.password} Response: {response.text}")
+        # else:  # But what if this node is down? Or no authors in this node?
+        #     raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}.")
+        
+    return remote_authors
 
 class AuthorPostsView(APIView):
     """
@@ -128,17 +135,81 @@ class AuthorPostsView(APIView):
         return Response(serializer.data)
 
     def post(self, request, author_serial):
-        try:
-            author = Author.objects.get(id=author_serial)
-        except Author.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        '''
+        create post locally and send to all remote inboxes if public, and remote friends if friends only post
+        '''
+        with transaction.atomic(): #a lot of datbase operations, better to do transaction so that if something fails, we can rollback instead of half updates
+            # create post locally first 
+            try:
+                author = Author.objects.get(id=author_serial)
+            except Author.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = PostSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(author_id=author)  # Associate the post with the author
+            serializer = PostSerializer(data=request.data)
+            if serializer.is_valid():
+                post = serializer.save(author_id=author)  # Associate the post with the author
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            # get remote authors and send post to remote inboxes 
+            try:
+                remote_authors = get_remote_authors(request)
+                print(f" REMOTE AUTHORS YUHH {remote_authors}")
+                if post.visibility == 'PUBLIC':
+                    #send to all remote inboxes if public post
+                    for remote_author in remote_authors:
+                        # node = Node.objects.get(host=remote_author.host.rstrip('/'))
+                        node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+                        if node: 
+                            author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                            #author_inbox_url = f"{remote_author_url_stripped}/inbox/"
+                            print(f"WHY TF DID IT CONCATENATE: {author_inbox_url}")
+                            post_data = PostSerializer(post).data
+                            post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
+                            print(f"ERM THIS IS POST DATAAAA {post_data}")
+
+                            parsed_url = urlparse(request.build_absolute_uri())
+                            host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                            credentials = f"{node.username}:{node.password}"
+                            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                            print(f"PAURST REQUEST \nget_authors_url: {author_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
+                            response = requests.post(
+                                    author_inbox_url,
+                                    params={"host": host_with_scheme},
+                                    # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                                    headers={"Authorization": f"Basic {base64_credentials}"},
+                                    json=post_data,
+                                )
+                            
+                            print(f"Response Status Code: {response.status_code}")
+                
+                            if response.status_code == 401:
+                                # Print more details if the response is 401
+                                print(f"Authorization failed with status code 401. Response details:")
+                                print(f"Response Headers: {response.headers}")
+                                print(f"Response Content: {response.text}")
+                            
+                            #response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
+
+                            if response.status_code >= 200 and response.status_code < 300:
+                                pass #success response
+                            else:
+                                return Response({"error": f"Could not send post to {remote_author.url}, {response.status_code} - {response.reason}"}, status=status.HTTP_400_BAD_REQUEST)
+                        
+                elif post.visiblity == 'FRIENDS':
+                    #send only to remote friends if friends post
+                    #TODO: see how remote friends is being handled i.e. is it using remote_id?
+                    pass
+
+            except Exception as e:
+                print(f"Remote Author Host: {remote_author.host.rstrip('/')}")
+                #return an error if fetching remote authors fails
+                return Response(
+                    {"error": f"Failed to fetch remote authors: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
       
 class PostImageView(APIView):
@@ -683,7 +754,7 @@ class PublicPostsView(APIView):
 
     def get(self, request):
         if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Authentication credentials were not provided to get public posts."}, status=status.HTTP_403_FORBIDDEN)
 
         current_author = get_object_or_404(Author, user=request.user)
 
