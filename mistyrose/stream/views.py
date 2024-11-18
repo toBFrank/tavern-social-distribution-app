@@ -17,9 +17,9 @@ import requests
 
 
 class InboxView(APIView):
-    # authentication_classes = [NodeAuthentication, JWTAuthentication]
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
+    # authentication_classes = []
+    # permission_classes = []
     
     def post(self, request, author_id):
         object_type = request.data.get('type')
