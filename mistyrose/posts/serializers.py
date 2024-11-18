@@ -128,6 +128,10 @@ class PostSerializer(serializers.ModelSerializer):
         
         return representation
     
+    def get_id(self, post_object): #get is for turning into JSON response
+        author_host = post_object.author_id.host.rstrip('/')
+        return f"{author_host}/api/authors/{post_object.author_id.id}/posts/{post_object.id}"
+    
 #endregion
     
     # def get_author(self, like_object): #TODO: remove - this is temporary fix to circular dependency in AuthorSerializer importing PostSerializer
