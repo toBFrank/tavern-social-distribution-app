@@ -62,19 +62,21 @@ class InboxView(APIView):
                 # After creating locally, forward the request if the recipient is remote
                 object_host = object_data.get("host")
                 node = Node.objects.filter(host=object_host).first()
-
+                print(node)
                 if node:
                     # Forward the request to the remote server
                     remote_author_id = object_data.get("id")
                     remote_inbox_url = urljoin(remote_author_id, "inbox")
                     print(remote_inbox_url)
-
+                    print(request.data)
                     try:
                         response = requests.post(
                             remote_inbox_url,
-                            json=serializer.data,
+                            json=request.data,
                             auth=HTTPBasicAuth(node.username, node.password)
                         )
+                        print(response.status_code)
+                        print(response.text) 
                         if response.status_code in [200, 201]:
                             return Response({"message": "Follow request forwarded successfully"}, status=status.HTTP_202_ACCEPTED)
                         else:
