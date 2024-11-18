@@ -91,11 +91,11 @@ def get_remote_authors(request):
         response = requests.get(
                 get_authors_url,
                 params={"host": host_with_scheme},
-                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
-                headers={"Authorization": f"Basic {node.username}:{node.password}"},
+                auth=HTTPBasicAuth(node.username, node.password),
+                #headers={"Authorization": f"Basic {node.username}:{node.password}"},
             )
         
-        # response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
+        #response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
         if response.status_code == 200:
             authors_data = response.json()["authors"]
             for author_data in authors_data:
