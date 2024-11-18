@@ -162,6 +162,7 @@ class AuthorPostsView(APIView):
                         #author_inbox_url = f"{remote_author_url_stripped}/inbox/"
                         print(f"WHY TF DID IT CONCATENATE: {author_inbox_url}")
                         post_data = PostSerializer(post).data
+                        post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
                         print(f"ERM THIS IS POST DATAAAA {post_data}")
 
                         parsed_url = urlparse(request.build_absolute_uri())

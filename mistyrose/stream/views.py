@@ -8,8 +8,12 @@ from posts.models import Post, Like, Comment
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from node.authentication import NodeAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication  
+
 
 class InboxView(APIView):
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
