@@ -88,11 +88,14 @@ def get_remote_authors(request):
         get_authors_url = f"{node.host.rstrip('/')}/api/authors/"
         parsed_url = urlparse(request.build_absolute_uri())
         host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        auth_str = f"{node.username}:{node.password}"
+        encoded_auth = base64.b64encode(auth_str.encode()).decode()
+
         response = requests.get(
                 get_authors_url,
                 params={"host": host_with_scheme},
-                auth=HTTPBasicAuth(node.username, node.password),
-                #headers={"Authorization": f"Basic {node.username}:{node.password}"},
+                #auth=HTTPBasicAuth(node.username, node.password),
+                headers={"Authorization": f"Basic {encoded_auth}"},
             )
         
         #response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
