@@ -6,6 +6,9 @@ import base64
 
 class NodeAuthentication(BaseAuthentication):
     def authenticate(self, request):
+        if 'Authorization' in request.headers and request.headers['Authorization'].startswith('Bearer '):
+            return None  # Don't process Bearer token in this view.
+
         auth = request.headers.get('Authorization')
         print(f"request: {request}")
         print(f"auth: {auth}")

@@ -80,20 +80,6 @@ class PostDetailsByFqidView(APIView):
         serializer = PostSerializer(post)
         return Response(serializer.data)
 
-def get_friends(author_id):
-    # Find authors that author A follows with status "ACCEPTED"
-    outgoing_follows = Follows.objects.filter(
-        local_follower_id=author_id, status='ACCEPTED'
-    ).values_list('followed_id', flat=True)
-
-    # Find authors that follow author A back with status "ACCEPTED"
-    incoming_follows = Follows.objects.filter(
-        followed_id=author_id, status='ACCEPTED', local_follower_id__in=outgoing_follows
-    ).values_list('local_follower_id', flat=True)
-
-    # Get Author objects or just their IDs for friends
-    return Author.objects.filter(id__in=incoming_follows)
-
 def get_remote_authors(request):
     remote_authors = []
     for node in Node.objects.filter(is_whitelisted=True):
@@ -138,6 +124,36 @@ def get_remote_authors(request):
         
     return remote_authors
 
+def send_to_inbox(remote_author, post_data, host_with_scheme):
+    """
+    Helper function to send post data to a remote author's inbox.
+    """
+    # Prepare URL and credentials for the remote author's inbox
+    node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+    if node:
+        author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+        credentials = f"{node.username}:{node.password}"
+        base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+        
+        # Make the request
+        response = requests.post(
+            author_inbox_url,
+            params={"host": host_with_scheme},
+            headers={"Authorization": f"Basic {base64_credentials}"},
+            json=post_data,
+        )
+
+        # Check for errors
+        if response.status_code == 401:
+            print(f"Authorization failed with status code 401. Response details:")
+            print(f"Response Headers: {response.headers}")
+            print(f"Response Content: {response.text}")
+        
+        if response.status_code >= 200 and response.status_code < 300:
+            print(f"Successfully sent post to {remote_author.url}")
+        else:
+            print(f"Failed to send post to {remote_author.url}, {response.status_code} - {response.reason}")
+
 class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
@@ -169,55 +185,42 @@ class AuthorPostsView(APIView):
             try:
                 remote_authors = get_remote_authors(request)
                 print(f" REMOTE AUTHORS YUHH {remote_authors}")
+
+                # Prepare post data 
+                post_data = PostSerializer(post).data
+                post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
+                print(f"ERM THIS IS POST DATAAAA {post_data}")
+
+                
+                parsed_url = urlparse(request.build_absolute_uri())
+                host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
                 if post.visibility == 'PUBLIC':
                     #send to all remote inboxes if public post
                     for remote_author in remote_authors:
-                        # node = Node.objects.get(host=remote_author.host.rstrip('/'))
-                        node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
-                        if node: 
-                            author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
-                            #author_inbox_url = f"{remote_author_url_stripped}/inbox/"
-                            print(f"WHY TF DID IT CONCATENATE: {author_inbox_url}")
-                            post_data = PostSerializer(post).data
-                            post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
-                            print(f"ERM THIS IS POST DATAAAA {post_data}")
-
-                            parsed_url = urlparse(request.build_absolute_uri())
-                            host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
-                            credentials = f"{node.username}:{node.password}"
-                            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-                            print(f"PAURST REQUEST \nget_authors_url: {author_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
-                            response = requests.post(
-                                    author_inbox_url,
-                                    params={"host": host_with_scheme},
-                                    # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
-                                    headers={"Authorization": f"Basic {base64_credentials}"},
-                                    json=post_data,
-                                )
-                            
-                            print(f"Response Status Code: {response.status_code}")
-                
-                            if response.status_code == 401:
-                                # Print more details if the response is 401
-                                print(f"Authorization failed with status code 401. Response details:")
-                                print(f"Response Headers: {response.headers}")
-                                print(f"Response Content: {response.text}")
-                            
-                            #response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
-
-                            if response.status_code >= 200 and response.status_code < 300:
-                                pass #success response
-                            else:
-                                return Response({"error": f"Could not send post to {remote_author.url}, {response.status_code} - {response.reason}"}, status=status.HTTP_400_BAD_REQUEST)
+                        send_to_inbox(remote_author, post_data, host_with_scheme)
                         
-                elif post.visiblity == 'FRIENDS':
+                elif post.visibility == 'FRIENDS':
                     #send only to remote friends if friends post
                     #TODO: see how remote friends is being handled i.e. is it using remote_id?
-                    get_friends(author_serial)
-                    pass
+                        # Get remote friends of the author
+                    outgoing_follows = Follows.objects.filter(
+                        local_follower_id=author, status='ACCEPTED'
+                    ).values_list('followed_id', flat=True)
+
+                    remote_friends = [
+                        remote_author for remote_author in remote_authors
+                        if Follows.objects.filter(
+                            followed_id=author,
+                            remote_follower_url=remote_author.url,
+                            status='ACCEPTED'
+                        ).exists() and remote_author.id in outgoing_follows
+                    ]
+
+                    # Send only to remote friends' inboxes
+                    for remote_friend in remote_friends:
+                        send_to_inbox(remote_friend, post_data, host_with_scheme)
 
             except Exception as e:
-                print(f"Remote Author Host: {remote_author.host.rstrip('/')}")
                 #return an error if fetching remote authors fails
                 return Response(
                     {"error": f"Failed to fetch remote authors: {str(e)}"},
