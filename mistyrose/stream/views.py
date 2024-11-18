@@ -14,13 +14,10 @@ from node.authentication import NodeAuthentication
 from django.contrib.contenttypes.models import ContentType
 from urllib.parse import urlparse
 import base64
-from rest_framework_simplejwt.authentication import JWTAuthentication  
-from rest_framework.permissions import IsAuthenticated
 
 
 class InboxView(APIView):
-    authentication_classes = [NodeAuthentication, JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [NodeAuthentication]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
