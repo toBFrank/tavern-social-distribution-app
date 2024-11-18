@@ -1,5 +1,6 @@
 from django.shortcuts import render
 import os
+from node.authentication import NodeAuthentication
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status, generics
@@ -324,6 +325,7 @@ class AuthorEditProfileView(APIView):
 
 
 class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle a collection of model instances AND comes with pagination
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
     #asked chatGPT how to get the authors using ListAPIView 2024-10-18
     # variables that ListAPIView needs
     queryset = Author.objects.all()
