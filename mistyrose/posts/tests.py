@@ -912,3 +912,37 @@ class EditPostTest(APITestCase):
         self.post.refresh_from_db()
         self.assertEqual(self.post.title, updated_data["title"])
         self.assertEqual(self.post.content, updated_data["content"])
+
+# User Story #12 Test: As an author, posts I make can be in CommonMark, so I can give my posts some basic formatting.
+class CommonMarkPostTest(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        self.post_url = f"/api/authors/{self.author.id}/posts/"
+
+    def test_create_post_with_commonmark(self):
+        # Define content in a CommonMark format
+        commonmark_content = "# Title\n\nThis is a **bold** statement and a [link](https://example.com)."
+
+        # Create post
+        response = self.client.post(self.post_url, {
+            "title": "Test Post",
+            "content": commonmark_content,
+            "contentType": "text/markdown",
+            "visibility": "PUBLIC",
+        }, format='json')
+
+        # Verify creation is successful
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        post_id = response.data.get('id')
+
+        # Get the post and verify whether the returned content is consistent with the input
+        get_response = self.client.get(f"{self.post_url}{post_id}/")
+        self.assertEqual(get_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(get_response.data['content'], commonmark_content)
