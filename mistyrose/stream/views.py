@@ -69,8 +69,6 @@ class InboxView(APIView):
             # Determine if the `object` (followed author) is local or remote
             print(f"object_host: {object_hostn} vs. current_host: {current_host}")
             is_remote_object = object_hostn != current_host
-            print(current_host)
-            print
 
             if is_remote_object:
                 # node = Node.objects.get(host=str(object_host_with_scheme) + "/")
