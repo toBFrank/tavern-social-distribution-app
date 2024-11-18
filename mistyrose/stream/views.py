@@ -73,7 +73,7 @@ class InboxView(APIView):
                         response = requests.post(
                             remote_inbox_url,
                             json=request.data,
-                            auth=HTTPBasicAuth(node.username, node.password)
+                            headers={"Authorization": f"Basic {node.username}:{node.password}"}
                         )
                         print(response.status_code)
                         print(response.text) 
