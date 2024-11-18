@@ -92,7 +92,7 @@ def get_remote_authors(request):
         response = requests.get(
                 get_authors_url,
                 params={"host": host_with_scheme},
-                #auth=HTTPBasicAuth(node.username, node.password),
+                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
                 headers={"Authorization": f"Basic {node.username}:{node.password}"},
             )
         
@@ -120,7 +120,6 @@ class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
     """
-    authentication_classes = [NodeAuthentication, JWTAuthentication]
 
     def get(self, request, author_serial):
         posts = Post.objects.filter(author_id=author_serial)
