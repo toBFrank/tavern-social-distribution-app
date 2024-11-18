@@ -23,7 +23,7 @@ class NodeAuthentication(BaseAuthentication):
 
         try:
             parsed_url = urlparse(request.build_absolute_uri())
-            host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+            host_with_scheme = f"https://{parsed_url.netloc}"
             print(f"host_with_scheme: {host_with_scheme}")
             print(f"username: {username} password: {password}")
             node = Node.objects.get(username=username, password=password, host=host_with_scheme)
