@@ -74,7 +74,7 @@ class InboxView(APIView):
 
             if is_remote_object:
                 # node = Node.objects.get(host=str(object_host_with_scheme) + "/")
-                node = Node.objects.filter(host=object_host_with_scheme).first()
+                node = Node.objects.filter(host=object_host_with_scheme + "/").first()
                 if not node:
                     return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
                 remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
