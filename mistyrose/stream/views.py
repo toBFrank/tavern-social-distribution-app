@@ -21,7 +21,6 @@ import base64
 
 class InboxView(APIView):
     authentication_classes = [JWTAuthentication, NodeAuthentication]
-    permission_classes = [IsAuthenticated]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -77,7 +76,6 @@ class InboxView(APIView):
                 host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
                 credentials = f"{node.username}:{node.password}"
                 base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-                print(f"PAURST REQUEST \nget_authors_url: {remote_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
                 # 1. Send follow request to the remote node's inbox
                 
                 follow_request_payload = {
@@ -89,7 +87,6 @@ class InboxView(APIView):
 
                 try:
                     # Send POST request to the remote node
-                    print(f"Encoded Authorization Header: Basic {base64_credentials}")
                     response = requests.post(
                         remote_inbox_url,
                         params={"host": host_with_scheme},
@@ -97,7 +94,6 @@ class InboxView(APIView):
                         headers={"Authorization": f"Basic {base64_credentials}"},
                         json=follow_request_payload,
                     )
-                    print(response.text)
                     if response.status_code not in [200, 201]:
                         return Response({"error": "Failed to send follow request to remote node"}, status=status.HTTP_400_BAD_REQUEST)
                 except requests.RequestException as e:
