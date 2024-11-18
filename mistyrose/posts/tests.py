@@ -1021,3 +1021,36 @@ class ImagePostTest(APITestCase):
         self.assertEqual(get_response.status_code, 200)
         self.assertEqual(get_response.data['contentType'], "image/png")
         self.assertEqual(get_response.data['content'], f"data:image/png;base64,{base64_image_content}")
+
+# User Story #15 Test: As an author, posts I create that are in CommonMark can link to images, so that I can illustrate my posts.
+class PostCommonMarkImagesTestCase(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="testpassword"
+        )
+        self.author = Author.objects.create(
+            id=uuid.uuid4(),
+            user=self.user,
+            display_name="Test Author",
+            github="https://github.com/testauthor"
+        )
+
+    def test_create_post_with_commonmark_and_image(self):
+        # Define the content of the CommonMark format
+        content = "![Test Image](https://example.com/test-image.jpg)"
+        post = Post.objects.create(
+            title="Test Post with Image",
+            content_type="text/markdown",  
+            content=content,
+            author_id=self.author,  
+            visibility="PUBLIC"
+        )
+
+        # Verify post content and type
+        self.assertEqual(post.content, content)
+        self.assertEqual(post.content_type, "text/markdown")
+
+        # Confirm whether the image link is saved correctly
+        self.assertIn("https://example.com/test-image.jpg", post.content)
