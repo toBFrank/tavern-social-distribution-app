@@ -91,7 +91,7 @@ class PostSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     likes = LikeSerializer(many=True, read_only=True)
     contentType = serializers.CharField(source='content_type', default='text/plain')
-    original_url = serializers.ListField(child=serializers.CharField(), allow_null=True, required=False)
+    #original_url = serializers.ListField(child=serializers.CharField(), allow_null=True, required=False)
     class Meta:
         model = Post
         fields = [
@@ -106,7 +106,7 @@ class PostSerializer(serializers.ModelSerializer):
             'likes',
             'published',
             'visibility',
-            'original_url',
+            #'original_url',
         ]
 
        
