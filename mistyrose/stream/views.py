@@ -8,119 +8,20 @@ from posts.models import Post, Like, Comment
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.decorators import renderer_classes, permission_classes
-import requests
+
 from django.conf import settings
 from urllib.parse import urlparse
-import logging
-
-from node.models import Node
-
-logger = logging.getLogger(__name__)
-LOCAL_HOST_NAMES = ["http://127.0.0.1/",
-                    "http://127.0.0.1:8000/"]
-
-from requests.auth import HTTPBasicAuth
 from urllib.parse import urlparse
-import requests
-import logging
 
-logger = logging.getLogger(__name__)
 
-def send_follow_request_to_remote_author(follow_request_data, author):
-    """
-    Send a follow request to a remote author's inbox, verifying the connection and whitelisting.
-
-    Args:
-        follow_request_data (dict): Serialized follow request data.
-        author (Author): The remote Author object.
-
-    Returns:
-        dict: A response dictionary with the connection status and any errors.
-    """
-    try:
-        # Get the node associated with the author's host
-        node = Node.objects.get(host=author.host)
-    except Node.DoesNotExist:
-        logger.error(f"[ERROR]: Node for host {author.host} does not exist")
-        return {"is_connected": False, "error": "Node does not exist locally"}
-
-    # Ensure the node is whitelisted
-    if not node.is_whitelisted:
-        logger.error(f"[ERROR]: Node {node.host} is not whitelisted locally")
-        node.is_authenticated = False
-        node.save()
-        return {"is_connected": False, "error": "Node is not whitelisted locally"}
-
-    # Construct the remote API URL for connectivity check
-    remote_node_url = f"{author.host}/api/node/"
-    parsed_url = urlparse(node.host)
-    local_host = f"{parsed_url.scheme}://{parsed_url.netloc}"
-
-    try:
-        # Verify connectivity with the remote node
-        logger.info(f"[INFO]: Verifying connection to remote node at {remote_node_url}")
-        response = requests.get(
-            remote_node_url,
-            params={"host": local_host},
-            auth=HTTPBasicAuth(node.username, node.password),
-        )
-        response.raise_for_status()  # Raise an exception if the status code >= 400
-
-        # Parse the response from the remote node
-        remote_node_data = response.json().get("item")
-        if not remote_node_data:
-            logger.error(f"[ERROR]: Remote node {node.host} returned invalid data")
-            node.is_authenticated = False
-            node.save()
-            return {"is_connected": False, "error": "Invalid response from remote node"}
-
-        if not remote_node_data.get("is_whitelisted", False):
-            logger.error(f"[ERROR]: Node {node.host} is not whitelisted remotely")
-            node.is_authenticated = False
-            node.save()
-            return {"is_connected": False, "error": "Node is not whitelisted remotely"}
-
-        # Update node's authentication status
-        node.is_authenticated = True
-        node.save()
-        logger.info(f"[INFO]: Remote node {node.host} is connected and authenticated")
-
-        # Send the follow request to the remote author's inbox
-        follow_request_url = f"{author.url}/inbox/"
-        logger.info(f"[INFO]: Sending follow request to {follow_request_url}")
-        follow_response = requests.post(
-            follow_request_url,
-            json=follow_request_data,
-            auth=HTTPBasicAuth(node.username, node.password),
-        )
-        if follow_response.status_code >= 400:
-            logger.error(
-                f"[ERROR]: Failed to send follow request to {author.url}, "
-                f"Status: {follow_response.status_code}, Reason: {follow_response.reason}"
-            )
-            return {
-                "is_connected": True,
-                "error": f"Failed to send follow request: {follow_response.reason}",
-            }
-        else:
-            logger.info(f"[SUCCESS]: Follow request sent to {author.url}")
-            return {"is_connected": True}
-
-    except requests.RequestException as e:
-        logger.error(f"[ERROR]: Failed to verify/connect to remote node {node.host} - {str(e)}")
-        node.is_authenticated = False
-        node.save()
-        return {"is_connected": False, "error": str(e)}
-
+LOCAL_HOST_NAMES = ["http://127.0.0.1/", "https://rithwik-node-6a32aa4f2653.herokuapp.com/",
+                    "http://127.0.0.1:8000/", "http://127.0.0.1:8000/"]
 def is_local_author(author: Author):
 
     return author.host in LOCAL_HOST_NAMES
 
 
 class InboxView(APIView):
-    authentication_classes = []
-    permission_classes = []
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -153,10 +54,7 @@ class InboxView(APIView):
 
             if existing_follow:
                 return Response(FollowSerializer(existing_follow).data, status=status.HTTP_200_OK)
-            
-            if not is_local_author:
-                follow_request_data = serializer.validated_data
-                send_follow_request_to_remote_author(follow_request_data, author)
+        
 
             # If no follow request exists, validate and create a new one
             if serializer.is_valid():
