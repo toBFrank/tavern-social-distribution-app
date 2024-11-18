@@ -10,10 +10,17 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from node.authentication import NodeAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication  
+from urllib.parse import urlparse
+import base64
+from node.models import Node
+import requests
 
 
 class InboxView(APIView):
     authentication_classes = [NodeAuthentication, JWTAuthentication]
+    # authentication_classes = []
+    # permission_classes = []
+    
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -26,7 +33,7 @@ class InboxView(APIView):
             # Retrieve actor and object data, and handle None case
             actor_data = request.data.get('actor')
             object_data = request.data.get('object')
-
+            print(object_data)
             # Check if actor_data and object_data exist
             if actor_data is None or 'id' not in actor_data:
                 return Response({"error": "'actor' or 'actor.id' is missing from the request"}, status=status.HTTP_400_BAD_REQUEST)
@@ -36,26 +43,102 @@ class InboxView(APIView):
 
             # Extract actor_id and object_id safely
             actor_id = actor_data['id'].rstrip('/').split('/')[-1]
-            object_id = object_data['id'].rstrip('/').split('/')[-1]
+            object_id = object_data['page'].rstrip('/').split('/')[-1]
+            print(object_id)
+            # Extract host information and normalize
+            actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")
+            object_host = urlparse(object_data['host'])
+            object_hostn = urlparse(object_data['host']).netloc
+            object_host_with_scheme = f"{object_host.scheme}://{object_host.netloc}"
+            current_host = request.get_host()
+            # Determine if actor is remote or local 
+            print(f"actor_host: {actor_host} vs. current_host: {current_host}")
+            is_remote_actor = actor_host != current_host
 
-            # Check if the follow request already exists
-            existing_follow = Follows.objects.filter(
-                local_follower_id=actor_id,
-                followed_id=object_id
-            ).first()
+            if is_remote_actor:
+                # Populate the `Author` table with remote `actor` details if it doesn't exist
+                Author.objects.get_or_create(
+                    id=actor_id,
+                    defaults={
+                        "host": actor_data['host'],
+                        "display_name": actor_data.get('displayName'),
+                        "url": actor_data['id'],
+                        "github": actor_data.get('github', ""),
+                        "profile_image": actor_data.get('profileImage', ""),
+                        "page": actor_data.get('page', ""),
+                    }
+                )
 
-            if existing_follow:
-                return Response(FollowSerializer(existing_follow).data, status=status.HTTP_200_OK)
+            # Determine if the `object` (followed author) is local or remote
+            print(f"object_host: {object_hostn} vs. current_host: {current_host}")
+            is_remote_object = object_hostn != current_host
 
-            # If no follow request exists, validate and create a new one
-            if serializer.is_valid():
-                serializer.validated_data['local_follower_id']['id'] = actor_id
-                serializer.validated_data['followed_id']['id'] = object_id
-                serializer.save()
+            if is_remote_object:
+                # node = Node.objects.get(host=str(object_host_with_scheme) + "/")
+                node = Node.objects.filter(host=object_host_with_scheme).first()
+                if not node:
+                    return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
+                remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
+                print(remote_inbox_url)
+                parsed_url = urlparse(request.build_absolute_uri())
+                host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                credentials = f"{node.username}:{node.password}"
+                base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                # 1. Send follow request to the remote node's inbox
+                
+                follow_request_payload = {
+                    "type": "follow",
+                    "summary": f"{actor_data['id']} wants to follow {object_data['id']}",  # Use ID for clarity
+                    "actor": actor_data,  # Send full actor data
+                    "object": object_data  # Send full object data
+                }
 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                print(f"REQUEST remote_inbox_url: {remote_inbox_url} host_with_scheme: {host_with_scheme}")
+                try:
+                    # Send POST request to the remote node
+                    response = requests.post(
+                        remote_inbox_url,
+                        params={"host": host_with_scheme},
+                                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                        headers={"Authorization": f"Basic {base64_credentials}"},
+                        json=follow_request_payload,
+                    )
+                    if response.status_code not in [200, 201]:
+                        return Response({"error": "Failed to send follow request to remote node"}, status=status.HTTP_400_BAD_REQUEST)
+                except requests.RequestException as e:
+                    return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                # 2. Automatically accept the follow request locally
+                local_follower = Author.objects.get(id=actor_id)  # Fetch local `actor`
+                Follows.objects.create(
+                    local_follower_id=local_follower,  # Set local actor
+                    remote_follower_url=actor_data.get('id'),  # Store actor's full ID
+                    followed_id=author,
+                    status="ACCEPTED",
+                    is_remote=True  # Mark as a remote follow request
+                )
+
+                return Response({"message": "Follow request sent to remote node and accepted locally."}, status=status.HTTP_201_CREATED)
+
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                # Local follow request handling
+                serializer = FollowSerializer(data=request.data)
+                existing_follow = Follows.objects.filter(
+                    local_follower_id=actor_id,
+                    followed_id=author,
+                ).first()
+
+                if existing_follow:
+                    return Response(FollowSerializer(existing_follow).data, status=status.HTTP_200_OK)
+
+                if serializer.is_valid():
+                    serializer.validated_data['local_follower_id']['id'] = actor_id
+                    serializer.validated_data['followed_id']['id'] = object_id
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    print("error")
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         #endregion
         #region Post Inbox
         elif object_type == "post":
@@ -71,25 +154,74 @@ class InboxView(APIView):
                 # get or create remote author who made the post
                 author, created = Author.objects.get_or_create(
                     id=author_of_post_id,
-                    host=author_data['host'],
-                    display_name=author_data['displayName'],
-                    github=author_data.get('github', ''),
-                    profile_image=author_data.get('profileImage', ''),
-                    page=author_data['page'],
+                    defaults={
+                        "host": author_data['host'],
+                        "display_name": author_data['displayName'],
+                        "github": author_data.get('github', ''),
+                        "profile_image": author_data.get('profileImage', ''),
+                        "page": author_data['page'],
+                    }
                 )
 
             elif request.data.get('visibility') == 'FRIENDS':
                 #check if poster's author in database and actually friends (if friends, should already be in database)
-                pass
+                try:
+                    # Retrieve the author if they exist, otherwise return an error response
+                    author = Author.objects.get(id=author_of_post_id)
+                    
+                    # Check if the author is actually a friend
+                    # if not author.is_friend(author_id):  # assuming you have an `is_friend` method
+                    #     return Response({"error": "Author is not a friend."}, status=status.HTTP_403_FORBIDDEN)
+                    
+                except Author.DoesNotExist:
+                    return Response({"error": "Author not found in the database."}, status=status.HTTP_404_NOT_FOUND)
 
-            
-            serializer = PostSerializer(data=request.data)
-            if serializer.is_valid():
-                post = serializer.save(author_id=author)  #author of the poster
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            # Extract post ID from the data
+            post_id = request.data.get("id").rstrip('/').split("/posts/")[-1]
+
+            # Check if the post already exists and create it if it doesn’t
+            # post, created = Post.objects.get_or_create(
+            #     id=post_id,
+            #     defaults={
+            #         "author_id": author,
+            #         "title": request.data.get("title"),
+            #         "description": request.data.get("description"),
+            #         "content": request.data.get("content"),
+            #         "content_type": request.data.get("contentType"),
+            #         "visibility": request.data.get("visibility"),
+            #     }
+            # )
+            # filter for post
+            # if it exists, replace it with the new one
+            post = Post.objects.filter(id=post_id).first()
+            if post:
+                post.author_id = author
+                post.title = request.data.get("title")
+                post.description = request.data.get("description")
+                post.content = request.data.get("content")
+                post.content_type = request.data.get("contentType")
+                post.visibility = request.data.get("visibility")
+                post.save()
                 
+                # Post already exists, return a message or existing post data
+                return Response(
+                    {"message": "Post already exists", "post": PostSerializer(post).data},
+                    status=status.HTTP_200_OK
+                )
+            else:
+                post = Post.objects.create(
+                    id=post_id,
+                    author_id=author,
+                    title=request.data.get("title"),
+                    description=request.data.get("description"),
+                    content=request.data.get("content"),
+                    content_type=request.data.get("contentType"),
+                    visibility=request.data.get("visibility"),
+                )
+                serializer = PostSerializer(post)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
             
         #endregion
         #region Comment Inbox
