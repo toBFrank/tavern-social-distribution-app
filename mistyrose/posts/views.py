@@ -184,7 +184,6 @@ class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
     """
-    authentication_classes = []
 
     def get(self, request, author_serial):
         posts = Post.objects.filter(author_id=author_serial)
