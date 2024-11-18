@@ -33,7 +33,8 @@ DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-prof
 def create_author(author_data, request, user):
     author_id = author_data.get('id', uuid.uuid4())  # Generate or get the UUID for the author
     host = request.build_absolute_uri('/')[:-1]  # Build the host
-    page_url = reverse('author-detail', kwargs={'pk': author_id}, request=request)  # Generate the URL for the author's page
+    #page_url = reverse('author-detail', kwargs={'pk': author_id}, request=request)  # Generate the URL for the author's page
+    page_url = f"{host}/profile/{author_id}"
     author = Author.objects.create(  # Create the Author object
         id=author_id,
         host=host,
