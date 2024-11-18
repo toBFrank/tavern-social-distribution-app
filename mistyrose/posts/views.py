@@ -49,6 +49,7 @@ class PostDetailsView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         serializer = PostSerializer(post, data=request.data)
+        print("HELLO IM IN PUT")
 
         if serializer.is_valid():
             updated_post = serializer.save()
@@ -56,10 +57,10 @@ class PostDetailsView(APIView):
             # Update remote posts
             try:
                 remote_authors = get_remote_authors(request)  # Fetch remote authors
-                
                 if updated_post.visibility == 'PUBLIC':
                     for remote_author in remote_authors:
                         node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+                        print(f"HI IM UNDER THE NODENode: {node}")
                         if node:
                             author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
                             post_data = PostSerializer(updated_post).data
