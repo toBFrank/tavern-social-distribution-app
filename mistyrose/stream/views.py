@@ -13,7 +13,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class InboxView(APIView):
-    authentication_classes = [JWTAuthentication, NodeAuthentication]
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
