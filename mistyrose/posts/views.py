@@ -293,7 +293,6 @@ class AuthorPostsView(APIView):
                         remote_author for remote_author in remote_authors
                         if Follows.objects.filter(
                             followed_id=author,
-                            remote_follower_url=remote_author.url,
                             status='ACCEPTED'
                         ).exists() and remote_author.id in outgoing_follows
                     ]
