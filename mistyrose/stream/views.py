@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 import base64
 
 
+
 class InboxView(APIView):
     authentication_classes = [NodeAuthentication]
     def post(self, request, author_id):
