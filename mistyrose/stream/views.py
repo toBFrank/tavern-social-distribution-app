@@ -15,9 +15,12 @@ from django.contrib.contenttypes.models import ContentType
 from urllib.parse import urlparse
 import base64
 from rest_framework_simplejwt.authentication import JWTAuthentication  
+from rest_framework.permissions import IsAuthenticated
+
 
 class InboxView(APIView):
-    #authentication_classes = [NodeAuthentication]
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
+    permission_classes = [IsAuthenticated]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -43,10 +46,11 @@ class InboxView(APIView):
 
             # Extract host information and normalize
             actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")
-            object_host = urlparse(object_data['host']).netloc
+            object_host = urlparse(object_data['host'])
+            object_host_with_scheme = f"{object_host.scheme}://{object_host.netloc}"
             current_host = request.get_host()
 
-            print(current_host)
+            print(object_host_with_scheme)
             print("actor_host:",actor_host)
             # Determine if actor is remote or local 
             is_remote_actor = actor_host != current_host
@@ -66,10 +70,10 @@ class InboxView(APIView):
                 )
 
             # Determine if the `object` (followed author) is local or remote
-            is_remote_object = object_host != current_host
+            is_remote_object = object_host_with_scheme != current_host
 
             if is_remote_object:
-                node = Node.objects.get(host=object_host)
+                node = Node.objects.get(host=str(object_host_with_scheme) + "/")
                 remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
                 parsed_url = urlparse(request.build_absolute_uri())
                 host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
@@ -95,6 +99,7 @@ class InboxView(APIView):
                         headers={"Authorization": f"Basic {base64_credentials}"},
                         json=follow_request_payload,
                     )
+                    print(response.text)
                     if response.status_code not in [200, 201]:
                         return Response({"error": "Failed to send follow request to remote node"}, status=status.HTTP_400_BAD_REQUEST)
                 except requests.RequestException as e:
