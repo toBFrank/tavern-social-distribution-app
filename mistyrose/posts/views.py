@@ -52,10 +52,37 @@ class PostDetailsView(APIView):
         serializer = PostSerializer(post, data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            post = serializer.save()  # Save the updated post
+            
+            # Get remote authors and notify them of the updated post
+            try:
+                remote_authors = get_remote_authors(request)
+                print(f"REMOTE AUTHORS FOR UPDATE: {remote_authors}")
+                
+                for remote_author in remote_authors:
+                    node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+                    if node:
+                        author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                        post_data = PostSerializer(post).data
+                        post_data['id'] = f"{post.author_id.host.rstrip('/')}/api/authors/{post.author_id.id}/posts/{post.id}/"
+                        
+                        # Send the updated post to the remote inbox
+                        credentials = f"{node.username}:{node.password}"
+                        base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                        response = requests.post(
+                            author_inbox_url,
+                            headers={"Authorization": f"Basic {base64_credentials}"},
+                            json=post_data,
+                        )
+                        
+                        if response.status_code not in range(200, 300):
+                            print(f"Failed to notify {remote_author.host} of update: {response.status_code}")
+            except Exception as e:
+                print(f"Failed to notify remote authors: {e}")
 
+            return Response(serializer.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
       
     def delete(self, request, author_serial, post_serial):
         try:
