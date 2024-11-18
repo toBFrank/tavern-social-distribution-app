@@ -16,8 +16,8 @@ import logging
 from node.models import Node
 
 logger = logging.getLogger(__name__)
-LOCAL_HOST_NAMES = ["http://127.0.0.1/", "https://rithwik-node-6a32aa4f2653.herokuapp.com/",
-                    "http://127.0.0.1:8000/", "http://127.0.0.1:8000/"]
+LOCAL_HOST_NAMES = ["http://127.0.0.1/",
+                    "http://127.0.0.1:8000/"]
 
 def send_follow_request_to_remote_author(follow_request_data, author):
     """
