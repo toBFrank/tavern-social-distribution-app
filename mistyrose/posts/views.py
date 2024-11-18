@@ -88,9 +88,7 @@ def get_remote_authors(request):
         get_authors_url = f"{node.host.rstrip('/')}/api/authors/"
         parsed_url = urlparse(request.build_absolute_uri())
         host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
-        auth_str = f"{node.username}:{node.password}"
-        encoded_auth = base64.b64encode(auth_str.encode()).decode()
-
+        print(f"REQUEST \nget_authors_url: {get_authors_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
         response = requests.get(
                 get_authors_url,
                 params={"host": host_with_scheme},
@@ -98,7 +96,7 @@ def get_remote_authors(request):
                 headers={"Authorization": f"Basic {encoded_auth}"},
             )
         
-        #response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
+        # response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
         if response.status_code == 200:
             authors_data = response.json()["authors"]
             for author_data in authors_data:
@@ -116,7 +114,7 @@ def get_remote_authors(request):
                 remote_authors.append(author)
 
         else:
-            raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}")
+            raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}. username: {node.username} password: {node.password} Response: {response.text}")
 
 class AuthorPostsView(APIView):
     """
@@ -719,7 +717,7 @@ class PublicPostsView(APIView):
 
     def get(self, request):
         if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Authentication credentials were not provided to get public posts."}, status=status.HTTP_403_FORBIDDEN)
 
         current_author = get_object_or_404(Author, user=request.user)
 
