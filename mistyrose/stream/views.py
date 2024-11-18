@@ -20,7 +20,8 @@ import base64
 
 
 class InboxView(APIView):
-    authentication_classes = [ NodeAuthentication, JWTAuthentication, ]
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
+    
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -51,6 +52,7 @@ class InboxView(APIView):
             object_host_with_scheme = f"{object_host.scheme}://{object_host.netloc}"
             current_host = request.get_host()
             # Determine if actor is remote or local 
+            print(f"actor_host: {actor_host} vs. current_host: {current_host}")
             is_remote_actor = actor_host != current_host
 
             if is_remote_actor:
