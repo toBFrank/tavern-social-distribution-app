@@ -184,6 +184,7 @@ class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
     """
+    authentication_classes = []
 
     def get(self, request, author_serial):
         posts = Post.objects.filter(author_id=author_serial)
@@ -246,7 +247,6 @@ class AuthorPostsView(APIView):
                                 print(f"Response Content: {response.text}")
                             
                             #response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
-
                             if response.status_code >= 200 and response.status_code < 300:
                                 pass #success response
                             else:
