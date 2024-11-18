@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -868,3 +869,46 @@ class AuthorPublicPostsTestCase(APITestCase):
         returned_titles = [post['title'] for post in filtered_posts]
         self.assertIn("Public Post", returned_titles)
         self.assertNotIn("Private Post", returned_titles)
+
+# User Story #10 Test: As an author, I want to edit my posts locally.
+class EditPostTest(APITestCase):
+    def setUp(self):
+        # Create test users and associated authors
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+        self.author = Author.objects.create(
+            id = uuid.uuid4(),
+            display_name = "Test Author",
+            host = "http://localhost:8000",
+            user= self.user
+        )
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        
+        # Create testing posts
+        self.post = Post.objects.create(
+            id = uuid.uuid4(),
+            title = "Original Title",
+            content = "Original Content",
+            author_id = self.author,
+            visibility = "PUBLIC"
+        )
+
+        # Edit post API URL
+        self.edit_url = f"/api/authors/{self.author.id}/posts/{self.post.id}/"
+
+    def test_edit_post_success(self):
+        updated_data = {
+            "title": "Updated Title",
+            "content": "Updated Content"
+        }
+
+        # Send a PUT request to update a post
+        response = self.client.put(self.edit_url, updated_data, format="json")
+
+        # Verify return status code and post update status
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.title, updated_data["title"])
+        self.assertEqual(self.post.content, updated_data["content"])
