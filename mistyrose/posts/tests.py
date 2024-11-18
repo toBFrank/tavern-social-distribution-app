@@ -1073,3 +1073,72 @@ class ImagePostTest(APITestCase):
         self.assertEqual(get_response.status_code, 200)
         self.assertEqual(get_response.data['contentType'], "image/png")
         self.assertEqual(get_response.data['content'], f"data:image/png;base64,{base64_image_content}")
+
+# User Story #15 Test: As an author, posts I create that are in CommonMark can link to images, so that I can illustrate my posts.
+class PostCommonMarkImagesTestCase(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(
+            username="testuser",
+            password="testpassword"
+        )
+        self.author = Author.objects.create(
+            id=uuid.uuid4(),
+            user=self.user,
+            display_name="Test Author",
+            github="https://github.com/testauthor"
+        )
+
+    def test_create_post_with_commonmark_and_image(self):
+        # Define the content of the CommonMark format
+        content = "![Test Image](https://example.com/test-image.jpg)"
+        post = Post.objects.create(
+            title="Test Post with Image",
+            content_type="text/markdown",  
+            content=content,
+            author_id=self.author,  
+            visibility="PUBLIC"
+        )
+
+        # Verify post content and type
+        self.assertEqual(post.content, content)
+        self.assertEqual(post.content_type, "text/markdown")
+
+        # Confirm whether the image link is saved correctly
+        self.assertIn("https://example.com/test-image.jpg", post.content)
+
+# User Story #16 Test: As an author, I want to delete my own posts locally, so I can remove posts that are out of date or made by mistake.
+class DeletePostTestCase(APITestCase):
+    def setUp(self):
+        # Create a user and an author
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        self.author = Author.objects.create(user=self.user, display_name='Test Author')
+
+        # Authenticate the user with JWT
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        # Create a post by this author
+        self.post = Post.objects.create(
+            id=uuid.uuid4(),
+            author_id=self.author,
+            title="Test Post",
+            content="This is a test post.",
+            visibility="PUBLIC",
+        )
+
+        # url
+        self.post_url = reverse('post-detail', args=[self.author.id, self.post.id])
+
+    def test_get_post_after_visibility_change(self):
+        # Manually update the visibility in the database
+        self.post.visibility = "DELETED"
+        self.post.save()
+
+        # Fetch the post details
+        response = self.client.get(self.post_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify the visibility in the response
+        self.assertEqual(response.data.get("visibility"), "DELETED")
+
