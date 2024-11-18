@@ -20,7 +20,6 @@ import base64
 
 
 class InboxView(APIView):
-    authentication_classes = [JWTAuthentication, NodeAuthentication]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -47,6 +46,7 @@ class InboxView(APIView):
             # Extract host information and normalize
             actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")
             object_host = urlparse(object_data['host'])
+            object_hostnetloc = urlparse(object_data['host']).netloc
             object_host_with_scheme = f"{object_host.scheme}://{object_host.netloc}"
             current_host = request.get_host()
             # Determine if actor is remote or local 
@@ -67,7 +67,7 @@ class InboxView(APIView):
                 )
 
             # Determine if the `object` (followed author) is local or remote
-            is_remote_object = object_host_with_scheme != current_host
+            is_remote_object = object_hostnetloc != current_host
 
             if is_remote_object:
                 node = Node.objects.get(host=str(object_host_with_scheme) + "/")
@@ -89,9 +89,6 @@ class InboxView(APIView):
                     # Send POST request to the remote node
                     response = requests.post(
                         remote_inbox_url,
-                        params={"host": host_with_scheme},
-                                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
-                        headers={"Authorization": f"Basic {base64_credentials}"},
                         json=follow_request_payload,
                     )
                     if response.status_code not in [200, 201]:
