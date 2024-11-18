@@ -10,10 +10,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 
-from django.conf import settings
-from urllib.parse import urlparse
-from urllib.parse import urlparse
-
 
 
 class InboxView(APIView):
