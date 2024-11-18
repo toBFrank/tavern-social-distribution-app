@@ -110,6 +110,10 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+        },
+        "secondary8001": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db8001.sqlite3",
         }
     }
       
