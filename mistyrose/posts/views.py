@@ -118,10 +118,10 @@ def get_remote_authors(request):
                 )
                 remote_authors.append(author)
                 print(f"AN AUTHOR: {author}")
-            return remote_authors
-
-        else:
-            raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}. username: {node.username} password: {node.password} Response: {response.text}")
+        # else:  # But what if this node is down? Or no authors in this node?
+        #     raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}.")
+        
+        return remote_authors
 
 class AuthorPostsView(APIView):
     """
