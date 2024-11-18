@@ -26,11 +26,6 @@ from django.http import HttpRequest
 from .pagination import AuthorsPagination  
 from posts.serializers import PostSerializer  
 from uuid import UUID 
-from node.models import Node
-from urllib.parse import urlparse
-import requests
-from rest_framework.exceptions import ValidationError
-import base64
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -351,7 +346,6 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
 
 
 class FollowerView(APIView):
-    authentication_classes = [NodeAuthentication, JWTAuthentication]
     
     def get(self, request, author_id, follower_id):
         """
@@ -399,51 +393,24 @@ class FollowerView(APIView):
 
 
     def delete(self, request, author_id, follower_id):
-        """
-        Delete a follow relationship. If the follower is remote, notify the remote node to unfollow as well.
-        """
-        # Get the follow request
+        
+        # get follow_request
         follow_request = Follows.objects.filter(followed_id=author_id, local_follower_id=follower_id).first()
 
         if not follow_request:
             return Response({"error": "Follow request not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Check if the follower is remote
-        follower = follow_request.local_follower_id
-        if follower.is_remote:
-            # Extract host and API details for remote unfollow
-            parsed_follower_url = urlparse(follower.page)
-            remote_host = f"{parsed_follower_url.scheme}://{parsed_follower_url.netloc}"
-            remote_inbox_url = f"{remote_host}/authors/{follower_id}/followers/{author_id}/"
-            
-            # Fetch node credentials
-            node = Node.objects.filter(host=remote_host).first()
-            if not node:
-                return Response({"error": "Remote node not found"}, status=status.HTTP_404_NOT_FOUND)
-            
-            credentials = f"{node.username}:{node.password}"
-            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-            
-            # Send DELETE request to remote API
-            try:
-                response = requests.delete(
-                    remote_inbox_url,
-                    headers={
-                        "Authorization": f"Basic {base64_credentials}"
-                    }
-                )
-                if response.status_code not in [200, 204]:
-                    return Response(
-                        {"error": f"Failed to notify remote server. Status code: {response.status_code}"},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-            except requests.RequestException as e:
-                return Response({"error": f"Error contacting remote server: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        # Delete the follow relationship locally
+        # delete follow_request
         follow_request.delete()
 
-        return Response({"status": "Follow request denied and removed"}, status=status.HTTP_204_NO_CONTENT)
+        # second confirm whether the request has been deleted
+        if Follows.objects.filter(id=follow_request.id).exists():
+            print("Error: Follow request was not deleted!")
+        else:
+            print("Follow request deleted successfully")
+
+        return Response({"status": "Follow request denied"}, status=status.HTTP_204_NO_CONTENT)
 
 
 
