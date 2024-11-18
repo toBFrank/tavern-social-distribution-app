@@ -442,7 +442,7 @@ class FollowerView(APIView):
         # Delete the follow relationship locally
         follow_request.delete()
 
-        return Response({"status": "Follow request denied and removed"}, status=status.HTTP_204_NO_CONTENT
+        return Response({"status": "Follow request denied and removed"}, status=status.HTTP_204_NO_CONTENT)
 
 
 
