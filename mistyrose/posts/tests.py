@@ -10,6 +10,7 @@ import uuid
 from django.contrib.contenttypes.models import ContentType
 from unittest.mock import patch
 from django.test import TestCase
+from rest_framework.test import APIClient
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -813,3 +814,56 @@ class GitHubActivityToPostTest(TestCase):
             author_id=author,
             title="PushEvent in test-repo"
         ).exists())
+
+# User Story #6 Test: As an author, I want my profile page to show my public posts
+class AuthorPublicPostsTestCase(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        # Create public and private posts
+        self.public_post = Post.objects.create(
+            author_id=self.author,
+            title="Public Post",
+            visibility="PUBLIC",
+            content="This is a public post"
+        )
+        self.private_post = Post.objects.create(
+            author_id=self.author,
+            title="Private Post",
+            visibility="PRIVATE",
+            content="This is a private post"
+        )
+
+        self.client = APIClient()
+        response = self.client.post('/api/login/', {
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK, f"Login failed: {response.data}")
+
+        access_token = response.data.get('access_token')
+        self.assertIsNotNone(access_token, "Access token not found in response")
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+        self.url = f'/api/authors/{self.author.id}/posts/'
+
+    def test_author_public_posts(self):
+        # Send a request to get the post list
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # print("Response data:", response.json())
+
+        returned_posts = response.json()
+        filtered_posts = [post for post in returned_posts if post['visibility'] == 'PUBLIC']
+
+        # Make sure all posts returned are public posts
+        for post in filtered_posts:
+            self.assertEqual(post['visibility'], 'PUBLIC', f"Non-public post found: {post}")
+
+        # verify titles
+        returned_titles = [post['title'] for post in filtered_posts]
+        self.assertIn("Public Post", returned_titles)
+        self.assertNotIn("Private Post", returned_titles)
