@@ -93,7 +93,7 @@ def get_remote_authors(request):
                 get_authors_url,
                 params={"host": host_with_scheme},
                 #auth=HTTPBasicAuth(node.username, node.password),
-                headers={"Authorization": f"Basic {encoded_auth}"},
+                headers={"Authorization": f"Basic {node.username}:{node.password}"},
             )
         
         # response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
