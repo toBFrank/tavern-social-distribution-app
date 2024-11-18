@@ -153,13 +153,29 @@ class AuthorPostsView(APIView):
             # get remote authors and send post to remote inboxes 
             try:
                 remote_authors = get_remote_authors(request)
+                print(f" REMOTE AUTHORS YUHH {remote_authors}")
                 if post.visibility == 'PUBLIC':
                     #send to all remote inboxes if public post
                     for remote_author in remote_authors:
-                        node = Node.objects.get(host=remote_author.host)
+                        node = Node.objects.get(host=remote_author.host.rstrip('/'))
                         author_inbox_url = f"{remote_author.id.rstrip('/')}/inbox/"
                         post_data = PostSerializer(post).data
-                        response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
+                        print(f"ERM THIS IS POST DATAAAA {post_data}")
+
+                        parsed_url = urlparse(request.build_absolute_uri())
+                        host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                        credentials = f"{node.username}:{node.password}"
+                        base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                        print(f"PAURST REQUEST \nget_authors_url: {author_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
+                        response = requests.post(
+                                author_inbox_url,
+                                params={"host": host_with_scheme},
+                                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                                headers={"Authorization": f"Basic {base64_credentials}"},
+                                json=post_data,
+                            )
+                        
+                        #response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
 
                         if response.status_code >= 200 and response.status_code < 300:
                             pass #success response
