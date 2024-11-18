@@ -981,3 +981,43 @@ class PlainTextPostTest(APITestCase):
         self.assertEqual(get_response.status_code, 200)
         self.assertEqual(get_response.data['content'], plain_text_content)
         self.assertEqual(get_response.data['contentType'], "text/plain")
+
+# User Story #14 Test: As an author, posts I create can be images, so that I can share pictures and drawings.
+class ImagePostTest(APITestCase):
+    def setUp(self):
+        # Create test users and authors
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author = Author.objects.create(user=self.user, display_name="Test Author")
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        self.post_url = f"/api/authors/{self.author.id}/posts/"
+
+    def test_create_image_post(self):
+        # Prepare the Base64 encoded content of the image
+        base64_image_content = (
+        "/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQA"
+        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+        )
+        
+        # Create post request
+        response = self.client.post(self.post_url, {
+            "title": "Image Post",
+            "content": base64_image_content,
+            "contentType": "image/png",
+            "visibility": "PUBLIC",
+        }, format='json')
+
+        # Verify post is created successfully
+        self.assertEqual(response.status_code, 201)
+        post_id = response.data.get('id')
+
+        # Get post data and verify
+        get_response = self.client.get(f"{self.post_url}{post_id}/")
+        self.assertEqual(get_response.status_code, 200)
+        self.assertEqual(get_response.data['contentType'], "image/png")
+        self.assertEqual(get_response.data['content'], f"data:image/png;base64,{base64_image_content}")
