@@ -5,10 +5,14 @@ from .serializers import FollowSerializer
 from posts.serializers import CommentSerializer, LikeSerializer
 from users.models import Author, Follows
 from posts.models import Post, Like, Comment
+from node.models import Node
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-
+import requests
+from requests.exceptions import RequestException
+from requests.auth import HTTPBasicAuth
+from urllib.parse import urljoin
 
 
 class InboxView(APIView):
@@ -20,10 +24,12 @@ class InboxView(APIView):
         #region Follow Inbox
         if object_type == "follow":
             serializer = FollowSerializer(data=request.data)
+           
 
             # Retrieve actor and object data, and handle None case
             actor_data = request.data.get('actor')
             object_data = request.data.get('object')
+            print(object_data)
             
 
             # Check if actor_data and object_data exist
@@ -36,8 +42,8 @@ class InboxView(APIView):
             # Extract actor_id and object_id safely
             actor_id = actor_data['id'].rstrip('/').split('/')[-1]
             object_id = object_data['id'].rstrip('/').split('/')[-1]
+            
 
-            # Check if the follow request already exists
             existing_follow = Follows.objects.filter(
                 local_follower_id=actor_id,
                 followed_id=object_id
@@ -53,9 +59,38 @@ class InboxView(APIView):
                 serializer.validated_data['followed_id']['id'] = object_id
                 serializer.save()
 
+                # After creating locally, forward the request if the recipient is remote
+                object_host = object_data.get("host")
+                node = Node.objects.filter(host=object_host).first()
+
+                if node:
+                    # Forward the request to the remote server
+                    remote_author_id = object_data.get("id")
+                    remote_inbox_url = urljoin(remote_author_id, "inbox")
+                    print(remote_inbox_url)
+
+                    try:
+                        response = requests.post(
+                            remote_inbox_url,
+                            json=serializer.data,
+                            auth=HTTPBasicAuth(node.username, node.password)
+                        )
+                        if response.status_code in [200, 201]:
+                            return Response({"message": "Follow request forwarded successfully"}, status=status.HTTP_202_ACCEPTED)
+                        else:
+                            return Response(
+                                {"error": "Failed to forward follow request", "details": response.text},
+                                status=response.status_code
+                            )
+                    except RequestException as e:
+                        return Response({"error": "Error forwarding follow request", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            
+            
         #endregion
         #region Comment Inbox
         elif object_type == "comment":
