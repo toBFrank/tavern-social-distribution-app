@@ -162,10 +162,19 @@ class InboxView(APIView):
 
             elif request.data.get('visibility') == 'FRIENDS':
                 #check if poster's author in database and actually friends (if friends, should already be in database)
-                pass
+                try:
+                    # Retrieve the author if they exist, otherwise return an error response
+                    author = Author.objects.get(id=author_of_post_id)
+                    
+                    # Check if the author is actually a friend
+                    # if not author.is_friend(author_id):  # assuming you have an `is_friend` method
+                    #     return Response({"error": "Author is not a friend."}, status=status.HTTP_403_FORBIDDEN)
+                    
+                except Author.DoesNotExist:
+                    return Response({"error": "Author not found in the database."}, status=status.HTTP_404_NOT_FOUND)
 
 
-                    # Extract post ID from the data
+            # Extract post ID from the data
             post_id = request.data.get("id").rstrip('/').split("/posts/")[-1]
 
             # Check if the post already exists and create it if it doesn’t

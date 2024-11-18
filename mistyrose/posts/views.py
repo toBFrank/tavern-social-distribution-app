@@ -199,7 +199,7 @@ class AuthorPostsView(APIView):
                     for remote_author in remote_authors:
                         send_to_inbox(remote_author, post_data, host_with_scheme)
                         
-                elif post.visiblity == 'FRIENDS':
+                elif post.visibility == 'FRIENDS':
                     #send only to remote friends if friends post
                     #TODO: see how remote friends is being handled i.e. is it using remote_id?
                         # Get remote friends of the author
@@ -221,7 +221,6 @@ class AuthorPostsView(APIView):
                         send_to_inbox(remote_friend, post_data, host_with_scheme)
 
             except Exception as e:
-                print(f"Remote Author Host: {remote_author.host.rstrip('/')}")
                 #return an error if fetching remote authors fails
                 return Response(
                     {"error": f"Failed to fetch remote authors: {str(e)}"},
