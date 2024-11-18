@@ -49,10 +49,49 @@ class PostDetailsView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         serializer = PostSerializer(post, data=request.data)
+        print("HELLO IM IN PUT")
 
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            updated_post = serializer.save()
+            try:
+                remote_authors = get_remote_authors(request)  # Fetch remote authors
+                if updated_post.visibility == 'PUBLIC':
+                    for remote_author in remote_authors:
+                        node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+                        print(f"HI IM UNDER THE NODENode: {node}")
+                        if node:
+                            author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                            post_data = PostSerializer(updated_post).data
+                            post_data['id'] = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/posts/{updated_post.id}/"
+                            
+                            credentials = f"{node.username}:{node.password}"
+                            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                            headers = {"Authorization": f"Basic {base64_credentials}"}
+                            
+                            print(f"Authorization header in put: {headers}")
+                            
+                            # Send the updated post
+                            response = requests.post(
+                                author_inbox_url,
+                                headers=headers,
+                                json=post_data
+                            )
+                            
+                            if response.status_code < 200 or response.status_code >= 300:
+                                print(f"Failed to send post to {remote_author.host}: {response.status_code} - {response.text}")
+                        return Response(serializer.data)
+                
+                elif updated_post.visibility == 'FRIENDS':
+                    # Handle sending to remote friends (if applicable)
+                    # TODO: Implement logic for fetching and sending to remote friends
+                    pass
+            
+            except Exception as e:
+                return Response(
+                    {"error": f"Failed to re-send updated post: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+                
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
       

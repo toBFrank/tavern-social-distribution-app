@@ -18,6 +18,9 @@ import requests
 
 class InboxView(APIView):
     authentication_classes = [NodeAuthentication, JWTAuthentication]
+    # authentication_classes = []
+    # permission_classes = []
+    
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -178,28 +181,47 @@ class InboxView(APIView):
             post_id = request.data.get("id").rstrip('/').split("/posts/")[-1]
 
             # Check if the post already exists and create it if it doesn’t
-            post, created = Post.objects.get_or_create(
-                id=post_id,
-                defaults={
-                    "author_id": author,
-                    "title": request.data.get("title"),
-                    "description": request.data.get("description"),
-                    "content": request.data.get("content"),
-                    "content_type": request.data.get("contentType"),
-                    "visibility": request.data.get("visibility"),
-                }
-            )
-
-            if created:
-                # New post was created, return success response
-                serializer = PostSerializer(post)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
+            # post, created = Post.objects.get_or_create(
+            #     id=post_id,
+            #     defaults={
+            #         "author_id": author,
+            #         "title": request.data.get("title"),
+            #         "description": request.data.get("description"),
+            #         "content": request.data.get("content"),
+            #         "content_type": request.data.get("contentType"),
+            #         "visibility": request.data.get("visibility"),
+            #     }
+            # )
+            # filter for post
+            # if it exists, replace it with the new one
+            post = Post.objects.filter(id=post_id).first()
+            if post:
+                post.author_id = author
+                post.title = request.data.get("title")
+                post.description = request.data.get("description")
+                post.content = request.data.get("content")
+                post.content_type = request.data.get("contentType")
+                post.visibility = request.data.get("visibility")
+                post.save()
+                
                 # Post already exists, return a message or existing post data
                 return Response(
                     {"message": "Post already exists", "post": PostSerializer(post).data},
                     status=status.HTTP_200_OK
                 )
+            else:
+                post = Post.objects.create(
+                    id=post_id,
+                    author_id=author,
+                    title=request.data.get("title"),
+                    description=request.data.get("description"),
+                    content=request.data.get("content"),
+                    content_type=request.data.get("contentType"),
+                    visibility=request.data.get("visibility"),
+                )
+                serializer = PostSerializer(post)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+
             
         #endregion
         #region Comment Inbox
