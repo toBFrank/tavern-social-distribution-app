@@ -95,50 +95,56 @@ class PostDetailsView(APIView):
 
     def delete(self, request, author_serial, post_serial):
         try:
+            # Fetch the post
             post = Post.objects.get(id=post_serial, author_id=author_serial)
         except Post.DoesNotExist:
+            # Return 404 if the post is not found
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        # Update the post visibility to 'DELETED' locally
+        # Soft delete by updating the visibility to 'DELETED'
         post.visibility = 'DELETED'
         post.save()
 
+        # Notify remote authors about the post deletion
         try:
             remote_authors = get_remote_authors(request)  # Fetch remote authors
             if post.visibility == 'DELETED':
                 for remote_author in remote_authors:
                     node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
-                    print(f"HI IM UNDER THE NODE for DELETE: {node}")
                     if node:
                         author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                        
                         # Prepare the data to update the post visibility to 'DELETED'
                         update_data = {
                             'visibility': 'DELETED'
                         }
 
+                        # Basic Auth for authentication
                         credentials = f"{node.username}:{node.password}"
                         base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
                         headers = {"Authorization": f"Basic {base64_credentials}"}
 
-                        print(f"Authorization header in delete: {headers}")
-
-                        # Send the update to change visibility to 'DELETED'
+                        # Send the update to notify about the deletion
                         response = requests.patch(
                             author_inbox_url,
                             headers=headers,
                             json=update_data
                         )
 
-                        if response.status_code < 200 or response.status_code >= 300:
+                        if not (200 <= response.status_code < 300):
+                            # Log the failure to notify the remote author
                             print(f"Failed to notify {remote_author.host} about post deletion: {response.status_code} - {response.text}")
 
         except Exception as e:
+            # Catch errors during remote notifications
             return Response(
                 {"error": f"Failed to notify remote authors about post deletion: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+        # Return 204 No Content after successfully marking the post as deleted
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
       
 class PostDetailsByFqidView(APIView):
