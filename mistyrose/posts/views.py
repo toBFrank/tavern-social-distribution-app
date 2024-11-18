@@ -79,6 +79,7 @@ class PostDetailsView(APIView):
                             
                             if response.status_code < 200 or response.status_code >= 300:
                                 print(f"Failed to send post to {remote_author.host}: {response.status_code} - {response.text}")
+                        return Response(serializer.data)
                 
                 elif updated_post.visibility == 'FRIENDS':
                     # Handle sending to remote friends (if applicable)
