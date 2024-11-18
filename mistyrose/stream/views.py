@@ -10,10 +10,14 @@ from posts.serializers import CommentSerializer, LikeSerializer
 from users.models import Author, Follows
 from posts.models import Post, Like, Comment
 from node.models import Node
+from node.authentication import NodeAuthentication
 from django.contrib.contenttypes.models import ContentType
+from urllib.parse import urlparse
+import base64
 
 
 class InboxView(APIView):
+    authentication_classes = [NodeAuthentication]
     def post(self, request, author_id):
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -21,6 +25,8 @@ class InboxView(APIView):
         # Ensure we are dealing with a follow request
         if object_type == "follow":
             serializer = FollowSerializer(data=request.data)
+
+            # Retrieve actor and object data, and handle None case
             actor_data = request.data.get('actor')
             object_data = request.data.get('object')
 
@@ -34,46 +40,87 @@ class InboxView(APIView):
             # Extract actor_id and object_id safely
             actor_id = actor_data['id'].rstrip('/').split('/')[-1]
             object_id = object_data['id'].rstrip('/').split('/')[-1]
-            
-            existing_follow = Follows.objects.filter(
-                local_follower_id=actor_id,
-                followed_id=object_id
-            ).first()
 
-            if existing_follow:
-                return Response(FollowSerializer(existing_follow).data, status=status.HTTP_200_OK)
+            # Determine if actor is remote or local 
+            is_remote_actor = actor_data['host'] != request.get_host()
 
-            # If no follow request exists, validate and create a new one
-            # If no follow request exists, validate and create a new one
-            if serializer.is_valid():
-                serializer.validated_data['local_follower_id']['id'] = actor_id
-                serializer.validated_data['followed_id']['id'] = object_id
-                serializer.save()
+            if is_remote_actor:
+                # Populate the Author table with remote actor details if it doesn't exist
+                Author.objects.get_or_create(
+                    id=actor_id,
+                    defaults={
+                        "host": actor_data['host'],
+                        "display_name": actor_data.get('displayName'),
+                        "url": actor_data['id'],
+                        "github": actor_data.get('github', ""),
+                        "profile_image": actor_data.get('profileImage', ""),
+                        "page": actor_data.get('page', ""),
+                    }
+                )
 
-                # After creating locally, forward the request if the recipient is remote
-                object_host = object_data.get("host")
-                if object_host:
-                    node = Node.objects.filter(host=object_host).first()
-                    remote_inbox_url = urljoin(object_host, "inbox")  # Correct full URL
-                    try:
-                        response = requests.post(
-                            remote_inbox_url,
-                            json=serializer.data,
-                            headers={"Authorization": f"Basic {node.username}:{node.password}"}
-                        )
-                        if response.status_code in [200, 201]:
-                            return Response({"message": "Follow request forwarded successfully"}, status=status.HTTP_202_ACCEPTED)
-                        else:
-                            return Response(
-                                {"error": "Failed to forward follow request", "details": response.text},
-                                status=response.status_code
-                            )
-                    except RequestException as e:
-                        return Response({"error": "Error forwarding follow request", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Determine if the object (followed author) is local or remote
+            is_remote_object = object_data['host'] != request.get_host()
+
+            if is_remote_object:
+                # 1. Send follow request to the remote node's inbox
+                node = Node.objects.get(host=object_data["host"])
+                remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
+                
+                follow_request_payload = {
+                    "type": "follow",
+                    "summary": f"{actor_data['id']} wants to follow {object_data['id']}",  # Use ID for clarity
+                    "actor": actor_data,  # Send full actor data
+                    "object": object_data  # Send full object data
+                }
+                parsed_url = urlparse(request.build_absolute_uri())
+                host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                credentials = f"{node.username}:{node.password}"
+                base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                print(f"PAURST REQUEST \nget_authors_url: {remote_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
+
+                try:
+                    # Send POST request to the remote node
+                    response = requests.post(
+                        remote_inbox_url,
+                        params={"host": host_with_scheme},
+                        headers={"Authorization": f"Basic {base64_credentials}"},
+                        json=follow_request_payload,
+                    )
+                    if response.status_code not in [200, 201]:
+                        return Response({"error": "Failed to send follow request to remote node"}, status=status.HTTP_400_BAD_REQUEST)
+                except requests.RequestException as e:
+                    return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                # 2. Automatically accept the follow request locally
+                local_follower = Author.objects.get(id=actor_id)  # Fetch local actor
+                Follows.objects.create(
+                    local_follower_id=local_follower,  # Set local actor
+                    remote_follower_url=actor_data.get('id'),  # Store actor's full ID
+                    followed_id=author,
+                    status="ACCEPTED",
+                    is_remote=True  # Mark as a remote follow request
+                )
+
+                return Response({"message": "Follow request sent to remote node and accepted locally."}, status=status.HTTP_201_CREATED)
+
+            else:
+                # Local follow request handling
+                serializer = FollowSerializer(data=request.data)
+                existing_follow = Follows.objects.filter(
+                    local_follower_id=actor_id,
+                    followed_id=author,
+                ).first()
+
+                if existing_follow:
+                    return Response(FollowSerializer(existing_follow).data, status=status.HTTP_200_OK)
+
+                if serializer.is_valid():
+                    serializer.validated_data['local_follower_id']['id'] = actor_id
+                    serializer.validated_data['followed_id']['id'] = object_id
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
-                    return Response({"error": "Host is missing in the request"}, status=status.HTTP_400_BAD_REQUEST)
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
         # Comment Inbox
