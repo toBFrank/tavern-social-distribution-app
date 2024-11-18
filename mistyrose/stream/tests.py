@@ -8,70 +8,74 @@ from django.urls import reverse
 from rest_framework import status
 from posts.models import Post, Comment, Like
 from django.contrib.contenttypes.models import ContentType
+import base64
+from node.models import Node
 
 # Create your tests here.
 class InboxViewTest(TestCase):
     def setUp(self):
-        self.actor_id = uuid.uuid4()
         self.actor = Author.objects.create(
-            id=self.actor_id, 
+            id=uuid.uuid4(),
             host='http://example.com/',
             display_name="Actor",
             github='http://github.com/actor1',
-            page=f'http://localhost/authors/{self.actor_id}'
+            page='http://localhost/authors/actor'
         )
 
-        self.object_id = uuid.uuid4()
         self.object = Author.objects.create(
-            id=self.object_id,
+            id=uuid.uuid4(),
             host='http://example.com/',
-            display_name='Object',
+            display_name="Object",
             github='http://github.com/object',
-            page=f'http://localhost/authors/{self.object_id}'
+            page='http://localhost/authors/object'
         )
 
         self.follow_request = {
             "type": "follow",
             "summary": f"{self.actor.display_name} wants to follow {self.object.display_name}",
             "actor": {
-                "type": "author",
                 "id": f"http://localhost/api/authors/{self.actor.id}/",
                 "host": self.actor.host,
                 "displayName": self.actor.display_name,
                 "page": self.actor.page
             },
             "object": {
-                "type": "follow",
                 "id": f"http://localhost/api/authors/{self.object.id}/",
                 "host": self.object.host,
                 "displayName": self.object.display_name,
                 "page": self.object.page
             }
         }
-
-        # Create test user
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-
-        # Generate JWT token for the user
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-
+        
+        # Simulate inserting Node data into the test database
+        Node.objects.create(
+            host='https://testserver',  
+            username='node_user',      
+            password='node_password'  
+        )
+        
         # Initialize API client
         self.client = APIClient()
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)  # Use JWT authentication
+        
+        # Set backend-recognized node authentication credentials
+        credentials = f"node_user:node_password"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Basic {encoded_credentials}')
 
         #url
-        self.url = reverse("inbox", kwargs={'author_id': self.object.id})
+        self.url = reverse('inbox', kwargs={'author_id': self.object.id})
 
     def test_create_follow_request_201(self):
         # follow request to inbox test at URL: api/authors/<uuid:author_id>/inbox/
         response = self.client.post(self.url, self.follow_request, format='json')
+        # print("Response Data (201):", response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_follow_request_200(self): 
         #make the same request twice -> returns success if requested twice, but wont be created 
         self.client.post(self.url, self.follow_request, format='json')
         response = self.client.post(self.url, self.follow_request, format='json')
+        # print("Response Data (200):", response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class GetFollowRequestsTest(TestCase):
@@ -128,23 +132,17 @@ class LikedViewTest(TestCase):
         # Create test user
         self.user = User.objects.create_user(username='testuser', password='testpass')
 
-        # Generate JWT token for the user
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-
-        # Initialize API client
-        self.client = APIClient()
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)  # Use JWT authentication
-
+        # Create test Author
         self.author_id = uuid.uuid4()
         self.author = Author.objects.create(
-            id=self.author_id, 
+            id=self.author_id,
             host='http://example.com/',
             display_name="Actor",
             github='http://github.com/actor1',
             page=f'http://localhost/authors/{self.author_id}'
         )
 
+        # Create test post
         self.post = Post.objects.create(
             author_id=self.author,
             title='Public Post',
@@ -153,6 +151,7 @@ class LikedViewTest(TestCase):
             visibility='PUBLIC'
         )
 
+        # Create test Comment
         self.comment = Comment.objects.create(
             author_id=self.author,
             post_id=self.post,
@@ -160,9 +159,25 @@ class LikedViewTest(TestCase):
             content_type="text/plain",
         )
 
-        self.like_url = reverse('inbox', args=[self.author.id])  
-        self.author.host = 'http://localhost'
-        self.author.save()
+        # Insert Node data
+        Node.objects.create(
+            host='https://testserver',  
+            username='node_user',      
+            password='node_password',  
+            is_whitelisted=True,       
+            is_authenticated=True      
+        )
+
+        # Initialize API client
+        self.client = APIClient()
+
+        # Set up Basic Authentication
+        credentials = f"node_user:node_password"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Basic {encoded_credentials}')
+
+        # url
+        self.like_url = reverse('inbox', args=[self.author.id])
 
     def test_like_post(self):
         like_data = {
@@ -179,6 +194,8 @@ class LikedViewTest(TestCase):
 
         response = self.client.post(self.like_url, like_data, format='json')
 
+        # print("Response Data:", response.data)
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['type'], 'like')
 
@@ -187,23 +204,17 @@ class CommentedViewTestCase(TestCase):
         # Create test user
         self.user = User.objects.create_user(username='testuser', password='testpass')
 
-        # Generate JWT token for the user
-        refresh = RefreshToken.for_user(self.user)
-        self.access_token = str(refresh.access_token)
-
-        # Initialize API client
-        self.client = APIClient()
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.access_token)  # Use JWT authentication
-
+        # Create test Author
         self.author_id = uuid.uuid4()
         self.author = Author.objects.create(
-            id=self.author_id, 
+            id=self.author_id,
             host='http://example.com/',
             display_name="Actor",
             github='http://github.com/actor1',
             page=f'http://localhost/authors/{self.author_id}'
         )
 
+        # Create test post
         self.post = Post.objects.create(
             author_id=self.author,
             title='Public Post',
@@ -211,9 +222,26 @@ class CommentedViewTestCase(TestCase):
             content='This is a public post.',
             visibility='PUBLIC'
         )
-        self.comment_url = reverse('inbox', args=[self.author.id])  
-        self.author.host = 'http://localhost'
-        self.author.save()
+
+        # Insert Node data
+        Node.objects.create(
+            host='https://testserver',  
+            username='node_user',      
+            password='node_password',  
+            is_whitelisted=True,      
+            is_authenticated=True     
+        )
+
+        # Initialize API client
+        self.client = APIClient()
+
+        # Set Up Basic Authentication
+        credentials = f"node_user:node_password"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        self.client.credentials(HTTP_AUTHORIZATION=f'Basic {encoded_credentials}')
+
+        # url
+        self.comment_url = reverse('inbox', args=[self.author.id])
 
     def test_create_comment_success(self):
         data = {
@@ -229,8 +257,11 @@ class CommentedViewTestCase(TestCase):
             'comment': 'This is a test comment.',
             'contentType': 'text/plain'
         }
+
         response = self.client.post(self.comment_url, data, format='json')
-        
+
+        # print("Response Data:", response.data)
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         self.assertEqual(response.data['comment'], 'This is a test comment.')
         self.assertEqual(Comment.objects.count(), 1)
