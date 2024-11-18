@@ -41,11 +41,18 @@ class InboxView(APIView):
             actor_id = actor_data['id'].rstrip('/').split('/')[-1]
             object_id = object_data['id'].rstrip('/').split('/')[-1]
 
+            # Extract host information and normalize
+            actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")
+            object_host = urlparse(object_data['host']).netloc
+            current_host = request.get_host()
+
+            print(current_host)
+            print("actor_host:",actor_host)
             # Determine if actor is remote or local 
-            is_remote_actor = actor_data['host'] != request.get_host()
+            is_remote_actor = actor_host != current_host
 
             if is_remote_actor:
-                # Populate the Author table with remote actor details if it doesn't exist
+                # Populate the `Author` table with remote `actor` details if it doesn't exist
                 Author.objects.get_or_create(
                     id=actor_id,
                     defaults={
@@ -58,32 +65,23 @@ class InboxView(APIView):
                     }
                 )
 
-            # Determine if the object (followed author) is local or remote
-            is_remote_object = object_data['host'] != request.get_host()
+            # Determine if the `object` (followed author) is local or remote
+            is_remote_object = object_host != current_host
 
             if is_remote_object:
                 # 1. Send follow request to the remote node's inbox
-                node = Node.objects.get(host=object_data["host"])
                 remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
-                
                 follow_request_payload = {
                     "type": "follow",
                     "summary": f"{actor_data['id']} wants to follow {object_data['id']}",  # Use ID for clarity
                     "actor": actor_data,  # Send full actor data
                     "object": object_data  # Send full object data
                 }
-                parsed_url = urlparse(request.build_absolute_uri())
-                host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
-                credentials = f"{node.username}:{node.password}"
-                base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-                print(f"PAURST REQUEST \nget_authors_url: {remote_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
 
                 try:
                     # Send POST request to the remote node
                     response = requests.post(
                         remote_inbox_url,
-                        params={"host": host_with_scheme},
-                        headers={"Authorization": f"Basic {base64_credentials}"},
                         json=follow_request_payload,
                     )
                     if response.status_code not in [200, 201]:
@@ -92,7 +90,7 @@ class InboxView(APIView):
                     return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
                 # 2. Automatically accept the follow request locally
-                local_follower = Author.objects.get(id=actor_id)  # Fetch local actor
+                local_follower = Author.objects.get(id=actor_id)  # Fetch local `actor`
                 Follows.objects.create(
                     local_follower_id=local_follower,  # Set local actor
                     remote_follower_url=actor_data.get('id'),  # Store actor's full ID
@@ -120,8 +118,9 @@ class InboxView(APIView):
                     serializer.save()
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
+                    print("error")
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+                    
 
         # Comment Inbox
         elif object_type == "comment":
