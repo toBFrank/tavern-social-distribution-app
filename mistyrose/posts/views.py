@@ -70,15 +70,6 @@ class PostDetailsView(APIView):
                             
                             print(f"Authorization header in put: {headers}")
                             
-                            # Delete old post in the remote inbox
-                            response = requests.delete(
-                                post_data['id'],
-                                headers=headers,
-                                json=post_data
-                            )
-
-                            print(f"Response status code for delete: {response.status_code}")
-                            
                             # Send the updated post
                             response = requests.post(
                                 author_inbox_url,
