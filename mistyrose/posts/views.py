@@ -21,7 +21,7 @@ from django.http import FileResponse
 import requests
 from requests.auth import HTTPBasicAuth #basic auth
 from django.db import transaction #transaction requests so that if something happens in the middle, it'll be rolled back
-
+from urllib.parse import unquote, urlparse
 
 #region Post Views
 class PostDetailsView(APIView):
@@ -77,12 +77,21 @@ class PostDetailsByFqidView(APIView):
         serializer = PostSerializer(post)
         return Response(serializer.data)
 
-def get_remote_authors():
+def get_remote_authors(request):
     remote_authors = []
     for node in Node.objects.filter(is_whitelisted=True):
         # get authors for each remote node connection
         #get authors 
         get_authors_url = f"{node.host.rstrip('/')}/api/authors/"
+        parsed_url = urlparse(request.build_absolute_uri())
+        host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        response = requests.get(
+                get_authors_url,
+                params={"host": host_with_scheme},
+                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                headers={"Authorization": f"Basic {node.username}:{node.password}"},
+            )
+        
         response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
         if response.status_code == 200:
             authors_data = response.json()["authors"]
@@ -132,7 +141,7 @@ class AuthorPostsView(APIView):
             
             # get remote authors and send post to remote inboxes 
             try:
-                remote_authors = get_remote_authors()
+                remote_authors = get_remote_authors(request)
                 if post.visibility == 'PUBLIC':
                     #send to all remote inboxes if public post
                     for remote_author in remote_authors:
