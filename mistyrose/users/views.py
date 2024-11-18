@@ -351,7 +351,7 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
 
 
 class FollowerView(APIView):
-    [NodeAuthentication]
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
     
     def get(self, request, author_id, follower_id):
         """
