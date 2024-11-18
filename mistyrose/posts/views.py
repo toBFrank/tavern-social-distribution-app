@@ -232,7 +232,6 @@ class AuthorPostsView(APIView):
                             response = requests.post(
                                     author_inbox_url,
                                     params={"host": host_with_scheme},
-                                    # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
                                     headers={"Authorization": f"Basic {base64_credentials}"},
                                     json=post_data,
                                 )
