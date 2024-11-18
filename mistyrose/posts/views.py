@@ -199,6 +199,7 @@ class AuthorPostsView(APIView):
                     pass
 
             except Exception as e:
+                print(f"Remote Author Host: {remote_author.host.rstrip('/')}")
                 #return an error if fetching remote authors fails
                 return Response(
                     {"error": f"Failed to fetch remote authors: {str(e)}"},
