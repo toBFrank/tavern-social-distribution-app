@@ -157,41 +157,43 @@ class AuthorPostsView(APIView):
                 if post.visibility == 'PUBLIC':
                     #send to all remote inboxes if public post
                     for remote_author in remote_authors:
-                        node = Node.objects.get(host=remote_author.host.rstrip('/'))
-                        author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
-                        #author_inbox_url = f"{remote_author_url_stripped}/inbox/"
-                        print(f"WHY TF DID IT CONCATENATE: {author_inbox_url}")
-                        post_data = PostSerializer(post).data
-                        post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
-                        print(f"ERM THIS IS POST DATAAAA {post_data}")
+                        # node = Node.objects.get(host=remote_author.host.rstrip('/'))
+                        node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+                        if node: 
+                            author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                            #author_inbox_url = f"{remote_author_url_stripped}/inbox/"
+                            print(f"WHY TF DID IT CONCATENATE: {author_inbox_url}")
+                            post_data = PostSerializer(post).data
+                            post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
+                            print(f"ERM THIS IS POST DATAAAA {post_data}")
 
-                        parsed_url = urlparse(request.build_absolute_uri())
-                        host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
-                        credentials = f"{node.username}:{node.password}"
-                        base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-                        print(f"PAURST REQUEST \nget_authors_url: {author_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
-                        response = requests.post(
-                                author_inbox_url,
-                                params={"host": host_with_scheme},
-                                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
-                                headers={"Authorization": f"Basic {base64_credentials}"},
-                                json=post_data,
-                            )
-                        
-                        print(f"Response Status Code: {response.status_code}")
-            
-                        if response.status_code == 401:
-                            # Print more details if the response is 401
-                            print(f"Authorization failed with status code 401. Response details:")
-                            print(f"Response Headers: {response.headers}")
-                            print(f"Response Content: {response.text}")
-                        
-                        #response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
+                            parsed_url = urlparse(request.build_absolute_uri())
+                            host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
+                            credentials = f"{node.username}:{node.password}"
+                            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                            print(f"PAURST REQUEST \nget_authors_url: {author_inbox_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
+                            response = requests.post(
+                                    author_inbox_url,
+                                    params={"host": host_with_scheme},
+                                    # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+                                    headers={"Authorization": f"Basic {base64_credentials}"},
+                                    json=post_data,
+                                )
+                            
+                            print(f"Response Status Code: {response.status_code}")
+                
+                            if response.status_code == 401:
+                                # Print more details if the response is 401
+                                print(f"Authorization failed with status code 401. Response details:")
+                                print(f"Response Headers: {response.headers}")
+                                print(f"Response Content: {response.text}")
+                            
+                            #response = requests.post(author_inbox_url, json=post_data, auth=HTTPBasicAuth(node.username, node.password))
 
-                        if response.status_code >= 200 and response.status_code < 300:
-                            pass #success response
-                        else:
-                            return Response({"error": f"Could not send post to {remote_author.url}, {response.status_code} - {response.reason}"}, status=status.HTTP_400_BAD_REQUEST)
+                            if response.status_code >= 200 and response.status_code < 300:
+                                pass #success response
+                            else:
+                                return Response({"error": f"Could not send post to {remote_author.url}, {response.status_code} - {response.reason}"}, status=status.HTTP_400_BAD_REQUEST)
                         
                 elif post.visiblity == 'FRIENDS':
                     #send only to remote friends if friends post
