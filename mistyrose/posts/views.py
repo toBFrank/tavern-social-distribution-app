@@ -158,7 +158,7 @@ class AuthorPostsView(APIView):
                     #send to all remote inboxes if public post
                     for remote_author in remote_authors:
                         node = Node.objects.get(host=remote_author.host.rstrip('/'))
-                        author_inbox_url = f"{remote_author.id.rstrip('/')}/inbox/"
+                        author_inbox_url = f"{remote_author.url.rstrip('/')}/inbox/"
                         post_data = PostSerializer(post).data
                         print(f"ERM THIS IS POST DATAAAA {post_data}")
 
