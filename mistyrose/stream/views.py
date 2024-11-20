@@ -145,7 +145,7 @@ class InboxView(APIView):
             # create post object type and user.
             author = get_object_or_404(Author, id=author_id) #author whose stream we want to add post to
 
-            if request.data.get('visibility') == 'PUBLIC':
+            if request.data.get('visibility') == 'PUBLIC' or request.data.get('visibility') == 'DELETED':
                 # check if post's author in database, create author if not
                 author_of_post = request.data["author"]["id"]
                 author_of_post_id = author_of_post.rstrip('/').split("/authors/")[-1]
@@ -328,4 +328,3 @@ class FollowRequests(APIView):
         for follow_data in serialized_data:
             follow_data['type'] = 'follow'
         return Response(serialized_data, status=200)
-
