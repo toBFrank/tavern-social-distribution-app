@@ -100,7 +100,7 @@ class PostDetailsView(APIView):
                             headers = {"Authorization": f"Basic {base64_credentials}"}
                             
                             print(f"Authorization header in put: {headers}")
-                            
+                        
                             # Send the updated post
                             response = requests.post(
                                 author_inbox_url,
