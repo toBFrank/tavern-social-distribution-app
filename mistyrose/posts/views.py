@@ -102,7 +102,7 @@ class PostDetailsView(APIView):
                             print(f"Authorization header in put: {headers}")
                             
                             # Send the updated post
-                            response = requests.patch(
+                            response = requests.post(
                                 author_inbox_url,
                                 headers=headers,
                                 json=post_data
