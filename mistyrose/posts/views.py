@@ -118,11 +118,10 @@ class PostDetailsView(APIView):
                         node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
                         if node:
                             author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                            post_data = PostSerializer(updated_post).data
+                            post_data['id'] = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/posts/{updated_post.id}/"
                             
-                            # Prepare the data to update the post visibility to 'DELETED'
-                            update_data = {
-                                'visibility': 'DELETED'
-                            }
+        
 
                             # Basic Auth for authentication
                             credentials = f"{node.username}:{node.password}"
@@ -133,7 +132,7 @@ class PostDetailsView(APIView):
                             response = requests.patch(
                                 author_inbox_url,
                                 headers=headers,
-                                json=update_data
+                                json=post_data
                             )
 
                             if not (200 <= response.status_code < 300):
