@@ -50,6 +50,7 @@ class PostDetailsView(APIView):
 
         serializer = PostSerializer(post, data=request.data)
         print("HELLO IM IN PUT")
+        print(serializer)
 
         if serializer.is_valid():
             updated_post = serializer.save()
