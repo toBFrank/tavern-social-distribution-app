@@ -27,6 +27,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 #region Post Views
+
 class PostDetailsView(APIView):
     """
     Retrieve, update or delete a post instance by author ID & post ID.
@@ -85,6 +86,32 @@ class PostDetailsView(APIView):
                     # Handle sending to remote friends (if applicable)
                     # TODO: Implement logic for fetching and sending to remote friends
                     pass
+                elif updated_post.visibility == 'DELETED':
+                    for remote_author in remote_authors:
+                        node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+                        print(f"HI IM UNDER THE NODENode: {node}")
+                        if node:
+                            author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                            post_data = PostSerializer(updated_post).data
+                            post_data['id'] = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/posts/{updated_post.id}/"
+                            
+                            credentials = f"{node.username}:{node.password}"
+                            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                            headers = {"Authorization": f"Basic {base64_credentials}"}
+                            
+                            print(f"Authorization header in put: {headers}")
+                            
+                            # Send the updated post
+                            response = requests.put(
+                                author_inbox_url,
+                                headers=headers,
+                                json=post_data
+                            )
+                            
+                            if response.status_code < 200 or response.status_code >= 300:
+                                print(f"Failed to send post to {remote_author.host}: {response.status_code} - {response.text}")
+                        return Response(serializer.data)
+                    
             
             except Exception as e:
                 return Response(
@@ -92,63 +119,6 @@ class PostDetailsView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
                 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-      
-    def delete(self, request, author_serial, post_serial):
-        try:
-            # Fetch the post
-            post = Post.objects.get(id=post_serial, author_id=author_serial)
-        except Post.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        # Update the visibility to 'DELETED' using the serializer
-        serializer = PostSerializer(post, data={'visibility': 'DELETED'}, partial=True)  # 'partial=True' means only updating visibility
-
-        print("HELLO IM IN DELETE")
-
-        if serializer.is_valid():
-            updated_post = serializer.save()
-
-            try:
-                # Notify remote authors about the post deletion
-                remote_authors = get_remote_authors(request)  # Fetch remote authors
-                if updated_post.visibility == 'DELETED':
-                    for remote_author in remote_authors:
-                        node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
-                        if node:
-                            author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
-                            post_data = PostSerializer(updated_post).data
-                            post_data['id'] = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/posts/{updated_post.id}/"
-                            
-        
-
-                            # Basic Auth for authentication
-                            credentials = f"{node.username}:{node.password}"
-                            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-                            headers = {"Authorization": f"Basic {base64_credentials}"}
-
-                            # Send the update to notify about the deletion
-                            response = requests.patch(
-                                author_inbox_url,
-                                headers=headers,
-                                json=post_data
-                            )
-
-                            if not (200 <= response.status_code < 300):
-                                # Log the failure to notify the remote author
-                                print(f"Failed to notify {remote_author.host} about post deletion: {response.status_code} - {response.text}")
-
-            except Exception as e:
-                # Catch errors during remote notifications
-                return Response(
-                    {"error": f"Failed to notify remote authors about post deletion: {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-
-            # Return 204 No Content after successfully marking the post as deleted
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
       
 class PostDetailsByFqidView(APIView):
