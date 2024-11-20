@@ -26,7 +26,6 @@ from node.authentication import NodeAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication  
 
 
-#region Post Views
 class PostDetailsView(APIView):
     """
     Retrieve, update or delete a post instance by author ID & post ID.
@@ -50,6 +49,7 @@ class PostDetailsView(APIView):
 
         serializer = PostSerializer(post, data=request.data)
         print("HELLO IM IN PUT")
+        print(serializer)
 
         if serializer.is_valid():
             updated_post = serializer.save()
@@ -85,6 +85,32 @@ class PostDetailsView(APIView):
                     # Handle sending to remote friends (if applicable)
                     # TODO: Implement logic for fetching and sending to remote friends
                     pass
+                elif updated_post.visibility == 'DELETED':
+                    for remote_author in remote_authors:
+                        node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+                        print(f"HI IM UNDER THE NODENode: {node}")
+                        if node:
+                            author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
+                            post_data = PostSerializer(updated_post).data
+                            post_data['id'] = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/posts/{updated_post.id}/"
+                            
+                            credentials = f"{node.username}:{node.password}"
+                            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                            headers = {"Authorization": f"Basic {base64_credentials}"}
+                            
+                            print(f"Authorization header in put: {headers}")
+                        
+                            # Send the updated post
+                            response = requests.post(
+                                author_inbox_url,
+                                headers=headers,
+                                json=post_data
+                            )
+                            
+                            if response.status_code < 200 or response.status_code >= 300:
+                                print(f"Failed to send post to {remote_author.host}: {response.status_code} - {response.text}")
+                        return Response(serializer.data)
+                    
             
             except Exception as e:
                 return Response(
@@ -93,16 +119,6 @@ class PostDetailsView(APIView):
                 )
                 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-      
-    def delete(self, request, author_serial, post_serial):
-        try:
-            post = Post.objects.get(id=post_serial, author_id=author_serial)
-        except Post.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
       
 class PostDetailsByFqidView(APIView):
     """
