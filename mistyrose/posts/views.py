@@ -32,7 +32,6 @@ class PostDetailsView(APIView):
     """
     Retrieve, update or delete a post instance by author ID & post ID.
     """
-    # permission_classes = [IsAuthenticatedOrReadOnly]
     
     def get(self, request, author_serial, post_serial):
         """
@@ -64,7 +63,7 @@ class PostDetailsView(APIView):
                 return Response({"error": f"Who dat? {author_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
             
             # serialize the updated post
-            serializer = PostSerializer(data=request.data)
+            serializer = PostSerializer(old_post, data=request.data)
             # update post locally
             if serializer.is_valid():
                 updated_post = serializer.save(author_id=author)
@@ -80,64 +79,37 @@ class PostDetailsView(APIView):
                     post_to_remote_inboxes(request, remote_authors, updated_post)
                     
                 elif updated_post.visibility == 'FRIENDS':
-                    
-            
-        # try:
-        #     post = Post.objects.get(id=post_serial, author_id=author_serial)
-        # except Post.DoesNotExist:
-        #     return Response(status=status.HTTP_404_NOT_FOUND)
-
-        # serializer = PostSerializer(post, data=request.data)
-        # print("HELLO IM IN PUT")
-
-        # if serializer.is_valid():
-        #     updated_post = serializer.save()
-        #     try:
-        #         remote_authors = get_remote_authors(request)  # Fetch remote authors
-        #         if updated_post.visibility == 'PUBLIC':
-        #             for remote_author in remote_authors:
-        #                 node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
-        #                 print(f"HI IM UNDER THE NODENode: {node}")
-        #                 if node:
-        #                     author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
-        #                     post_data = PostSerializer(updated_post).data
-        #                     post_data['id'] = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/posts/{updated_post.id}/"
-                            
-        #                     credentials = f"{node.remote_username}:{node.remote_password}"
-        #                     base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-        #                     headers = {"Authorization": f"Basic {base64_credentials}"}
-                            
-        #                     print(f"Authorization header in put: {headers}")
-                            
-        #                     # Send the updated post
-        #                     response = requests.post(
-        #                         author_inbox_url,
-        #                         headers=headers,
-        #                         json=post_data
-        #                     )
-                            
-        #                     if response.status_code < 200 or response.status_code >= 300:
-        #                         print(f"Failed to send post to {remote_author.host}: {response.status_code} - {response.text}")
-        #                 return Response(serializer.data)
-                
-        #         elif updated_post.visibility == 'FRIENDS':
-        #             # Handle sending to remote friends (if applicable)
-        #             # TODO: Implement logic for fetching and sending to remote friends
-        #             pass
-            
-        #     except Exception as e:
-        #         return Response(
-        #             {"error": f"Failed to re-send updated post: {str(e)}"},
-        #             status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        #         )
-                
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    # send only to remote friends if friends post
+                    remote_friends = get_remote_friends(author)
+                    post_to_remote_inboxes(request, remote_friends, updated_post)
+            except Exception as e:
+                return Response(
+                    {"error": f"Couldn't send the updated post to remote inboxes, babe. {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         
     def patch(self, request, author_serial, post_serial):
         """
         Delete a post instance by author ID & post ID.
         (Soft delete by setting the post's visibility to 'DELETED')
         """
+        
+        with transaction.atomic():
+            try:
+                post = Post.objects.get(id=post_serial, author_id=author_serial)
+            except Post.DoesNotExist:
+                return Response({"error": f"What post? {post_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
+            
+            # soft delete locally by setting visibility to 'DELETED'
+            post.visibility = 'DELETED'
+            post.save()
+            
+            # get remote authors and send post to all remote inboxes
+            try:
+                remote_authors = get_remote_authors(request)
+                post_to_remote_inboxes(request, remote_authors, post)
+            except Exception as e:
+                print(f"Couldn't send the deleted post to remote inboxes, babe. {str(e)}")
       
 class PostDetailsByFqidView(APIView):
     """
