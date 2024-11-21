@@ -32,7 +32,7 @@ class InboxView(APIView):
             response = handle_like_inbox(request, author, author_id)
         
         else:
-            return Response({"Error": "Object type does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"Error": f"What is a(n) {object_type}? I don't f with that, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         return response
 
