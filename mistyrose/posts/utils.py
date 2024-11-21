@@ -66,6 +66,7 @@ def get_remote_authors(request):
         if failed_nodes_urls:
             print(f"Could not get remote author(s) from these nodes: {failed_nodes_urls}")
         
+        print("Got remote authors successfully")
         return remote_authors   
     except Exception as e:
         print("Could not get remote authors")
@@ -91,6 +92,8 @@ def get_remote_friends(author):
             ).values_list('remote_follower_url', flat=True)  # Get remote follower URLs
         )
         return remote_following_urls.intersection(remote_followers_urls)
+    
+        print("Got remote friends successfully")
     except Exception as e:
         print(f"Could not get remote friends for author {author.url}")
         raise Exception(f"Could not get remote friends for author {author.url}: {e}")
@@ -127,10 +130,12 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
                 # check for errors
                 if response.status_code != 200 and response.status_code != 201:
                     failed_authors_urls.append([remote_author.url, response.status_code])
-            
+        
+        print("Posted to remote author inboxes successfully")
+        
         # show failed authors
         if failed_authors_urls:
-            print(f"Could not post to these remote author inboxes: {failed_authors_urls}")   
+            print(f"Could not post to these remote author inboxes: {failed_authors_urls}")
     except Exception as e:
         print("Could not post to remote author inboxes")
         raise Exception(f"Could not post to remote author inboxes: {e}")
