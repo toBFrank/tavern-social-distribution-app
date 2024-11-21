@@ -67,6 +67,7 @@ class PostDetailsView(APIView):
             # update post locally
             if serializer.is_valid():
                 updated_post = serializer.save(author_id=author)
+                updated_post_data = PostSerializer(updated_post).data
             else:
                 return Response({"error": f"Couldn't update the post locally or remotely, babe. Your request was messed up: {serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -76,12 +77,12 @@ class PostDetailsView(APIView):
                 
                 if updated_post.visibility == 'PUBLIC':
                     # send to all remote inboxes if public post
-                    post_to_remote_inboxes(request, remote_authors, updated_post.data)
+                    post_to_remote_inboxes(request, remote_authors, updated_post_data)
                     
                 elif updated_post.visibility == 'FRIENDS':
                     # send only to remote friends if friends post
                     remote_friends = get_remote_friends(author)
-                    post_to_remote_inboxes(request, remote_friends, updated_post.data)
+                    post_to_remote_inboxes(request, remote_friends, updated_post_data)
             except Exception as e:
                 return Response(
                     {"error": f"Couldn't send the updated post to remote inboxes, babe. {str(e)}"},
