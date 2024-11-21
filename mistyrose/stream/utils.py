@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.contrib.contenttypes.models import ContentType
 
-from user.models import Author, Follows
+from users.models import Author, Follows
 from node.models import Node
 from posts.models import Post, Comment, Like
 from .serializers import FollowSerializer
