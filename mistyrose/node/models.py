@@ -23,5 +23,9 @@ class Node(models.Model):
     # - (Note: username and password still have to be sent for every request, this is just a preliminary check)
     is_whitelisted = models.BooleanField(default=False)
     
+    @property
+    def is_authenticated(self):
+        return self.is_whitelisted
+    
     def __str__(self):
-        return f"Remote Node: {self.remote_node_url} Remote Username: {self.remote_username} Local Username: {self.local_username}"
+        return f"{self.remote_username} {self.remote_node_url}"
