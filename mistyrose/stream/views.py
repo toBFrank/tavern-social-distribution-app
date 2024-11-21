@@ -82,7 +82,7 @@ class InboxView(APIView):
                 print(remote_inbox_url)
                 parsed_url = urlparse(request.build_absolute_uri())
                 host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
-                credentials = f"{node.username}:{node.password}"
+                credentials = f"{node.remote_username}:{node.remote_password}"
                 base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
                 # 1. Send follow request to the remote node's inbox
                 
