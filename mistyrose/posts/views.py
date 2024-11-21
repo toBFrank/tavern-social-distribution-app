@@ -76,12 +76,12 @@ class PostDetailsView(APIView):
                 
                 if updated_post.visibility == 'PUBLIC':
                     # send to all remote inboxes if public post
-                    post_to_remote_inboxes(request, remote_authors, updated_post)
+                    post_to_remote_inboxes(request, remote_authors, updated_post.data)
                     
                 elif updated_post.visibility == 'FRIENDS':
                     # send only to remote friends if friends post
                     remote_friends = get_remote_friends(author)
-                    post_to_remote_inboxes(request, remote_friends, updated_post)
+                    post_to_remote_inboxes(request, remote_friends, updated_post.data)
             except Exception as e:
                 return Response(
                     {"error": f"Couldn't send the updated post to remote inboxes, babe. {str(e)}"},
@@ -105,11 +105,13 @@ class PostDetailsView(APIView):
             # soft delete locally by setting visibility to 'DELETED'
             post.visibility = 'DELETED'
             post.save()
+            # make json serializable post
+            post_data = PostSerializer(post).data
             
             # get remote authors and send post to all remote inboxes
             try:
                 remote_authors = get_remote_authors(request)
-                post_to_remote_inboxes(request, remote_authors, post)
+                post_to_remote_inboxes(request, remote_authors, post_data)
             except Exception as e:
                 print(f"Couldn't send the deleted post to remote inboxes, babe. {str(e)}")
       
