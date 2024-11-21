@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 import requests
 import base64
 
-from .models import Author
+from users.models import Author
 from node.models import Node
 from users.models import Follows
 
