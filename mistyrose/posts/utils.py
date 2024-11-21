@@ -4,6 +4,7 @@ import base64
 
 from .models import Author
 from node.models import Node
+from users.models import Follows
 
 
 def get_remote_authors(request):
@@ -65,6 +66,26 @@ def get_remote_authors(request):
         print(f"Could not get remote author(s) from these nodes: {failed_nodes_urls}")
         
     return remote_authors
+
+def get_remote_friends(author):
+    """
+    Get remote friends of an author.
+    """
+    
+    # Set of remote authors that the given author is following (URLs)
+    remote_following_urls = set(
+        Follows.objects.filter(
+            remote_follower_url=author.url, status='ACCEPTED', is_remote=True
+        ).values_list('followed_id__url', flat=True)  # Get URLs of followed authors
+    )
+    
+    # Set of remote authors that are following the given author (URLs)
+    remote_followers_urls = set(
+        Follows.objects.filter(
+            followed_id=author, status='ACCEPTED', is_remote=True
+        ).values_list('remote_follower_url', flat=True)  # Get remote follower URLs
+    )
+    return remote_following_urls.intersection(remote_followers_urls)
 
 def post_to_remote_inboxes(request, remote_authors, post_data):
     """
