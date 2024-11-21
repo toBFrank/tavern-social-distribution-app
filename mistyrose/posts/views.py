@@ -747,6 +747,12 @@ class PublicPostsView(APIView):
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication credentials were not provided to get public posts."}, status=status.HTTP_403_FORBIDDEN)
 
+        # get all remote authors
+        try:
+            remote_authors = get_remote_authors(request)
+        except Exception as e:
+            print(e)
+
         current_author = get_object_or_404(Author, user=request.user)
 
         # posts = Post.objects.exclude(author_id=current_author.id)
