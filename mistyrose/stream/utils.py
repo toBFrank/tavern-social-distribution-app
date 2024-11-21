@@ -60,7 +60,7 @@ def handle_follow_request(request, author):
 
   if is_remote_object:
       # node = Node.objects.get(host=str(object_host_with_scheme) + "/")
-      node = Node.objects.filter(host=object_host_with_scheme).first()
+      node = Node.objects.filter(remote_node_url=object_host_with_scheme).first()
       if not node:
           return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
       remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
@@ -83,8 +83,7 @@ def handle_follow_request(request, author):
           # Send POST request to the remote node
           response = requests.post(
               remote_inbox_url,
-              params={"host": host_with_scheme},
-                      # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
+            #   params={"host": host_with_scheme},
               headers={"Authorization": f"Basic {base64_credentials}"},
               json=follow_request_payload,
           )

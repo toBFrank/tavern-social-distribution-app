@@ -38,7 +38,7 @@ class NodeDetailView(APIView):
         """
         Get a node.
         """
-        node = get_object_or_404(Node, host=request.data.get("host"))
+        node = get_object_or_404(Node, remote_node_url=request.data.get("host"))
         serializer = NodeSerializer(node)
         response = {
             "type": "node",

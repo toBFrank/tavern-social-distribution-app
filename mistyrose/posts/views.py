@@ -309,7 +309,6 @@ class PublicPostsView(APIView):
             })
 
         # Create response data with posts and their respective authorized authors
-        print(f"authorized_authors_per_post: {authorized_authors_per_post}")
         response_data = {
             'posts': serializer.data,  
             'authorized_authors_per_post': authorized_authors_per_post

@@ -33,7 +33,7 @@ def get_remote_authors(request):
             # make the request
             response = requests.get(
                 authors_remote_endpoint,
-                params={"host": host_with_scheme},
+                # params={"host": host_with_scheme},
                 headers={"Authorization": f"Basic {base64_credentials}"},
             )
             
@@ -107,7 +107,7 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
     
     try:
         for remote_author in remote_authors:
-            node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
+            node = Node.objects.filter(remote_node_url=remote_author.host.rstrip('/')).first()
             if node:
                 author_inbox_remote_endpoint = f"{remote_author.url.rstrip('/')}/inbox/"
                 
@@ -122,7 +122,7 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
                 # make the request
                 response = requests.post(
                     author_inbox_remote_endpoint,
-                    params={"host": host_with_scheme},
+                    # params={"host": host_with_scheme},
                     headers={"Authorization": f"Basic {base64_credentials}"},
                     json=post_data,
                 )
