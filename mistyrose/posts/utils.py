@@ -82,7 +82,7 @@ def get_remote_friends(author):
         remote_following_urls = set(
             Follows.objects.filter(
                 remote_follower_url=author.url, status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
-            ).values_list('local_follower_id', flat=True)  # Get URLs of followed authors
+            ).values_list('followed_id', flat=True)  # Get URLs of followed authors
         )
 
         print(f"AUTHOR IS FOLLOWING THESE REMOTE PPL: {remote_following_urls}")
@@ -91,7 +91,7 @@ def get_remote_friends(author):
         remote_followers_urls = set(
             Follows.objects.filter(
                 followed_id=author, status='ACCEPTED' #remove is_remote or set it because its not set .... for Sapan following Kelly
-            ).values_list('remote_follower_url', flat=True)  # Get remote follower URLs
+            ).values_list('local_follower_id', flat=True)  # Get remote follower URLs
         )
 
         print(f"REMOTE AUTHORS FOLLOWING AUTHOR: {remote_followers_urls}")
