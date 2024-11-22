@@ -66,7 +66,7 @@ def get_remote_authors(request):
         if failed_nodes_urls:
             print(f"Could not get remote author(s) from these nodes: {failed_nodes_urls}")
         
-        print("Got remote authors successfully")
+        print(f"Got remote authors successfully: {remote_authors}")
         return remote_authors   
     except Exception as e:
         print("Could not get remote authors")
