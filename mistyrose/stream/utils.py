@@ -118,6 +118,8 @@ def handle_follow_request(request, author):
       if serializer.is_valid():
           serializer.validated_data['local_follower_id']['id'] = actor_id
           serializer.validated_data['followed_id']['id'] = object_id
+          if is_remote_actor:
+            serializer.validated_data['is_remote'] = True
           serializer.save()
           return Response(serializer.data, status=status.HTTP_201_CREATED)
       else:
@@ -165,6 +167,28 @@ def handle_post_a_post(request, post_author, author_id):
           
       except Author.DoesNotExist:
           return Response({"error": "Author is not a friend"}, status=status.HTTP_404_NOT_FOUND)
+      
+  elif request.data.get('visibility') == 'UNLISTED':
+      #check if poster's author in database and actually friends (if friends, should already be in database)
+      author_of_post = request.data["author"]["id"]
+      author_of_post_id = author_of_post.rstrip('/').split("/authors/")[-1]
+
+      try:
+          post_author = Author.objects.get(id=author_of_post_id)
+
+          is_follower = Follows.objects.filter(
+                local_follower_id=author, followed_id=post_author, status='ACCEPTED'
+            ).exists()
+          if not is_follower:
+                return Response(
+                    {"error": "Current author is not following the post's author"},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+          
+      except Author.DoesNotExist:
+          return Response({"error": "Post author does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+      
 
 
   # Extract post ID from the data

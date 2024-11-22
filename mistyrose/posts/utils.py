@@ -166,3 +166,34 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
     except Exception as e:
         print("Could not post to remote author inboxes")
         raise Exception(f"Could not post to remote author inboxes: {e}")
+    
+def get_remote_followers_you(author):
+    """
+    Get remote authors who follow the given author.
+    """
+    try:
+        # Get remote authors who are following the given author
+        remote_followers_ids = set(
+            Follows.objects.filter(
+                followed_id=author, 
+                status='ACCEPTED', 
+                is_remote=True  # Ensure we only consider remote followers
+            ).values_list('local_follower_id', flat=True)  # Get remote follower URLs
+        )
+
+        print(f"REMOTE AUTHORS FOLLOWING AUTHOR {author.id}: {remote_followers_ids}")
+
+        # Convert the IDs into `Author` objects
+        remote_followers = []
+        for author_id in remote_followers_ids:
+            author_obj = Author.objects.filter(id=author_id).first()
+            if author_obj:
+                remote_followers.append(author_obj)
+            else:
+                print(f"Warning: Author with ID {author_id} not found in the database.")
+        
+        return remote_followers
+
+    except Exception as e:
+        print(f"Error retrieving remote followers for author {author.url}: {e}")
+        raise Exception(f"Could not get remote followers for author {author.url}: {e}")
