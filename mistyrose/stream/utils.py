@@ -118,6 +118,7 @@ def handle_follow_request(request, author):
       if serializer.is_valid():
           serializer.validated_data['local_follower_id']['id'] = actor_id
           serializer.validated_data['followed_id']['id'] = object_id
+          print("is_remote_actor:",is_remote_actor)
           if is_remote_actor:
             serializer.validated_data['is_remote'] = True
           serializer.save()
