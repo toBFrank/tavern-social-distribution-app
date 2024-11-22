@@ -89,23 +89,40 @@ def get_remote_friends(author):
     """
     try:
         # Set of remote authors that the given author is following (URLs)
-        remote_following_urls = set(
+        remote_following_ids = set(
             Follows.objects.filter(
-                remote_follower_url=author.url, status='ACCEPTED', is_remote=True
-            ).values_list('followed_id__url', flat=True)  # Get URLs of followed authors
+                remote_follower_url=author.url, status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
+            ).values_list('followed_id', flat=True)  # Get URLs of followed authors
         )
+
+        print(f"AUTHOR IS FOLLOWING THESE REMOTE PPL: {remote_following_ids}")
         
         # Set of remote authors that are following the given author (URLs)
-        remote_followers_urls = set(
+        remote_followers_ids = set(
             Follows.objects.filter(
-                followed_id=author, status='ACCEPTED', is_remote=True
-            ).values_list('remote_follower_url', flat=True)  # Get remote follower URLs
+                followed_id=author, status='ACCEPTED' #remove is_remote or set it because its not set .... for Sapan following Kelly
+            ).values_list('local_follower_id', flat=True)  # Get remote follower URLs
         )
-        return remote_following_urls.intersection(remote_followers_urls)
+
+        print(f"REMOTE AUTHORS FOLLOWING AUTHOR: {remote_followers_ids}")
+
+        intersection = remote_following_ids.intersection(remote_followers_ids)
+        print(f"SEND TO FRIENDS: {intersection}")
+
+        friend_authors = []
+        for author_id in intersection:
+            author_obj = Author.objects.filter(id=author_id).first()
+            if author_obj:
+                friend_authors.append(author_obj)
+            else:
+                print(f"Warning: Author with URL {author_id} not found in the database.")
+        
+            
+        #should be returning authors instead of urls...
+        return friend_authors
     
-        print("Got remote friends successfully")
     except Exception as e:
-        print(f"Could not get remote friends for author {author.url}")
+        print(f"Could not get remote friends for author {author.url}: {e}")
         raise Exception(f"Could not get remote friends for author {author.url}: {e}")
 
 def post_to_remote_inboxes(request, remote_authors, post_data):
