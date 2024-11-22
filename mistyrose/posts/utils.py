@@ -81,11 +81,11 @@ def get_remote_friends(author):
         # Set of remote authors that the given author is following (URLs)
         remote_following_urls = set(
             Follows.objects.filter(
-                local_follower_id=author, status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
+                remote_follower_url=author.url, status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
             ).values_list('local_follower_id', flat=True)  # Get URLs of followed authors
         )
 
-        print(f"AUTHOR IS FOLLOWING THESE REMOTE PPL: {remote_followers_urls}")
+        print(f"AUTHOR IS FOLLOWING THESE REMOTE PPL: {remote_following_urls}")
         
         # Set of remote authors that are following the given author (URLs)
         remote_followers_urls = set(
