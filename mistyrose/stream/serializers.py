@@ -33,13 +33,16 @@ class FollowSerializer(serializers.Serializer):
         local_follower = Author.objects.get(id=actor_id)  # Get the follower
         followed = Author.objects.get(id=object_id)       # Get the followed author
 
+         # Retrieve `is_remote` from validated data (default to False if not present)
+        is_remote = validated_data.get('is_remote', False)
+
         # Create the Follows object
         follows_instance = Follows.objects.create(
             local_follower_id=local_follower,
             followed_id=followed,
             status='PENDING',  #TODO: if they make a follow request but you're already following, what do you do?
             remote_follower_url=actor_data.get('remote_follower_url'),  # if applicable
-            is_remote=False  #TODO: set is_remote by checking the host of follower (actor)
+            is_remote=is_remote #False by default
         )
 
         return follows_instance
