@@ -124,7 +124,7 @@ def handle_follow_request(request, author):
           print("error")
           return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def handle_post_a_post(request, author, author_id):
+def handle_post_a_post(request, post_author, author_id):
   # create post object type and user.
   author = get_object_or_404(Author, id=author_id) #author whose stream we want to add post to
 
@@ -135,7 +135,7 @@ def handle_post_a_post(request, author, author_id):
 
       author_data = request.data["author"]
       # get or create remote author who made the post
-      author, created = Author.objects.get_or_create(
+      post_author, created = Author.objects.get_or_create(
           id=author_of_post_id,
           defaults={
               "host": author_data['host'],
@@ -148,16 +148,23 @@ def handle_post_a_post(request, author, author_id):
 
   elif request.data.get('visibility') == 'FRIENDS':
       #check if poster's author in database and actually friends (if friends, should already be in database)
+      author_of_post = request.data["author"]["id"]
+      author_of_post_id = author_of_post.rstrip('/').split("/authors/")[-1]
+
       try:
-          # Retrieve the author if they exist, otherwise return an error response
-          author = Author.objects.get(id=author_of_post_id)
-          
-          # Check if the author is actually a friend
-          # if not author.is_friend(author_id):  # assuming you have an `is_friend` method
-          #     return Response({"error": "Author is not a friend."}, status=status.HTTP_403_FORBIDDEN)
+          post_author = Author.objects.get(id=author_of_post_id)
+
+          #check that they are actually friends
+          are_friends = (
+            Follows.objects.filter(local_follower_id=author, followed_id=post_author, status='ACCEPTED').exists() and #do you follow the poster's author?
+            Follows.objects.filter(local_follower_id=post_author, followed_id=author, status='ACCEPTED').exists() #does poster follow you?
+          )
+
+          if not are_friends:
+            return Response({"error": "Author is not a friend"}, status=status.HTTP_403_FORBIDDEN)
           
       except Author.DoesNotExist:
-          return Response({"error": "Author not found in the database."}, status=status.HTTP_404_NOT_FOUND)
+          return Response({"error": "Author is not a friend"}, status=status.HTTP_404_NOT_FOUND)
 
 
   # Extract post ID from the data
@@ -179,7 +186,7 @@ def handle_post_a_post(request, author, author_id):
   # if it exists, replace it with the new one
   post = Post.objects.filter(id=post_id).first()
   if post:
-      post.author_id = author
+      post.author_id = post_author
       post.title = request.data.get("title")
       post.description = request.data.get("description")
       post.content = request.data.get("content")
@@ -195,7 +202,7 @@ def handle_post_a_post(request, author, author_id):
   else:
       post = Post.objects.create(
           id=post_id,
-          author_id=author,
+          author_id=post_author,
           title=request.data.get("title"),
           description=request.data.get("description"),
           content=request.data.get("content"),
