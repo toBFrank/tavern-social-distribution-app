@@ -41,9 +41,18 @@ def get_remote_authors(request):
             if response.status_code == 200:
                 authors_data = response.json()["authors"]
                 for author_data in authors_data:
+                    # get host from author id
+                    # for example: https://cmput404-group-project.herokuapp.com/authors/1
+                    # host = https://cmput404-group-project.herokuapp.com
+                    host = author_data['id'].rstrip('/').split("/authors")[0]
+                    if host != node.remote_node_url.rstrip('/'):
+                        # skip if author is not from the this node
+                        continue
+                    
                     # get author id
                     # - assuming the id is in the format: <host>/authors/<id>
                     author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
+                    
                     
                     # get remote author
                     # - if author doesn't exist, create it
