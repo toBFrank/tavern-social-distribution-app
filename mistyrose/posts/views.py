@@ -3,7 +3,7 @@ import re
 import uuid
 from django.shortcuts import render
 import requests
-from .utils import get_remote_authors, get_remote_friends, post_to_remote_inboxes
+from .utils import get_remote_authors, get_remote_friends, post_to_remote_inboxes,get_remote_followers_you
 from users.models import Author
 from rest_framework import status
 from rest_framework.views import APIView
@@ -28,6 +28,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 #region Post Views
+
 class PostDetailsView(APIView):
     """
     Retrieve, update or delete a post instance by author ID & post ID.
@@ -151,6 +152,12 @@ class AuthorPostsView(APIView):
                     
                     # Send only to remote friends' inboxes
                     post_to_remote_inboxes(request, remote_friends, post_data)
+
+                elif post.visibility == 'UNLISTED':
+                    # Send to remote followers
+                    remote_followers = get_remote_followers_you(author)
+                    post_to_remote_inboxes(request, remote_followers, post_data)
+    
                     
                         
                 # elif post.visibility == 'FRIENDS':
