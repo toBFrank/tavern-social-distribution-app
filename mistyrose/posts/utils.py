@@ -96,7 +96,21 @@ def get_remote_friends(author):
 
         print(f"REMOTE AUTHORS FOLLOWING AUTHOR: {remote_followers_urls}")
 
-        return remote_following_urls.intersection(remote_followers_urls)
+        intersection = remote_following_urls.intersection(remote_followers_urls)
+        print(f"SEND TO FRIENDS: {intersection}")
+
+        friend_authors = []
+        for url in intersection:
+            url.rstrip('/').split("/authors/")[-1]
+            author_obj = Author.objects.filter(url=url).first()
+            if author_obj:
+                friend_authors.append(author_obj)
+            else:
+                print(f"Warning: Author with URL {url} not found in the database.")
+        
+            
+        #should be returning authors instead of urls...
+        return friend_authors
     
     except Exception as e:
         print(f"Could not get remote friends for author {author.url}: {e}")
