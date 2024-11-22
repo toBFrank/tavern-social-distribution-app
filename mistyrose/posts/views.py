@@ -3,6 +3,7 @@ import re
 import uuid
 from django.shortcuts import render
 import requests
+from .utils import get_remote_authors, get_remote_friends, post_to_remote_inboxes
 from users.models import Author
 from rest_framework import status
 from rest_framework.views import APIView
@@ -31,9 +32,11 @@ class PostDetailsView(APIView):
     """
     Retrieve, update or delete a post instance by author ID & post ID.
     """
-    # permission_classes = [IsAuthenticatedOrReadOnly]
     
     def get(self, request, author_serial, post_serial):
+        """
+        Retrieve a post instance by author ID & post ID.
+        """
         try:
             post = Post.objects.get(id=post_serial, author_id=author_serial)
         except Post.DoesNotExist:
@@ -43,66 +46,50 @@ class PostDetailsView(APIView):
         return Response(serializer.data)
       
     def put(self, request, author_serial, post_serial):
-        try:
-            post = Post.objects.get(id=post_serial, author_id=author_serial)
-        except Post.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = PostSerializer(post, data=request.data)
-        print("HELLO IM IN PUT")
-
-        if serializer.is_valid():
-            updated_post = serializer.save()
+        """
+        Update a post instance by author ID & post ID.
+        """
+        with transaction.atomic():
+            # get the post instance
             try:
-                remote_authors = get_remote_authors(request)  # Fetch remote authors
-                if updated_post.visibility == 'PUBLIC':
-                    for remote_author in remote_authors:
-                        node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
-                        print(f"HI IM UNDER THE NODENode: {node}")
-                        if node:
-                            author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
-                            post_data = PostSerializer(updated_post).data
-                            post_data['id'] = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/posts/{updated_post.id}/"
-                            
-                            credentials = f"{node.username}:{node.password}"
-                            base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-                            headers = {"Authorization": f"Basic {base64_credentials}"}
-                            
-                            print(f"Authorization header in put: {headers}")
-                            
-                            # Send the updated post
-                            response = requests.post(
-                                author_inbox_url,
-                                headers=headers,
-                                json=post_data
-                            )
-                            
-                            if response.status_code < 200 or response.status_code >= 300:
-                                print(f"Failed to send post to {remote_author.host}: {response.status_code} - {response.text}")
-                        return Response(serializer.data)
-                
-                elif updated_post.visibility == 'FRIENDS':
-                    # Handle sending to remote friends (if applicable)
-                    # TODO: Implement logic for fetching and sending to remote friends
-                    pass
+                old_post = Post.objects.get(id=post_serial, author_id=author_serial)
+            except Post.DoesNotExist:
+                return Response({"error": f"What post? {post_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
             
+            # get the author instance
+            try:
+                author = Author.objects.get(id=author_serial)
+            except Author.DoesNotExist:
+                return Response({"error": f"Who dat? {author_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
+            
+            # serialize the updated post
+            serializer = PostSerializer(old_post, data=request.data)
+            # update post locally
+            if serializer.is_valid():
+                updated_post = serializer.save(author_id=author)
+                updated_post_data = PostSerializer(updated_post).data
+            else:
+                return Response({"error": f"Couldn't update the post locally or remotely, babe. Your request was messed up: {serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # get remote authors and send post to remote inboxes
+            try:
+                remote_authors = get_remote_authors(request)
+                
+                if updated_post.visibility == 'PUBLIC' or updated_post.visibility == 'DELETED':
+                    # send to all remote inboxes if public post
+                    post_to_remote_inboxes(request, remote_authors, updated_post_data)
+                    
+                elif updated_post.visibility == 'FRIENDS':
+                    # send only to remote friends if friends post
+                    remote_friends = get_remote_friends(author)
+                    post_to_remote_inboxes(request, remote_friends, updated_post_data)
             except Exception as e:
                 return Response(
-                    {"error": f"Failed to re-send updated post: {str(e)}"},
+                    {"error": f"Couldn't send the updated post to remote inboxes, babe. {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
-                
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-      
-    def delete(self, request, author_serial, post_serial):
-        try:
-            post = Post.objects.get(id=post_serial, author_id=author_serial)
-        except Post.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        
-        post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            
+            return Response(serializer.data, status=status.HTTP_200_OK)
       
 class PostDetailsByFqidView(APIView):
     """
@@ -118,80 +105,6 @@ class PostDetailsByFqidView(APIView):
         
         serializer = PostSerializer(post)
         return Response(serializer.data)
-
-def get_remote_authors(request):
-    remote_authors = []
-    for node in Node.objects.filter(is_whitelisted=True):
-        # get authors for each remote node connection
-        #get authors 
-        get_authors_url = f"{node.host.rstrip('/')}/api/authors/"
-        parsed_url = urlparse(request.build_absolute_uri())
-        host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
-        credentials = f"{node.username}:{node.password}"
-        base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-        print(f"REQUEST \nget_authors_url: {get_authors_url}\nhost_with_scheme: {host_with_scheme}\nAuthorization: Basic {node.username}:{node.password}")
-        response = requests.get(
-                get_authors_url,
-                params={"host": host_with_scheme},
-                # auth=HTTPBasicAuth(local_node_of_remote.username, local_node_of_remote.password),
-                headers={"Authorization": f"Basic {base64_credentials}"},
-            )
-        
-        print(f"RESPONSE BRUH {response} WITH STATUS CODE {response.status_code}")
-        
-        # response = requests.get(get_authors_url, auth=HTTPBasicAuth(node.username, node.password)) #make http requests to remote node
-        if response.status_code == 200:
-            authors_data = response.json()["authors"]
-            print(f"IS IT THIS ITERABLE? {authors_data}")
-            for author_data in authors_data:
-                author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
-                
-                # Get remote author or create
-                author, created = Author.objects.get_or_create(id=author_id)
-                if created:
-                    author.host = author_data['host']
-                    author.display_name = author_data['displayName']
-                    author.github = author_data.get('github', '')
-                    author.profile_image = author_data.get('profileImage', '')
-                    author.page = author_data['page']
-                    author.save()
-
-                remote_authors.append(author)
-                print(f"AN AUTHOR: {author}")
-        # else:  # But what if this node is down? Or no authors in this node?
-        #     raise ValueError(f"Failed to fetch authors from {get_authors_url} with status code {response.status_code}.")
-        
-    return remote_authors
-
-def send_to_inbox(remote_author, post_data, host_with_scheme):
-    """
-    Helper function to send post data to a remote author's inbox.
-    """
-    # Prepare URL and credentials for the remote author's inbox
-    node = Node.objects.filter(host=remote_author.host.rstrip('/')).first()
-    if node:
-        author_inbox_url = f"{remote_author.host.rstrip('/')}/api/authors/{remote_author.id}/inbox/"
-        credentials = f"{node.username}:{node.password}"
-        base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
-        
-        # Make the request
-        response = requests.post(
-            author_inbox_url,
-            params={"host": host_with_scheme},
-            headers={"Authorization": f"Basic {base64_credentials}"},
-            json=post_data,
-        )
-
-        # Check for errors
-        if response.status_code == 401:
-            print(f"Authorization failed with status code 401. Response details:")
-            print(f"Response Headers: {response.headers}")
-            print(f"Response Content: {response.text}")
-        
-        if response.status_code >= 200 and response.status_code < 300:
-            print(f"Successfully sent post to {remote_author.url}")
-        else:
-            print(f"Failed to send post to {remote_author.url}, {response.status_code} - {response.reason}")
 
 class AuthorPostsView(APIView):
     """
@@ -212,62 +125,62 @@ class AuthorPostsView(APIView):
             try:
                 author = Author.objects.get(id=author_serial)
             except Author.DoesNotExist:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": f"Who dat? {author_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
 
             serializer = PostSerializer(data=request.data)
+            # create post locally
             if serializer.is_valid():
                 post = serializer.save(author_id=author)  # Associate the post with the author
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": f"Couldn't create the post locally or remotely, babe. Your request was messed up: {serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
             
             # get remote authors and send post to remote inboxes 
             try:
                 remote_authors = get_remote_authors(request)
-                print(f" REMOTE AUTHORS YUHH {remote_authors}")
 
                 # Prepare post data 
                 post_data = PostSerializer(post).data
                 post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
-                print(f"ERM THIS IS POST DATAAAA {post_data}")
-
                 
-                parsed_url = urlparse(request.build_absolute_uri())
-                host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
                 if post.visibility == 'PUBLIC':
-                    #send to all remote inboxes if public post
-                    for remote_author in remote_authors:
-                        send_to_inbox(remote_author, post_data, host_with_scheme)
-                        
+                    # send to all remote inboxes if public post
+                    post_to_remote_inboxes(request, remote_authors, post_data)
+                    
                 elif post.visibility == 'FRIENDS':
-                    #send only to remote friends if friends post
-                    #TODO: see how remote friends is being handled i.e. is it using remote_id?
-                        # Get remote friends of the author
-                    outgoing_follows = Follows.objects.filter(
-                        local_follower_id=author, status='ACCEPTED'
-                    ).values_list('followed_id', flat=True)
-
-                    remote_friends = [
-                        remote_author for remote_author in remote_authors
-                        if Follows.objects.filter(
-                            followed_id=author,
-                            remote_follower_url=remote_author.url,
-                            status='ACCEPTED'
-                        ).exists() and remote_author.id in outgoing_follows
-                    ]
-
+                    remote_friends = get_remote_friends(author)
+                    
                     # Send only to remote friends' inboxes
-                    for remote_friend in remote_friends:
-                        send_to_inbox(remote_friend, post_data, host_with_scheme)
+                    post_to_remote_inboxes(request, remote_friends, post_data)
+                    
+                        
+                # elif post.visibility == 'FRIENDS':
+                #     #send only to remote friends if friends post
+                #     #TODO: see how remote friends is being handled i.e. is it using remote_id?
+                #         # Get remote friends of the author
+                #     outgoing_follows = Follows.objects.filter(
+                #         local_follower_id=author, status='ACCEPTED'
+                #     ).values_list('followed_id', flat=True)
+
+                #     remote_friends = [
+                #         remote_author for remote_author in remote_authors
+                #         if Follows.objects.filter(
+                #             followed_id=author,
+                #             remote_follower_url=remote_author.url,
+                #             status='ACCEPTED'
+                #         ).exists() and remote_author.id in outgoing_follows
+                #     ]
+
+                #     # Send only to remote friends' inboxes
+                #     for remote_friend in remote_friends:
+                #         send_to_inbox(remote_friend, post_data, host_with_scheme)
 
             except Exception as e:
-                #return an error if fetching remote authors fails
                 return Response(
-                    {"error": f"Failed to fetch remote authors: {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    {"error": f"Couldn't send the post to remote inboxes, babe. {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
       
 class PostImageView(APIView):
     """
@@ -299,6 +212,80 @@ class PostImageView(APIView):
         except Exception as e:
             print(f"Error decoding image: {e}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PublicPostsView(APIView):
+    # To view all of the public posts in the home page
+    permission_classes = [IsAuthenticatedOrReadOnly] 
+
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication credentials were not provided to get public posts."}, status=status.HTTP_403_FORBIDDEN)
+
+        current_author = get_object_or_404(Author, user=request.user)
+
+        # posts = Post.objects.exclude(author_id=current_author.id)
+        posts = Post.objects.all()
+
+        serializer = PostSerializer(posts, many=True)
+
+        # all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
+        all_authors = list(Author.objects.all().values_list('id', flat=True))
+
+        authorized_authors_per_post = []
+
+        # - following_ids: set of IDs of authors that the current author follows
+        # - followers_ids: set of IDs of authors that follow the current author
+        following_ids = set(Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True))
+        followers_ids = set(Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True))  
+        mutual_friend_ids = following_ids.intersection(followers_ids)
+
+        for post_data in serializer.data:
+            post_visibility = post_data.get('visibility')
+            post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
+            authorized_authors = set()
+
+            if post_visibility == 'PUBLIC':
+                authorized_authors.update(all_authors)
+            
+            elif post_visibility == 'UNLISTED':
+                accepted_following_ids = Follows.objects.filter(
+                local_follower_id=current_author, 
+                status='ACCEPTED'
+                ).values_list('followed_id', flat=True)
+                # Show the unlisted post if the post's author is someone the current author follows
+                if post_author_id in accepted_following_ids or post_author_id == current_author.id:
+                    authorized_authors.add(current_author.id)
+
+            elif post_visibility == 'FRIENDS':
+                # Only show FRIENDS posts if the post's author is a mutual friend
+                if post_author_id in mutual_friend_ids or post_author_id == current_author.id:
+                    authorized_authors.add(current_author.id)
+
+            elif post_visibility == 'SHARED':
+                #original_url = post_data.get('original_url')  
+                #if original_url:
+                #    original_author_id = original_url[0]  
+                 #   authorized_authors.add(original_author_id) 
+                #post_author_id = post_data.get('author_id')  # Get the author_id from post data
+                #authorized_authors.add(post_author_id)
+                if post_author_id in following_ids or post_author_id == current_author.id:
+                  authorized_authors.add(current_author.id) 
+
+
+            # Include visibility_type in the authorized_authors_per_post dictionary
+            authorized_authors_per_post.append({
+                'post_id': post_data['id'], 
+                'authorized_authors': list(authorized_authors),
+                'visibility_type': post_visibility  # Add visibility_type here
+            })
+
+        # Create response data with posts and their respective authorized authors
+        response_data = {
+            'posts': serializer.data,  
+            'authorized_authors_per_post': authorized_authors_per_post
+        }        
+        return Response(response_data, status=status.HTTP_200_OK)
+    
 #endregion
 
 #region Comment Views
@@ -803,83 +790,8 @@ class LikedFQIDView(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
-#endview
-   
-class PublicPostsView(APIView):
-    # To view all of the public posts in the home page
-    permission_classes = [IsAuthenticatedOrReadOnly] 
+#endregion
 
-    def get(self, request):
-        if not request.user.is_authenticated:
-            return Response({"detail": "Authentication credentials were not provided to get public posts."}, status=status.HTTP_403_FORBIDDEN)
-
-        current_author = get_object_or_404(Author, user=request.user)
-
-        # posts = Post.objects.exclude(author_id=current_author.id)
-        posts = Post.objects.all()
-
-        serializer = PostSerializer(posts, many=True)
-
-        # all_authors = list(Author.objects.exclude(id=current_author.id).values_list('id', flat=True))
-        all_authors = list(Author.objects.all().values_list('id', flat=True))
-
-        authorized_authors_per_post = []
-
-        # - following_ids: set of IDs of authors that the current author follows
-        # - followers_ids: set of IDs of authors that follow the current author
-        following_ids = set(Follows.objects.filter(local_follower_id=current_author, status='ACCEPTED').values_list('followed_id', flat=True))
-        followers_ids = set(Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True))  
-        mutual_friend_ids = following_ids.intersection(followers_ids)
-
-        for post_data in serializer.data:
-            post_visibility = post_data.get('visibility')
-            post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
-            authorized_authors = set()
-
-            if post_visibility == 'PUBLIC':
-                authorized_authors.update(all_authors)
-            
-            elif post_visibility == 'UNLISTED':
-                accepted_following_ids = Follows.objects.filter(
-                local_follower_id=current_author, 
-                status='ACCEPTED'
-                ).values_list('followed_id', flat=True)
-                # Show the unlisted post if the post's author is someone the current author follows
-                if post_author_id in accepted_following_ids or post_author_id == current_author.id:
-                    authorized_authors.add(current_author.id)
-
-            
-            elif post_visibility == 'FRIENDS':
-                # Only show FRIENDS posts if the post's author is a mutual friend
-                if post_author_id in mutual_friend_ids or post_author_id == current_author.id:
-                    authorized_authors.add(current_author.id)
-
-            elif post_visibility == 'SHARED':
-                #original_url = post_data.get('original_url')  
-                #if original_url:
-                #    original_author_id = original_url[0]  
-                 #   authorized_authors.add(original_author_id) 
-                #post_author_id = post_data.get('author_id')  # Get the author_id from post data
-                #authorized_authors.add(post_author_id)
-                if post_author_id in following_ids or post_author_id == current_author.id:
-                  authorized_authors.add(current_author.id) 
-
-
-            # Include visibility_type in the authorized_authors_per_post dictionary
-            authorized_authors_per_post.append({
-                'post_id': post_data['id'], 
-                'authorized_authors': list(authorized_authors),
-                'visibility_type': post_visibility  # Add visibility_type here
-            })
-
-        # Create response data with posts and their respective authorized authors
-        print(f"authorized_authors_per_post: {authorized_authors_per_post}")
-        response_data = {
-            'posts': serializer.data,  
-            'authorized_authors_per_post': authorized_authors_per_post
-        }        
-        return Response(response_data, status=status.HTTP_200_OK)
-    
 #region Github Vews
 class GitHubEventsView(APIView):
     """
@@ -898,3 +810,4 @@ class GitHubEventsView(APIView):
             return Response(response.json(), status=status.HTTP_200_OK)
         except requests.exceptions.RequestException as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#endregion
