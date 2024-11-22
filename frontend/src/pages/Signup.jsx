@@ -92,7 +92,6 @@ const Signup = () => {
   return (
     <div
       className="signup-background-container"
-      className="signup-background-container"
       id="signup-background-container"
     >
       <div className='signup-image'>

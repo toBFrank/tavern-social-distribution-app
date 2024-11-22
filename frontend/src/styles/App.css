@@ -47,6 +47,82 @@ textarea:focus {
 input,
 form input {
   width: 20em;
+  width: 20em;
+  font-size: large;
+  padding: 20px;
+  /* outline: none; */
+  background: #d9d3ce;
+  color: black;
+  border: 0.15rem solid black;
+  border-radius: 20px;
+  box-shadow: 5px 5px 0px 0px black;
+  transition: 0.3s ease;
+  font-family: 'Roboto', sans-serif;
+}
+input:focus {
+  background: white;
+  border: 5px solid black;
+  border-radius: 10px;
+  box-shadow: 10px 10px 0px 0px black;
+  outline: none;
+}
+form input:focus {
+  background: white;
+  border: 5px solid black;
+  border-radius: 10px;
+  box-shadow: 10px 10px 0px 0px black;
+  outline: none;
+}
+
+.App {
+  display: flex;
+  flex-direction: row;
+  background: transparent;
+  margin-left: 140px;
+  padding-left: 5%;
+  padding-right: 5%;
+  padding-top: 2%;
+  padding-bottom: 2%;
+  transition: 0.3s ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+}
+
+textarea {
+  font-size: large;
+  padding: 20px;
+  outline: none;
+  background: #f8e5d3;
+  color: black;
+  border: 3px solid black;
+  border-radius: 20px;
+  box-shadow: 5px 5px 0px 0px black;
+  transition: 0.3s ease;
+  font-family: 'Roboto', sans-serif;
+  resize: none;
+}
+textarea::-webkit-scrollbar {
+  display: none;
+}
+
+textarea:focus {
+  background: white;
+  border: 5px solid black;
+  border-radius: 10px;
+  box-shadow: 10px 10px 0px 0px black;
+}
+
+input,
+form input {
+  width: 20em;
   font-size: large;
   padding: 20px;
   /* outline: none; */

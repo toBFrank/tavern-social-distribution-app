@@ -1,9 +1,51 @@
 .App {
   margin: 0;
+  margin: 0;
 }
 
 .login-background-container {
   width: 100%;
+  height: 100%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  flex-direction: row; 
+}
+
+.login-image {
+  display: flex;
+  flex-direction: column;
+  flex: 1; 
+  max-width: 50vw;
+  height: 100%;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+.logo {
+  position: absolute; 
+  top: 50px; 
+  left: 50px; 
+  width: 5em; 
+  height: auto; 
+}
+
+.image-log {
+  width: 60%; 
+  height: auto; 
+}
+
+.login-container {
+  flex: 1; 
+  max-width: 50%; 
+  height: 100vh; 
+  border-radius: 50px 0 0 50px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  background-color: white;
   height: 100%; 
   display: flex; 
   align-items: center; 

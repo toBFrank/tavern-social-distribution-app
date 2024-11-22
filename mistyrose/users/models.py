@@ -20,6 +20,7 @@ class Author(models.Model):
         # create url
         if not self.url:
             self.url = f"{self.host.rstrip('/')}/api/authors/{self.id}/"
+        
         super().save(*args, **kwargs)
 
     def __str__(self):

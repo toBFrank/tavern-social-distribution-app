@@ -6,34 +6,37 @@ import base64
 
 class NodeAuthentication(BaseAuthentication):
     def authenticate(self, request):
-        if 'Authorization' in request.headers and request.headers['Authorization'].startswith('Bearer '):
-            return None  # Don't process Bearer token in this view.
-
-        auth = request.headers.get('Authorization')
-        print(f"request: {request}")
-        print(f"auth: {auth}")
-
-        if not auth:
-            raise AuthenticationFailed('No authorization header provided.')
-
-        if not auth.startswith('Basic '):
-            raise AuthenticationFailed('Authorization header must be Basic.')
+        auth_header = request.headers.get('Authorization')
+        
+        # no credentials given
+        if not auth_header:
+            return None
+        
+        # credentials given, but not Basic
+        if not auth_header.startswith('Basic '):
+            return None
+        
         try:
-            auth_decoded = base64.b64decode(auth.split(' ')[1]).decode('utf-8')
-            username, password = auth_decoded.split(':')
+            # decode the base64 encoded string
+            # - for example:
+            #     auth_header = "Basic YWRtaW46YWR" -> base64_decoded = "username:password"
+            # - username & password should match local_username & local_password of a Node object
+            base64_decoded = base64.b64decode(auth_header.split(' ')[1]).decode('utf-8')
+            username, password = base64_decoded.split(':')
         except:
-            raise AuthenticationFailed('Invalid authorization header format.')
-
+            raise AuthenticationFailed('You did not write the auth header properly; fix and try again, cutie.')
+        
         try:
-            parsed_url = urlparse(request.build_absolute_uri())
-            host_with_scheme = f"https://{parsed_url.netloc}"
-            print(f"host_with_scheme: {host_with_scheme}")
-            print(f"username: {username} password: {password}")
-            node = Node.objects.get(username=username, password=password)
-            node.is_authenticated = True
-            node.save()
+            # get the Node object that matches the username and password
+            node = Node.objects.get(
+                local_username=username, 
+                local_password=password, 
+                is_whitelisted=True,
+                )
         except Node.DoesNotExist:
-            raise AuthenticationFailed('Invalid username or password for the node.')
+            raise AuthenticationFailed('I could not find a live node that matches. Wrong username/password? Or maybe I just blocked you. Who knows?')
 
-        # - usually, you would return (user, additional_data) here if it was user authentication
         return (node, None)
+    
+    def authenticate_header(self, request):
+        return 'Basic realm="Node Authentication"'
