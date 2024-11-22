@@ -313,24 +313,33 @@ class CommentedView(APIView):
         post_id = post_url.rstrip('/').split("/posts/")[-1]
         post = get_object_or_404(Post, id=post_id)
 
-        #creating the comment object
-
+        #creating the comment object locally
         comment_serializer = CommentSerializer(data=request.data)
         if comment_serializer.is_valid():
-            comment_serializer.save(
+            comment = comment_serializer.save(
                 author_id=author,
                 post_id=post
             )
-
-            #creating Inbox object to forward to correct inbox
-            post_host = post_url.split("//")[1].split("/")[0]
-            if post_host != request.get_host():
-                # TODO: post not on our host, need to forward it to a remote inbox
-                pass
-        
-            return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
+        # forward to correct remote inboxes
+        remote_authors = get_remote_authors(request)
+
+        #prepare comment data
+        comment_data = CommentSerializer(comment).data
+        print(f"COMMENT DATA REQUEST BODY {comment_data}")
+
+        if post.visibility == 'PUBLIC':
+            post_to_remote_inboxes(request, remote_authors, comment_data)
+
+        elif post.visibility == 'FRIENDS':
+            remote_friends = get_remote_friends(author)
+
+            post_to_remote_inboxes(request, remote_friends, comment_data)
+    
+        return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
+        
         
     def get(self, request, author_serial):
         """ 
