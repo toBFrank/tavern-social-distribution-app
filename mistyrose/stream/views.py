@@ -48,4 +48,3 @@ class FollowRequests(APIView):
         for follow_data in serialized_data:
             follow_data['type'] = 'follow'
         return Response(serialized_data, status=200)
-
