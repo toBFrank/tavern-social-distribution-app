@@ -79,34 +79,33 @@ def get_remote_friends(author):
     """
     try:
         # Set of remote authors that the given author is following (URLs)
-        remote_following_urls = set(
+        remote_following_ids = set(
             Follows.objects.filter(
                 remote_follower_url=author.url, status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
             ).values_list('followed_id', flat=True)  # Get URLs of followed authors
         )
 
-        print(f"AUTHOR IS FOLLOWING THESE REMOTE PPL: {remote_following_urls}")
+        print(f"AUTHOR IS FOLLOWING THESE REMOTE PPL: {remote_following_ids}")
         
         # Set of remote authors that are following the given author (URLs)
-        remote_followers_urls = set(
+        remote_followers_ids = set(
             Follows.objects.filter(
                 followed_id=author, status='ACCEPTED' #remove is_remote or set it because its not set .... for Sapan following Kelly
             ).values_list('local_follower_id', flat=True)  # Get remote follower URLs
         )
 
-        print(f"REMOTE AUTHORS FOLLOWING AUTHOR: {remote_followers_urls}")
+        print(f"REMOTE AUTHORS FOLLOWING AUTHOR: {remote_followers_ids}")
 
-        intersection = remote_following_urls.intersection(remote_followers_urls)
+        intersection = remote_following_ids.intersection(remote_followers_ids)
         print(f"SEND TO FRIENDS: {intersection}")
 
         friend_authors = []
-        for url in intersection:
-            url.rstrip('/').split("/authors/")[-1]
-            author_obj = Author.objects.filter(url=url).first()
+        for author_id in intersection:
+            author_obj = Author.objects.filter(id=author_id).first()
             if author_obj:
                 friend_authors.append(author_obj)
             else:
-                print(f"Warning: Author with URL {url} not found in the database.")
+                print(f"Warning: Author with URL {author_id} not found in the database.")
         
             
         #should be returning authors instead of urls...
