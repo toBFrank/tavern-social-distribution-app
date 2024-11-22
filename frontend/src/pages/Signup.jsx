@@ -95,10 +95,6 @@ const Signup = () => {
       id="signup-background-container"
     >
       <div className='signup-image'>
-        <img className= "image-log" src={ SignUpImg } alt="Signup image" />
-      </div>
-      <div className="signup-container">
-      <div className='signup-image'>
       <img className='logoSignup' src = { appLogo } alt='logo Img' />
         <img className= "image-log" src={ SignUpImg } alt="Signup image" />
       </div>
@@ -117,39 +113,7 @@ const Signup = () => {
                 onChange={handleChange}
               />
             </div>
-          <div className='form-signup'>
-            <div className="form-group">
-              <label className="input-label">Name</label>
-              <input className='signup-inputLable'
-                type="text"
-                name="displayName"
-                value={formData.displayName}
-                onChange={handleChange}
-              />
-            </div>
 
-            <div className="form-group">
-              <label className="input-label">Password</label>
-              <input className='signup-inputLable'
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-          <div className='form-signup'>
-            <div className="form-group">
-              <label className="input-label">Username</label>
-              <input className='signup-inputLable'
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-                required
-              />
-            </div>
             <div className="form-group">
               <label className="input-label">Password</label>
               <input className='signup-inputLable'
@@ -183,27 +147,7 @@ const Signup = () => {
                 required
               />
             </div>
-            <div className="form-group">
-              <label className="input-label">Email</label>
-              <input className='signup-inputLable'
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
           </div>
-          <div className='form-signup'>
-            <div className="form-group">
-              <label className="input-label">GitHub</label>
-              <input className='signup-inputLable'
-                type="text"
-                name="github"
-                value={formData.github}
-                onChange={handleChange}
-              />
-            </div>
           <div className='form-signup'>
             <div className="form-group">
               <label className="input-label">GitHub</label>
@@ -215,20 +159,6 @@ const Signup = () => {
               />
             </div>
 
-            <div className="form-group">
-              <label className="input-label">Profile Image</label>
-              <input className='signup-inputLable'
-                id="file-input"
-                type="file"
-                name="profile_image"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
-              {imageUploading && <p>Uploading image...</p>}
-              {formData.profileImage && <p>Image uploaded successfully.</p>}
-            </div>
-          </div>
-     
             <div className="form-group">
               <label className="input-label">Profile Image</label>
               <input className='signup-inputLable'
@@ -257,3 +187,4 @@ const Signup = () => {
 };
 
 export default Signup;
+
