@@ -124,7 +124,7 @@ def handle_follow_request(request, author):
           print("error")
           return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def handle_post_a_post(request, post_author, author_id):
+def handle_post_inbox(request, post_author, author_id):
   # create post object type and user.
   author = get_object_or_404(Author, id=author_id) #author whose stream we want to add post to
 
@@ -213,35 +213,49 @@ def handle_post_a_post(request, post_author, author_id):
       return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 def handle_comment_inbox(request, author, author_id):
-  author = get_object_or_404(Author, id=author_id) #author is the one who made the comment
-  # we already get the post its supposed to be added to from the request body
-  # TODO: need to make author if they don't exist from another node. not get object or 404
+    author = get_object_or_404(Author, id=author_id) #author is the one who made the comment
+    # we already get the post its supposed to be added to from the request body
+    # TODO: need to make author if they don't exist from another node. not get object or 404
 
-  comment_data = request.data
-  request_type = comment_data.get('type')
-
-  if request_type != 'comment':
-      return Response({"detail": "Must be 'comment' type"}, status=status.HTTP_400_BAD_REQUEST)
-  
-  post_url = comment_data.get("post")
-  if not post_url:
-      return Response({"Error": "Post URL is required."}, status=status.HTTP_400_BAD_REQUEST)
-
-  post_id = post_url.rstrip('/').split("/posts/")[-1]
-  post = get_object_or_404(Post, id=post_id)
-
-  #creating the comment object
-  comment_serializer = CommentSerializer(data=request.data)
-  if comment_serializer.is_valid():
-      comment_serializer.save(
-          author_id=author,
-          post_id=post
-      )
-  
-      return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
-  else:
-      return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    comment_data = request.data
     
+    post_url = comment_data.get("post")
+    if not post_url:
+        return Response({"Error": "Post URL is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    post_id = post_url.rstrip('/').split("/posts/")[-1]
+    post = get_object_or_404(Post, id=post_id)
+
+    # get author of commenter 
+    author_of_comment = comment_data["author"]["id"]
+    author_of_comment_id = author_of_comment.rstrip('/').split("/authors/")[-1]
+
+    author_data = request.data["author"]
+
+    # get or create remote author who made the comment
+    comment_author, created = Author.objects.get_or_create(
+        id=author_of_comment_id,
+        defaults={
+            "host": author_data['host'],
+            "display_name": author_data['displayName'],
+            "github": author_data.get('github', ''),
+            "profile_image": author_data.get('profileImage', ''),
+            "page": author_data['page'],
+        }
+    )
+
+    #creating the comment object
+    comment_serializer = CommentSerializer(data=request.data)
+    if comment_serializer.is_valid():
+        comment_serializer.save(
+            author_id=comment_author,
+            post_id=post
+        )
+    
+        return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
+    else:
+        return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 def handle_like_inbox(request, author, author_id):
   #author who created the like
   author = get_object_or_404(Author, id=author_id)

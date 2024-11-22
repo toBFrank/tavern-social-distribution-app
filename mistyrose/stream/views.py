@@ -5,7 +5,7 @@ from .serializers import FollowSerializer
 from users.models import Author, Follows
 from django.shortcuts import get_object_or_404
 from rest_framework import status  
-from .utils import handle_follow_request, handle_post_a_post, handle_comment_inbox, handle_like_inbox
+from .utils import handle_follow_request, handle_post_inbox, handle_comment_inbox, handle_like_inbox
 
 
 class InboxView(APIView):
@@ -22,7 +22,7 @@ class InboxView(APIView):
             return response
 
         elif object_type == "post":
-            response = handle_post_a_post(request, author, author_id)
+            response = handle_post_inbox(request, author, author_id)
             return response
             
         elif object_type == "comment":

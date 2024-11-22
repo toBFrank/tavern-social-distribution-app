@@ -323,20 +323,27 @@ class CommentedView(APIView):
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
 
-        # forward to correct remote inboxes
-        remote_authors = get_remote_authors(request)
+        try:
+            # forward to correct remote inboxes
+            remote_authors = get_remote_authors(request)
 
-        #prepare comment data
-        comment_data = CommentSerializer(comment).data
-        print(f"COMMENT DATA REQUEST BODY {comment_data}")
+            #prepare comment data
+            comment_data = CommentSerializer(comment).data
+            print(f"COMMENT DATA REQUEST BODY {comment_data}")
 
-        if post.visibility == 'PUBLIC':
-            post_to_remote_inboxes(request, remote_authors, comment_data)
+            if post.visibility == 'PUBLIC':
+                post_to_remote_inboxes(request, remote_authors, comment_data)
 
-        elif post.visibility == 'FRIENDS':
-            remote_friends = get_remote_friends(author)
+            elif post.visibility == 'FRIENDS':
+                remote_friends = get_remote_friends(author)
 
-            post_to_remote_inboxes(request, remote_friends, comment_data)
+                post_to_remote_inboxes(request, remote_friends, comment_data)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Couldn't send the comment to remote inboxes, babe. {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )  
     
         return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
         
@@ -345,7 +352,6 @@ class CommentedView(APIView):
         """ 
         Get the list of comments author has made on any post [local]
         """
-        #TODO: get comments author has made for [remote]
         author = get_object_or_404(Author, id=author_serial)
 
         comments = author.comments.all().order_by('-published')
