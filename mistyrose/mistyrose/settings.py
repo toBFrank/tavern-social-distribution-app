@@ -110,10 +110,6 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
-        },
-        "secondary8001": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db8001.sqlite3",
         }
     }
       
@@ -163,6 +159,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'node.authentication.NodeAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
