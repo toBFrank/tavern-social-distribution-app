@@ -90,31 +90,6 @@ class PostDetailsView(APIView):
                 )
             
             return Response(serializer.data, status=status.HTTP_200_OK)
-        
-    # def patch(self, request, author_serial, post_serial):
-    #     """
-    #     Delete a post instance by author ID & post ID.
-    #     (Soft delete by setting the post's visibility to 'DELETED')
-    #     """
-        
-    #     with transaction.atomic():
-    #         try:
-    #             post = Post.objects.get(id=post_serial, author_id=author_serial)
-    #         except Post.DoesNotExist:
-    #             return Response({"error": f"What post? {post_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
-            
-    #         # soft delete locally by setting visibility to 'DELETED'
-    #         post.visibility = 'DELETED'
-    #         post.save()
-    #         # make json serializable post
-    #         post_data = PostSerializer(post).data
-            
-    #         # get remote authors and send post to all remote inboxes
-    #         try:
-    #             remote_authors = get_remote_authors(request)
-    #             post_to_remote_inboxes(request, remote_authors, post_data)
-    #         except Exception as e:
-    #             print(f"Couldn't send the deleted post to remote inboxes, babe. {str(e)}")
       
 class PostDetailsByFqidView(APIView):
     """
