@@ -3,6 +3,8 @@ import Cookies from 'js-cookie';
 import '../styles/pages/Login.css';
 import { login } from '../services/loginservice';
 import { useNavigate } from 'react-router-dom';
+import LogInImg from '../assets/LogInImg.png';
+import appLogo from  '../assets/Logo.png'
 
 const Login = () => {
   //#region Properties
@@ -44,7 +46,10 @@ const Login = () => {
 
   return (
     <div className="login-background-container">
-      <h1 className="login-pg-title">Tavern</h1>
+      <div className='login-image'>
+        <img className='logo' src = { appLogo } alt='logo Img' />
+        <img className= "image-log" src={ LogInImg } alt="LogIn image" />
+      </div>
       <div className="login-container">
         <h1 className="login-title">Log In</h1>
         <form className="form-container" onSubmit={handleSubmit} method="post">
@@ -57,7 +62,6 @@ const Login = () => {
               required
             />
           </div>
-
           <div className="form-group">
             <label className="input-label">Password</label>
             <input
