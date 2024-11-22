@@ -75,7 +75,7 @@ class PostDetailsView(APIView):
             try:
                 remote_authors = get_remote_authors(request)
                 
-                if updated_post.visibility == 'PUBLIC':
+                if updated_post.visibility == 'PUBLIC' or updated_post.visibility == 'DELETED':
                     # send to all remote inboxes if public post
                     post_to_remote_inboxes(request, remote_authors, updated_post_data)
                     
@@ -91,30 +91,30 @@ class PostDetailsView(APIView):
             
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-    def patch(self, request, author_serial, post_serial):
-        """
-        Delete a post instance by author ID & post ID.
-        (Soft delete by setting the post's visibility to 'DELETED')
-        """
+    # def patch(self, request, author_serial, post_serial):
+    #     """
+    #     Delete a post instance by author ID & post ID.
+    #     (Soft delete by setting the post's visibility to 'DELETED')
+    #     """
         
-        with transaction.atomic():
-            try:
-                post = Post.objects.get(id=post_serial, author_id=author_serial)
-            except Post.DoesNotExist:
-                return Response({"error": f"What post? {post_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
+    #     with transaction.atomic():
+    #         try:
+    #             post = Post.objects.get(id=post_serial, author_id=author_serial)
+    #         except Post.DoesNotExist:
+    #             return Response({"error": f"What post? {post_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
             
-            # soft delete locally by setting visibility to 'DELETED'
-            post.visibility = 'DELETED'
-            post.save()
-            # make json serializable post
-            post_data = PostSerializer(post).data
+    #         # soft delete locally by setting visibility to 'DELETED'
+    #         post.visibility = 'DELETED'
+    #         post.save()
+    #         # make json serializable post
+    #         post_data = PostSerializer(post).data
             
-            # get remote authors and send post to all remote inboxes
-            try:
-                remote_authors = get_remote_authors(request)
-                post_to_remote_inboxes(request, remote_authors, post_data)
-            except Exception as e:
-                print(f"Couldn't send the deleted post to remote inboxes, babe. {str(e)}")
+    #         # get remote authors and send post to all remote inboxes
+    #         try:
+    #             remote_authors = get_remote_authors(request)
+    #             post_to_remote_inboxes(request, remote_authors, post_data)
+    #         except Exception as e:
+    #             print(f"Couldn't send the deleted post to remote inboxes, babe. {str(e)}")
       
 class PostDetailsByFqidView(APIView):
     """
@@ -246,12 +246,6 @@ class PublicPostsView(APIView):
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication credentials were not provided to get public posts."}, status=status.HTTP_403_FORBIDDEN)
 
-        # get all remote authors
-        try:
-            get_remote_authors(request)
-        except Exception as e:
-            print(e)
-
         current_author = get_object_or_404(Author, user=request.user)
 
         # posts = Post.objects.exclude(author_id=current_author.id)
@@ -287,7 +281,6 @@ class PublicPostsView(APIView):
                 if post_author_id in accepted_following_ids or post_author_id == current_author.id:
                     authorized_authors.add(current_author.id)
 
-            
             elif post_visibility == 'FRIENDS':
                 # Only show FRIENDS posts if the post's author is a mutual friend
                 if post_author_id in mutual_friend_ids or post_author_id == current_author.id:
