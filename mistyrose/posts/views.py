@@ -591,25 +591,37 @@ class LikedView(APIView):
         if existing_like:
             return Response(LikeSerializer(existing_like).data, status=status.HTTP_200_OK) #if they've already liked, can't like again
 
+        # create like object locally
         like_serializer = LikeSerializer(data=request.data) #asked chatGPT how to set the host in the serializer, need to add context 2024-11-02
         if like_serializer.is_valid():
 
-            like_serializer.save(
+            like = like_serializer.save(
                 author_id=author,  
                 object_id=liked_object.id,
                 content_type=object_content_type,
                 object_url=object_url
             )
 
-            #creating Inbox object to forward to correct inbox
-            post_host = object_url.split("//")[1].split("/")[0]
-            if post_host != request.get_host():
-                # TODO: Part 3-5 post or comment not on our host, need to forward it to a remote inbox
-                pass
+            # #creating Inbox object to forward to correct inbox
+            # post_host = object_url.split("//")[1].split("/")[0]
+            # if post_host != request.get_host():
+            #     # TODO: Part 3-5 post or comment not on our host, need to forward it to a remote inbox
+            #     pass
             
-            return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
+            
         else:
             return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+        
+        try:
+            like_data = LikeSerializer(like).data
+            print(f"LIKE DATA {like_data}")
+            handle_remote_inboxes(liked_object, request, like_data, author)
+        except Exception as e:
+            return Response(
+                {"error": f"Couldn't send the like to remote inboxes, babe. {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )  
+        return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
         
     def get(self, request, author_serial):
         """

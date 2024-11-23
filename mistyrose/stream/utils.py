@@ -282,58 +282,71 @@ def handle_comment_inbox(request, author, author_id):
         return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 def handle_like_inbox(request, author, author_id):
-  #author who created the like
-  author = get_object_or_404(Author, id=author_id)
+    #author who created the like
+    author = get_object_or_404(Author, id=author_id)
 
-  like_data = request.data
-  request_type = like_data.get('type')
+    like_data = request.data
 
-  if request_type != 'like':
-      return Response({"detail: Must be 'like' type"}, status=status.HTTP_400_BAD_REQUEST)
-  
-  object_url = like_data.get("object") #object can be either a comment or post
-  if not object_url:
-      return Response({"Error": "object URL is required."}, status=status.HTTP_400_BAD_REQUEST)
+    object_url = like_data.get("object") #object can be either a comment or post
+    if not object_url:
+        return Response({"Error": "object URL is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-  # determine like was for post or comment
-  if "/posts/" in object_url:
-      # object is a post
-      object_id = object_url.rstrip('/').split("/posts/")[-1]
-      liked_object = get_object_or_404(Post, id=object_id)
-      object_content_type = ContentType.objects.get_for_model(Post)
-  elif "/commented/" in object_url:
-      # object is a comment
-      object_id = object_url.rstrip('/').split("/commented/")[-1]
-      liked_object = get_object_or_404(Comment, id=object_id)
-      object_content_type = ContentType.objects.get_for_model(Comment)
-  else:
-      return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
-  
-  #check if user has already liked the object
-  existing_like = Like.objects.filter(
-      author_id=author,
-      object_url=object_url
-  ).first()
+    # determine like was for post or comment
+    if "/posts/" in object_url:
+        # object is a post
+        object_id = object_url.rstrip('/').split("/posts/")[-1]
+        liked_object = get_object_or_404(Post, id=object_id)
+        object_content_type = ContentType.objects.get_for_model(Post)
+    elif "/commented/" in object_url:
+        # object is a comment
+        object_id = object_url.rstrip('/').split("/commented/")[-1]
+        liked_object = get_object_or_404(Comment, id=object_id)
+        object_content_type = ContentType.objects.get_for_model(Comment)
+    else:
+        return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # get author of commenter 
+    author_of_like = like_data["author"]["id"]
+    author_of_like_id = author_of_like.rstrip('/').split("/authors/")[-1]
 
-  if existing_like:
-      return Response(LikeSerializer(existing_like).data, status=status.HTTP_200_OK) #if they've already liked, can't like again
+    author_data = request.data["author"]
+    # get or create remote author who made the comment
+    like_author, created = Author.objects.get_or_create(
+        id=author_of_like_id,
+        defaults={
+            "host": author_data['host'],
+            "display_name": author_data['displayName'],
+            "github": author_data.get('github', ''),
+            "profile_image": author_data.get('profileImage', ''),
+            "page": author_data['page'],
+        }
+    )
 
-  like_serializer = LikeSerializer(data=request.data) #asked chatGPT how to set the host in the serializer, need to add context 2024-11-02
-  if like_serializer.is_valid():
+    #check if user has already liked the object
+    existing_like = Like.objects.filter(
+        author_id=like_author,
+        object_url=object_url
+    ).first()
 
-      like_serializer.save(
-          author_id=author,  
-          object_id=liked_object.id,
-          content_type=object_content_type,
-          object_url=object_url
-      )
+    if existing_like:
+        return Response(LikeSerializer(existing_like).data, status=status.HTTP_200_OK) #if they've already liked, can't like again
 
-      #creating Inbox object to forward to correct inbox
-      post_host = object_url.split("//")[1].split("/")[0]
-      if post_host != request.get_host():
-          # TODO: Part 3-5 post or comment not on our host, need to forward it to a remote inbox
-          pass
-      
-      return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
-  else:
-      return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    like_serializer = LikeSerializer(data=request.data) #asked chatGPT how to set the host in the serializer, need to add context 2024-11-02
+    if like_serializer.is_valid():
+
+        like_serializer.save(
+            author_id=like_author,  
+            object_id=liked_object.id,
+            content_type=object_content_type,
+            object_url=object_url
+        )
+
+        # #creating Inbox object to forward to correct inbox
+        # post_host = object_url.split("//")[1].split("/")[0]
+        # if post_host != request.get_host():
+        #     # TODO: Part 3-5 post or comment not on our host, need to forward it to a remote inbox
+        #     pass
+        
+        return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
+    else:
+        return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
