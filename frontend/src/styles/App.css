@@ -46,10 +46,11 @@ textarea:focus {
 
 input,
 form input {
+  width: 20em;
   font-size: large;
   padding: 20px;
   /* outline: none; */
-  background: #f8e5d3;
+  background: #d9d3ce;
   color: black;
   border: 0.15rem solid black;
   border-radius: 20px;
@@ -71,3 +72,4 @@ form input:focus {
   box-shadow: 10px 10px 0px 0px black;
   outline: none;
 }
+
