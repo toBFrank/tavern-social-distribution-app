@@ -11,7 +11,7 @@ class Author(models.Model):
     url = models.URLField(unique=True, editable=False, blank=True, null=True) # identify author by full url
     host = models.URLField()  # Full API URL for author's node
     display_name = models.CharField(max_length=100)  # Display name of the author
-    github = models.URLField(blank=True)  # Author's GitHub profile URL
+    github = models.URLField(blank=True, null=True)  # Author's GitHub profile URL
     # profile_image = models.URLField(blank=True, null=True)  # URL of the author's profile image
     profile_image = models.TextField(blank=True, null=True)  # URL of the author's profile image (allows both URL and base64)
     page = models.URLField()  # URL of the author's HTML profile page
