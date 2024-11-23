@@ -88,7 +88,7 @@ def handle_follow_request(request, author):
               json=follow_request_payload,
           )
           if response.status_code not in [200, 201]:
-              return Response({"error": "Failed to send follow request to remote node"}, status=status.HTTP_400_BAD_REQUEST)
+              return Response({"error": f"Failed to send follow request to remote node: {response}"}, status=status.HTTP_400_BAD_REQUEST)
       except requests.RequestException as e:
           return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
