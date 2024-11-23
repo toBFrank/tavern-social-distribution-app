@@ -131,6 +131,7 @@ class AuthorPostsView(APIView):
             serializer = PostSerializer(data=request.data)
             # create post locally
             if serializer.is_valid():
+                print(serializer.data)
                 post = serializer.save(author_id=author)  # Associate the post with the author
             else:
                 return Response({"error": f"Couldn't create the post locally or remotely, babe. Your request was messed up: {serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
