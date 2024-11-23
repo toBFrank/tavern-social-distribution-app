@@ -158,7 +158,7 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
                 # check for errors
                 if response.status_code != 200 and response.status_code != 201:
                     failed_authors_urls.append([remote_author.url, response.status_code])
-                    print(f"Could not post to remote author inbox: {remote_author.url}\nresponse: {response.json()}")
+                    print(f"Could not post to remote author inbox: {remote_author.url}\nresponse: {response}")
         
         print("Posted to remote author inboxes successfully")
         
@@ -166,7 +166,7 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
         if failed_authors_urls:
             print(f"Could not post to these remote author inboxes: {failed_authors_urls}")
     except Exception as e:
-        print("Could not post to remote author inboxes")
+        print(f"Could not post to remote author inboxes {e}")
         raise Exception(f"Could not post to remote author inboxes: {e}")
     
 def get_remote_followers_you(author):
