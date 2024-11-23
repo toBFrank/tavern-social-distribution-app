@@ -10,7 +10,7 @@ class Author(models.Model):
     host = models.URLField()  # Full API URL for author's node
     display_name = models.CharField(max_length=100)  # Display name of the author
     github = models.URLField(blank=True)  # Author's GitHub profile URL
-    profile_image = models.URLField(blank=True)  # URL of the author's profile image
+    profile_image = models.URLField(blank=True, null=True)  # URL of the author's profile image
     page = models.URLField()  # URL of the author's HTML profile page
     created_at = models.DateTimeField(auto_now_add=True)  # Timestamp for when the author was created
     updated_at = models.DateTimeField(auto_now=True)  # Timestamp for when the author was last updated
