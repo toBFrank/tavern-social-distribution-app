@@ -158,6 +158,7 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
                 # check for errors
                 if response.status_code != 200 and response.status_code != 201:
                     failed_authors_urls.append([remote_author.url, response.status_code])
+                    print(f"Could not post to remote author inbox: {remote_author.url}\nresponse: {response.json()}")
         
         print("Posted to remote author inboxes successfully")
         
