@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from .views import (
     AuthorPostsView,
     CommentedView, 
@@ -18,6 +18,8 @@ from .views import (
 for post urls that start with api/authors/
 """
 urlpatterns = [
+    path('api/authors/', include('users.authors_urls')), #api/authors/ for urls like following and authors
+    
     # Post URLs
     path('<uuid:author_serial>/posts/<uuid:post_serial>/', PostDetailsView.as_view(), name='post-detail'),
     path('<uuid:author_serial>/posts/', AuthorPostsView.as_view(), name='author-posts'),
