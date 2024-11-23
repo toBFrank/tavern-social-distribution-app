@@ -10,6 +10,7 @@ import {
 } from '@mui/icons-material';
 import '../styles/components/NavigationBar.css';
 import Cookies from 'js-cookie';
+import appLogo from  '../assets/Logo.png'
 
 const NavigationBar = ({ expanded, onToggleExpanded }) => {
   //#region Variables
@@ -38,8 +39,14 @@ const NavigationBar = ({ expanded, onToggleExpanded }) => {
 
   return (
     <nav className="navbar-menu" style={{ width: expanded ? 300 : 150 }}>
+      {expanded && (
+        <img
+          src= { appLogo }
+          alt="Tavern Logo"
+          className="navbar-app-logo" 
+        />
+      )}
       <div className={`navbar-header${expanded ? '' : ' minimized'}`}>
-        {expanded && <span className="navbar-title">Tavern</span>}
         <div className="burger" onClick={handleToggle}>
           <div className="navbar-icon">
             <MenuOutlined fontSize="inherit" />
