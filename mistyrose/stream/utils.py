@@ -254,7 +254,7 @@ def handle_comment_inbox(request, author, author_id):
     # get author of commenter 
     author_of_comment = comment_data["author"]["id"]
     author_of_comment_id = author_of_comment.rstrip('/').split("/authors/")[-1]
-    comment_id = comment_data["id"]
+    comment_id = comment_data["id"].rstrip('/').split('/commented/')[-1]
 
     author_data = request.data["author"]
 
@@ -270,18 +270,20 @@ def handle_comment_inbox(request, author, author_id):
         }
     )
 
-    #creating the comment object
-    comment_serializer = CommentSerializer(data=request.data)
-    if comment_serializer.is_valid():
-        comment_serializer.save(
-            id=comment_id,
-            author_id=comment_author,
-            post_id=post
-        )
+    comment = Comment.objects.filter(id=comment_id).first()
+    if not comment:
+        #creating the comment object
+        comment_serializer = CommentSerializer(data=request.data)
+        if comment_serializer.is_valid():
+            comment_serializer.save(
+                id=comment_id,
+                author_id=comment_author,
+                post_id=post
+            )
     
-        return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
+        return Response(comment_serializer.data, status=status.HTTP_201_CREATED) 
     else:
-        return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(comment_serializer.data, status=status.HTTP_200_OK)    
         
 def handle_like_inbox(request, author, author_id):
     #author who created the like
