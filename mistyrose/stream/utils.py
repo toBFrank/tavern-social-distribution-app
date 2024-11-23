@@ -254,6 +254,7 @@ def handle_comment_inbox(request, author, author_id):
     # get author of commenter 
     author_of_comment = comment_data["author"]["id"]
     author_of_comment_id = author_of_comment.rstrip('/').split("/authors/")[-1]
+    comment_id = comment_data["id"]
 
     author_data = request.data["author"]
 
@@ -273,6 +274,7 @@ def handle_comment_inbox(request, author, author_id):
     comment_serializer = CommentSerializer(data=request.data)
     if comment_serializer.is_valid():
         comment_serializer.save(
+            id=comment_id,
             author_id=comment_author,
             post_id=post
         )

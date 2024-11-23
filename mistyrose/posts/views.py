@@ -336,6 +336,7 @@ class CommentedView(APIView):
 
         try:
             comment_data = CommentSerializer(comment).data
+            print(f"COMMENT_DATA {comment_data}")
             handle_remote_inboxes(post, request, comment_data, author)
             # forward to correct remote inboxes
             # remote_authors = get_remote_authors(request)
