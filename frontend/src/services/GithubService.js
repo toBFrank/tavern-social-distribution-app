@@ -1,10 +1,12 @@
 import { createPost, getAllPosts } from './PostsService';
 import { getAuthorProfile } from './profileService';
 import api from './axios';
+import { getAuthor } from './AuthorsService';
 
 export const makeGithubActivityPosts = async (authorId) => {
   console.log('Making Github activity posts');
   try {
+    const author = await getAuthor(authorId);
     const authorProfile = await getAuthorProfile(authorId);
     const username = authorProfile.github?.split('/').pop();
     if (!username) {
@@ -39,7 +41,7 @@ export const makeGithubActivityPosts = async (authorId) => {
 
     for (let i = 0; i < stringifiedData.length; i++) {
       const postData = new FormData();
-      postData.append('author', authorId);
+      postData.append('author', author);
       postData.append('title', 'Github Activity');
       postData.append('content', stringifiedData[i]);
       postData.append('contentType', 'text/plain');
