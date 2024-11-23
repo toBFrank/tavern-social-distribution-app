@@ -7,9 +7,9 @@ class AuthorSerializer(serializers.Serializer):
     id = serializers.SerializerMethodField()  # Full API URL for the author
     host = serializers.URLField() # The full API URL for the author's node
     displayName = serializers.CharField(source='display_name')
-    github = serializers.URLField(required=False)  # URL of the user's GitHub
-    profileImage = serializers.URLField(required=False, source='profile_image')
-    page = serializers.URLField(required=False) 
+    github = serializers.URLField(required=False, allow_null=True, allow_blank=True)  # URL of the user's GitHub
+    profileImage = serializers.URLField(required=False, source='profile_image', allow_null=True, allow_blank=True)
+    page = serializers.URLField(required=False, allow_null=True, allow_blank=True) 
 
     def get_id(self, author):
     # Constructs the URL based on the author's host and their UUID
