@@ -19,6 +19,7 @@ from node.models import Node
 from .pagination import LikesPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 from django.http import FileResponse
+from node.models import Node
 import requests
 from requests.auth import HTTPBasicAuth #basic auth
 from django.db import transaction #transaction requests so that if something happens in the middle, it'll be rolled back
@@ -71,17 +72,17 @@ class PostDetailsView(APIView):
         return Response(serializer.data)
       
     def put(self, request, author_serial, post_serial):
-        """
-        Update a post instance by author ID & post ID.
-        """
-        with transaction.atomic():
-            # get the post instance
-            try:
-                old_post = Post.objects.get(id=post_serial, author_id=author_serial)
-            except Post.DoesNotExist:
-                return Response({"error": f"What post? {post_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
-            
-            # get the author instance
+        try:
+            post = Post.objects.get(id=post_serial, author_id=author_serial)
+        except Post.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PostSerializer(post, data=request.data)
+        print("HELLO IM IN PUT")
+        print(serializer)
+
+        if serializer.is_valid():
+            updated_post = serializer.save()
             try:
                 author = Author.objects.get(id=author_serial)
             except Author.DoesNotExist:

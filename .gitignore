@@ -25,7 +25,7 @@ staticfiles/
 node_modules/
 
 # React build directory
-frontend/build/
+# frontend/build/
 frontend/node_modules/
 
 # MacOS specific files
@@ -51,8 +51,8 @@ wheels/
 *.spec
 
 # Django migrations
-**/migrations/*.py
-!**/migrations/__init__.py
+# **/migrations/*.py
+# !**/migrations/__init__.py
 
 # Logs
 *.log
