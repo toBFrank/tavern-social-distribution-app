@@ -54,14 +54,15 @@ def get_remote_authors(request):
                     # - assuming the id is in the format: <host>/authors/<id>
                     author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
                     
-                    
+                    parsed_url = urlparse(author_data['host'])
+                    host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
                     # get remote author
                     # - if author doesn't exist, create it
                     # - if author does exist, update it
                     if author_id:
                         author, created = Author.objects.get_or_create(id=author_id)
                         author.url = author_data['id']
-                        author.host = author_data['host']
+                        author.host = host_with_scheme
                         author.display_name = author_data['displayName']
                         author.github = author_data.get('github', '')
                         author.profile_image = author_data.get('profileImage', '')
