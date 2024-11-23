@@ -34,11 +34,12 @@ def handle_remote_inboxes(post, request, object_data, author):
     author - the author who is sending the post
     ''' 
     #author is the one sending the request out
-    remote_authors = get_remote_authors(request)
+    #remote_authors = get_remote_authors(request) 
                 
     if post.visibility == 'PUBLIC' or post.visibility == 'DELETED':
-        # send to all remote inboxes if public post
-        post_to_remote_inboxes(request, remote_authors, object_data)
+        # send to remote follower inboxes if public post
+        remote_followers = get_remote_followers_you(author)
+        post_to_remote_inboxes(request, remote_followers, object_data)
         
     elif post.visibility == 'FRIENDS':
         # send only to remote friends inboxes if friends post
