@@ -130,6 +130,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
                 src={posterImageUrl}
                 alt="profile"
                 className="profile-image"
+                loading="lazy"
               />
             ) : (
               <div className="profile-image-default" />

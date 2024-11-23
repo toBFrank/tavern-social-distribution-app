@@ -26,6 +26,30 @@ from urllib.parse import unquote, urlparse
 from node.authentication import NodeAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication  
 
+def handle_remote_inboxes(post, request, object_data, author):
+    '''
+    post - the post model object that is being posted, commented, or liked
+    request - the api request 
+    object_data - the post, comment, data to send to the remote inbox
+    author - the author who is sending the post
+    ''' 
+    #author is the one sending the request out
+    remote_authors = get_remote_authors(request)
+                
+    if post.visibility == 'PUBLIC' or post.visibility == 'DELETED':
+        # send to all remote inboxes if public post
+        post_to_remote_inboxes(request, remote_authors, object_data)
+        
+    elif post.visibility == 'FRIENDS':
+        # send only to remote friends inboxes if friends post
+        remote_friends = get_remote_friends(author)
+        post_to_remote_inboxes(request, remote_friends, object_data)
+
+    elif post.visibility == 'UNLISTED':
+        # Send to remote followers
+        remote_followers = get_remote_followers_you(author)
+        post_to_remote_inboxes(request, remote_followers, object_data)
+
 
 #region Post Views
 
@@ -74,16 +98,19 @@ class PostDetailsView(APIView):
             
             # get remote authors and send post to remote inboxes
             try:
-                remote_authors = get_remote_authors(request)
+                handle_remote_inboxes(updated_post, request, updated_post_data, author)
+
+                # remote_authors = get_remote_authors(request)
                 
-                if updated_post.visibility == 'PUBLIC' or updated_post.visibility == 'DELETED':
-                    # send to all remote inboxes if public post
-                    post_to_remote_inboxes(request, remote_authors, updated_post_data)
+                # if updated_post.visibility == 'PUBLIC' or updated_post.visibility == 'DELETED':
+                #     # send to all remote inboxes if public post
+                #     post_to_remote_inboxes(request, remote_authors, updated_post_data)
                     
-                elif updated_post.visibility == 'FRIENDS':
-                    # send only to remote friends if friends post
-                    remote_friends = get_remote_friends(author)
-                    post_to_remote_inboxes(request, remote_friends, updated_post_data)
+                # elif updated_post.visibility == 'FRIENDS':
+                #     # send only to remote friends if friends post
+                #     remote_friends = get_remote_friends(author)
+                #     post_to_remote_inboxes(request, remote_friends, updated_post_data)   
+                         
             except Exception as e:
                 return Response(
                     {"error": f"Couldn't send the updated post to remote inboxes, babe. {str(e)}"},
@@ -91,7 +118,8 @@ class PostDetailsView(APIView):
                 )
             
             return Response(serializer.data, status=status.HTTP_200_OK)
-      
+        
+
 class PostDetailsByFqidView(APIView):
     """
     Retrieve post by Fully Qualified ID (URL + ID).
@@ -131,56 +159,31 @@ class AuthorPostsView(APIView):
             serializer = PostSerializer(data=request.data)
             # create post locally
             if serializer.is_valid():
-                print(serializer.data)
                 post = serializer.save(author_id=author)  # Associate the post with the author
             else:
                 return Response({"error": f"Couldn't create the post locally or remotely, babe. Your request was messed up: {serializer.errors}"}, status=status.HTTP_400_BAD_REQUEST)
             
             # get remote authors and send post to remote inboxes 
             try:
-                remote_authors = get_remote_authors(request)
-
                 # Prepare post data 
                 post_data = PostSerializer(post).data
                 post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
                 
-                if post.visibility == 'PUBLIC':
-                    # send to all remote inboxes if public post
-                    post_to_remote_inboxes(request, remote_authors, post_data)
+                # if post.visibility == 'PUBLIC':
+                #     # send to all remote inboxes if public post
+                #     post_to_remote_inboxes(request, remote_authors, post_data)
                     
-                elif post.visibility == 'FRIENDS':
-                    remote_friends = get_remote_friends(author)
-                    
-                    # Send only to remote friends' inboxes
-                    post_to_remote_inboxes(request, remote_friends, post_data)
-
-                elif post.visibility == 'UNLISTED':
-                    # Send to remote followers
-                    remote_followers = get_remote_followers_you(author)
-                    post_to_remote_inboxes(request, remote_followers, post_data)
-    
-                    
-                        
                 # elif post.visibility == 'FRIENDS':
-                #     #send only to remote friends if friends post
-                #     #TODO: see how remote friends is being handled i.e. is it using remote_id?
-                #         # Get remote friends of the author
-                #     outgoing_follows = Follows.objects.filter(
-                #         local_follower_id=author, status='ACCEPTED'
-                #     ).values_list('followed_id', flat=True)
-
-                #     remote_friends = [
-                #         remote_author for remote_author in remote_authors
-                #         if Follows.objects.filter(
-                #             followed_id=author,
-                #             remote_follower_url=remote_author.url,
-                #             status='ACCEPTED'
-                #         ).exists() and remote_author.id in outgoing_follows
-                #     ]
-
+                #     remote_friends = get_remote_friends(author)
+                    
                 #     # Send only to remote friends' inboxes
-                #     for remote_friend in remote_friends:
-                #         send_to_inbox(remote_friend, post_data, host_with_scheme)
+                #     post_to_remote_inboxes(request, remote_friends, post_data)
+
+                # elif post.visibility == 'UNLISTED':
+                #     # Send to remote followers
+                #     remote_followers = get_remote_followers_you(author)
+                #     post_to_remote_inboxes(request, remote_followers, post_data)
+                handle_remote_inboxes(post, request, post_data, author)
 
             except Exception as e:
                 return Response(
@@ -321,30 +324,48 @@ class CommentedView(APIView):
         post_id = post_url.rstrip('/').split("/posts/")[-1]
         post = get_object_or_404(Post, id=post_id)
 
-        #creating the comment object
-
+        #creating the comment object locally
         comment_serializer = CommentSerializer(data=request.data)
         if comment_serializer.is_valid():
-            comment_serializer.save(
+            comment = comment_serializer.save(
                 author_id=author,
                 post_id=post
             )
-
-            #creating Inbox object to forward to correct inbox
-            post_host = post_url.split("//")[1].split("/")[0]
-            if post_host != request.get_host():
-                # TODO: post not on our host, need to forward it to a remote inbox
-                pass
-        
-            return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
         else:
             return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+
+        try:
+            comment_data = CommentSerializer(comment).data
+            print(f"COMMENT_DATA {comment_data}")
+            handle_remote_inboxes(post, request, comment_data, author)
+            # forward to correct remote inboxes
+            # remote_authors = get_remote_authors(request)
+
+            # #prepare comment data
+            
+            # print(f"COMMENT DATA REQUEST BODY {comment_data}")
+
+            # if post.visibility == 'PUBLIC':
+            #     post_to_remote_inboxes(request, remote_authors, comment_data)
+
+            # elif post.visibility == 'FRIENDS':
+            #     remote_friends = get_remote_friends(author)
+
+            #     post_to_remote_inboxes(request, remote_friends, comment_data)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Couldn't send the comment to remote inboxes, babe. {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )  
+    
+        return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
+        
         
     def get(self, request, author_serial):
         """ 
         Get the list of comments author has made on any post [local]
         """
-        #TODO: get comments author has made for [remote]
         author = get_object_or_404(Author, id=author_serial)
 
         comments = author.comments.all().order_by('-published')
@@ -571,25 +592,37 @@ class LikedView(APIView):
         if existing_like:
             return Response(LikeSerializer(existing_like).data, status=status.HTTP_200_OK) #if they've already liked, can't like again
 
+        # create like object locally
         like_serializer = LikeSerializer(data=request.data) #asked chatGPT how to set the host in the serializer, need to add context 2024-11-02
         if like_serializer.is_valid():
 
-            like_serializer.save(
+            like = like_serializer.save(
                 author_id=author,  
                 object_id=liked_object.id,
                 content_type=object_content_type,
                 object_url=object_url
             )
 
-            #creating Inbox object to forward to correct inbox
-            post_host = object_url.split("//")[1].split("/")[0]
-            if post_host != request.get_host():
-                # TODO: Part 3-5 post or comment not on our host, need to forward it to a remote inbox
-                pass
+            # #creating Inbox object to forward to correct inbox
+            # post_host = object_url.split("//")[1].split("/")[0]
+            # if post_host != request.get_host():
+            #     # TODO: Part 3-5 post or comment not on our host, need to forward it to a remote inbox
+            #     pass
             
-            return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
+            
         else:
             return Response(like_serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+        
+        try:
+            like_data = LikeSerializer(like).data
+            print(f"LIKE DATA {like_data}")
+            handle_remote_inboxes(liked_object, request, like_data, author)
+        except Exception as e:
+            return Response(
+                {"error": f"Couldn't send the like to remote inboxes, babe. {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )  
+        return Response(like_serializer.data, status=status.HTTP_201_CREATED)   
         
     def get(self, request, author_serial):
         """
