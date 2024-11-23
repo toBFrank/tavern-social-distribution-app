@@ -26,6 +26,7 @@ from django.http import HttpRequest
 from .pagination import AuthorsPagination  
 from posts.serializers import PostSerializer  
 from uuid import UUID 
+from users.utils import get_remote_authors_json
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -342,6 +343,15 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
         }
 
         return response
+    
+class GetRemoteAuthorsView(ListAPIView): 
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
+    # getting a consolidated list of remote authors from all nodes, returning the responses they give us in one list
+    
+    def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
+        #retrieve all profiles on the node (paginated)
+        remote_authors = get_remote_authors_json(request)
+        return Response(remote_authors, status=status.HTTP_200_OK)
 
 
 
