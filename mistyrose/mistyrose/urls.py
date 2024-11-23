@@ -37,18 +37,18 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    re_path(r'^admin/?$', admin.site.urls),  # Admin panel
-    re_path(r'^api/posts/?$', include('posts.urls')),  # API endpoints for posts
-    re_path(r'^api/authors/(?P<author_id>[0-9a-fA-F-]+)/inbox/?$', include('stream.urls')),  # API inbox for a specific author
-    re_path(r'^api/users/?$', include('users.urls')),  # API endpoints for user management
-    re_path(r'^swagger/?$', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),  # Swagger UI
-    re_path(r'^$', include('users.urls')),  # Root URLs for the users app
-    re_path(r'^api/authors/?$', include('posts.authors_urls')),  # api/authors/ URLs for posts, likes, comments
-    re_path(r'^api/authors/?$', include('users.authors_urls')),  # api/authors/ URLs for following and authors
-    re_path(r'^api/liked/?$', include('posts.liked_urls')),  # api/liked URLs
-    re_path(r'^api/comment/?$', include('posts.comment_urls')),  # api/comment URLs
-    re_path(r'^api/commented/?$', include('posts.comment_urls')),  # TODO: Verify if this should be the same as comments/comment_fqid
-    re_path(r'^api/node/?$', include('node.urls')),  # API endpoints for node management
+    path('admin/', admin.site.urls),
+    path('api/posts/', include('posts.urls')),
+    path('api/authors/<uuid:author_id>/inbox/', include('stream.urls')),
+    path('api/users/', include('users.urls')),
+    path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
+    path('', include('users.urls')),
+    path('api/authors/', include('posts.authors_urls')), #api/authors/ urls for posts, likes, comments
+    re_path(r'^api/authors/?$', include('users.authors_urls')), #api/authors/ for urls like following and authors
+    path('api/liked/', include('posts.liked_urls')), #api/liked urls
+    path('api/comment/', include('posts.comment_urls')), #api/comment urls
+    path('api/commented/', include('posts.comment_urls')), #TODO: asked if there is an error in the project description, is this supposed to be the same one as the comments/comment_fqid?  
+    path('api/node/', include('node.urls')),
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 heroku_react_django_urls = [
