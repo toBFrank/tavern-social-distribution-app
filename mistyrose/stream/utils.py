@@ -88,7 +88,7 @@ def handle_follow_request(request, author):
               json=follow_request_payload,
           )
           if response.status_code not in [200, 201]:
-              return Response({"error": "Failed to send follow request to remote node"}, status=status.HTTP_400_BAD_REQUEST)
+              return Response({"error": f"Failed to send follow request to remote node {response}"}, status=status.HTTP_400_BAD_REQUEST)
       except requests.RequestException as e:
           return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -254,6 +254,7 @@ def handle_comment_inbox(request, author, author_id):
     # get author of commenter 
     author_of_comment = comment_data["author"]["id"]
     author_of_comment_id = author_of_comment.rstrip('/').split("/authors/")[-1]
+    comment_id = comment_data["id"].rstrip('/').split('/commented/')[-1]
 
     author_data = request.data["author"]
 
@@ -269,17 +270,20 @@ def handle_comment_inbox(request, author, author_id):
         }
     )
 
-    #creating the comment object
-    comment_serializer = CommentSerializer(data=request.data)
-    if comment_serializer.is_valid():
-        comment_serializer.save(
-            author_id=comment_author,
-            post_id=post
-        )
+    comment = Comment.objects.filter(id=comment_id).first()
+    if not comment:
+        #creating the comment object
+        comment_serializer = CommentSerializer(data=request.data)
+        if comment_serializer.is_valid():
+            comment_serializer.save(
+                id=comment_id,
+                author_id=comment_author,
+                post_id=post
+            )
     
-        return Response(comment_serializer.data, status=status.HTTP_201_CREATED)   
+        return Response(comment_serializer.data, status=status.HTTP_201_CREATED) 
     else:
-        return Response(comment_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(comment_serializer.data, status=status.HTTP_200_OK)    
         
 def handle_like_inbox(request, author, author_id):
     #author who created the like
