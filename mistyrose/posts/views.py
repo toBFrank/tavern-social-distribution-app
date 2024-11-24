@@ -191,15 +191,15 @@ class AuthorPostsView(APIView):
         create post locally and send to all remote inboxes if public, and remote friends if friends only post
         '''
         with transaction.atomic(): #a lot of datbase operations, better to do transaction so that if something fails, we can rollback instead of half updates
-            try:
-                # check if author_serial is a URL (FQID) or a uuid (SERIAL)
-                if is_fqid(author_serial):
-                    author_serial = urllib.parse.unquote(author_serial)
-                    if not author_serial.endswith("/"):
-                        author_serial += "/"
-                    author_serial = Author.objects.get(url=author_serial).id
-            except:
-                return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            # try:
+            #     # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            #     if is_fqid(author_serial):
+            #         author_serial = urllib.parse.unquote(author_serial)
+            #         if not author_serial.endswith("/"):
+            #             author_serial += "/"
+            #         author_serial = Author.objects.get(url=author_serial).id
+            # except:
+            #     return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
             
             # create post locally first 
             try:
