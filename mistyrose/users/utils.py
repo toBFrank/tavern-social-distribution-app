@@ -79,8 +79,6 @@ def get_remote_authors(request):
     except Exception as e:
         print("Could not get remote authors")
         raise e
-        from urllib.parse import urlparse
-
 
 def is_fqid(value):
     """
