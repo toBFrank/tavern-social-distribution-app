@@ -1306,3 +1306,40 @@ class PostEditResendTestCase(APITestCase):
         # Verify that the response contains the edited content
         self.assertEqual(response.data["title"], "Edited Test Post", "Post title was not updated")
         self.assertEqual(response.data["content"], "This is the edited content.", "Post content was not updated")
+        
+# User Story #17 Test: As an author, I want my node to re-send posts I've deleted to everyone they were already sent, so I know remote users don't keep seeing my deleted posts forever.
+class DeletePostResendTestCase(APITestCase):
+    def setUp(self):
+        # Create users and authors
+        self.user = User.objects.create_user(username='testuser', password='password123')
+        self.author = Author.objects.create(user=self.user, display_name='Test Author')
+        # Use JWT authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        # Create post
+        self.post = Post.objects.create(
+            id=uuid.uuid4(),
+            author_id=self.author,
+            title="Test Post",
+            content="This is a test post.",
+            visibility="PUBLIC",
+        )
+        # Define post update URL
+        self.post_url = reverse("post-detail", args=[self.author.id, self.post.id])
+    @patch("posts.views.post_to_remote_inboxes") 
+    def test_delete_post_triggers_resend_to_remote_nodes(self, mock_post_to_remote_inboxes):
+        # setting visibility to DELETED
+        updated_data = {
+            "title": self.post.title,
+            "content": self.post.content,
+            "visibility": "DELETED",
+        }
+        response = self.client.put(self.post_url, updated_data, format="json")
+        # Verify that the update request was successful
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Verify whether the remote synchronization function is called correctly
+        mock_post_to_remote_inboxes.assert_called_once()
+        # Verify passed data
+        called_args, _ = mock_post_to_remote_inboxes.call_args
+        self.assertEqual(called_args[2].get("visibility"), "DELETED")
+        self.assertEqual(called_args[2].get("id"), str(self.post.id))
