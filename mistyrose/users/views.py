@@ -688,7 +688,7 @@ class ProfileImageUploadView(APIView):
             if error:
                 return Response({"error": f"ProfileImageUploadView - POST - Couldn't upload {file.name}, babe. {str(error)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            return Response({"message": "You uploaded a profile image successfully, babe!", "url": imgur_url}, status=status.HTTP_200_OK)
+            return Response({"message": "You uploaded a profile image successfully, babe!", "url": imgur_url[0]}, status=status.HTTP_200_OK)
         
         except Exception as e:
             print(f"ProfileImageUploadView - POST - Error: {str(e)}")
