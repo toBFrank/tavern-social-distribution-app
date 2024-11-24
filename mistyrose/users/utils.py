@@ -109,13 +109,12 @@ def upload_to_imgur(image_data):
         headers = {
             "Authorization": f"Client-ID {settings.IMGUR_CLIENT_ID}",
         }
-        payload = {
-            "image": image_data,
-            "type": "file"
+        files = {
+            "image": image_data
         }
         
         # request
-        response = requests.post(url, headers=headers, files=payload)
+        response = requests.post(url, headers=headers, files=files)
         response_data = response.json()
         
         if response.status_code == 200:
