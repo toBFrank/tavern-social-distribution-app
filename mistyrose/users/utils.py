@@ -103,6 +103,7 @@ def upload_to_imgur(image_data):
     Upload image to imgur.
     """
     try:
+        print(f"Image data: {image_data}")
         # endpoint + headers
         url = "https://api.imgur.com/3/image"
         headers = {
