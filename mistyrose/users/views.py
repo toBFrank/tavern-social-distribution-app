@@ -687,7 +687,7 @@ class ProfileImageUploadView(APIView):
             image_data = file.read()
             imgur_url, error = upload_to_imgur(image_data)
             if error:
-                return Response({"error": f"ProfileImageUploadView - POST - Couldn't upload that, babe. {str(error)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"error": f"ProfileImageUploadView - POST - Couldn't upload {image_data}, babe. {str(error)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             return Response({"message": "You uploaded a profile image successfully, babe!", "url": imgur_url}, status=status.HTTP_200_OK)
         
