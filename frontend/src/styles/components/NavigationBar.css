@@ -100,3 +100,11 @@
   width: 100%;
   background-color: #dbccaf;
 }
+
+.navbar-app-logo {
+  position: absolute; 
+  top: 25px; 
+  right: 30px; 
+  width: 7em; 
+  height: auto; 
+}

@@ -110,19 +110,24 @@ input[type='radio'] {
 }
 
 .delete-button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 800px;
-  height: 50px;
-  background-color: #ffc2c2;
-  border-radius: 28px;
+  width: 300px;
+  border-radius: 30px;
+  height: 40px;
+  color: #000000;
+  padding: 5px 10px;
+  font-weight: bold;
   cursor: pointer;
-  color: black;
-  font-family: Arial, sans-serif;
-  font-size: 17px;
-  padding: 0 31px;
-  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+  outline: none;
+  border: 2px solid #d9534f;
+  background: #ffffff;
+}
+
+.delete-button:hover {
+  background: #d9534f;
+  color: #fff;
 }
 
 .posts-options h3 {
