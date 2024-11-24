@@ -111,7 +111,8 @@ class RemoteNodeConnectionTestCase(TestCase):
         self.assertEqual(response.data["host"][0], "Enter a valid URL.")
 
 # User Story #58 Test: As a node admin, I want to be able to add nodes to share with.
-class NodeAddingTestCase(TestCase):
+# User Story #59 Test: As a node admin, I want to be able to remove nodes and stop sharing with them. 
+class NodeAddAndDeleteTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
 
@@ -159,3 +160,22 @@ class NodeAddingTestCase(TestCase):
         self.assertEqual(len(response_json["items"]), 1)
         self.assertEqual(response_json["items"][0]["host"], self.node.remote_node_url)
         self.assertEqual(response_json["items"][0]["username"], self.node.remote_username)
+    
+    def test_remove_node(self):
+        """
+        Simulate removing a node by directly deleting it from the database.
+        """
+        # Delete node directly
+        self.node.delete()
+
+        # Verify that the node has been removed from the database
+        with self.assertRaises(Node.DoesNotExist):
+            Node.objects.get(remote_node_url=self.node.remote_node_url)
+
+        # Validation node has been removed from the share list
+        response = self.client.get("/api/node/list/", format="json")
+        response_json = response.json()
+
+        self.assertIn("type", response_json)
+        self.assertEqual(response_json["type"], "nodes")
+        self.assertNotIn(self.node.remote_node_url, [item["host"] for item in response_json["items"]])
