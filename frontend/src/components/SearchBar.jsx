@@ -9,7 +9,6 @@ import '../styles/components/SearchBar.css';
 const SearchBar = ({ setResults }) => {
   const [input, setInput] = useState('');
   const [authors, setAuthors] = useState([]);  // State to store the list of authors
-  const [isFocused, setIsFocused] = useState(false);
 
   //TODO: ONLY RETURN AUTHORS THAT ARENT THE AUTHOR SEARCHING IT UP
   const fetchData = async () => {
@@ -43,10 +42,7 @@ const SearchBar = ({ setResults }) => {
   };
 
   const handleFocus = () => {
-    if (!isFocused) {
-      setIsFocused(true);
-      fetchData();  // Fetch the authors once when focused
-    }
+    fetchData();  // Fetch the authors once when focused
   };
 
   return (
