@@ -2,7 +2,7 @@ from django.urls import path
 from .views import AuthorPostsView, GitHubEventsView, PostDetailsByFqidView, PostImageView, CommentsByFQIDView, PublicPostsView, LikesViewByFQIDView
 urlpatterns = [
     # Post URLs
-    path('<uuid:post_fqid>/', PostDetailsByFqidView.as_view(), name='post-detail-fqid'),
+    path('<path:post_fqid>/', PostDetailsByFqidView.as_view(), name='post-detail-fqid'),
     path('', PublicPostsView.as_view(), name='public-posts'),
     path('github/events/<str:username>/', GitHubEventsView.as_view(), name='github-events'),
     
