@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from django.shortcuts import render
 import os
 from node.authentication import NodeAuthentication
@@ -26,6 +27,7 @@ from django.http import HttpRequest
 from .pagination import AuthorsPagination  
 from posts.serializers import PostSerializer  
 from uuid import UUID 
+from rest_framework.exceptions import NotFound
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -194,9 +196,43 @@ class VerifyTokenView(APIView):
 
 # View to retrieve a specific author's details using the author ID (primary key)
 class AuthorDetailView(generics.RetrieveAPIView):
-    queryset = Author.objects.all()  # Specify the queryset of authors
-    serializer_class = AuthorSerializer  # Use the AuthorSerializer for serialization
-    lookup_field = 'pk'  # The lookup field used for retrieving a specific author is the primary key
+    queryset = Author.objects.all()  # Base queryset
+    serializer_class = AuthorSerializer
+
+    def get_object(self):
+        """
+        Override get_object to handle both SERIALs (local IDs) and FQIDs (URLs).
+        """
+        pk = self.kwargs.get(self.lookup_field)  # Retrieve the 'pk' from the URL
+
+        # Check if `pk` is a URL (FQID) or an integer (SERIAL)
+        if self.is_fqid(pk):
+            # Try to find the author by its URL (FQID)
+            author = self.queryset.filter(url=pk).first()
+        else:
+            # Try to find the author by its SERIAL (id)
+            author = self.queryset.filter(id=pk).first()
+            
+        if not author:
+            raise NotFound("Author not found.")
+
+        return author
+
+    @staticmethod
+    def is_fqid(value):
+        """
+        Check if the value is an FQID (a URL) or a SERIAL (integer).
+        """
+        try:
+            # Parse the value as a URL
+            result = urlparse(value)
+            return all([result.scheme, result.netloc])  # Valid URL requires scheme and netloc
+        except ValueError:
+            return False
+# class AuthorDetailView(generics.RetrieveAPIView):
+#     queryset = Author.objects.all()  # Specify the queryset of authors
+#     serializer_class = AuthorSerializer  # Use the AuthorSerializer for serialization
+#     lookup_field = 'pk'  # The lookup field used for retrieving a specific author is the primary key
 
 '''
 class AuthorProfileView(APIView):
@@ -312,6 +348,9 @@ class AuthorEditProfileView(APIView):
     def put(self, request, pk):
         # Retrieve the author instance by primary key (pk)
         author = get_object_or_404(Author, pk=pk)
+        
+        # post image to imgur
+        
         
         # Deserialize and validate the incoming data
         serializer = AuthorEditProfileSerializer(author, data=request.data)
