@@ -26,6 +26,8 @@ from django.http import HttpRequest
 from .pagination import AuthorsPagination  
 from posts.serializers import PostSerializer  
 from uuid import UUID 
+from users.utils import get_remote_authors
+from urllib.parse import urlparse
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -328,9 +330,18 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
     authentication_classes = [NodeAuthentication, JWTAuthentication]
     #asked chatGPT how to get the authors using ListAPIView 2024-10-18
     # variables that ListAPIView needs
-    queryset = Author.objects.all()
+    # only get authors on our own node
     serializer_class = AuthorSerializer
     pagination_class = AuthorsPagination
+    def get_queryset(self):
+        # only get authors who are on this node
+        request_host = self.request.get_host().rstrip('/')
+
+        authors = Author.objects.all()
+        authors = [author for author in authors if urlparse(author.host).netloc.rstrip('/') == request_host]
+        
+        return authors
+    
     def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
         #retrieve all profiles on the node (paginated)
         response = super().get(request, *args, **kwargs) #get provided by ListAPIView that queries database, serializes, and handles pagination
@@ -342,9 +353,32 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
         }
 
         return response
+    
+class GetRemoteAuthorsView(APIView): 
+    # getting a consolidated list of remote authors from all nodes as well as the authors on this node
+    #authentication_classes = [NodeAuthentication, JWTAuthentication]
+    def get(self, request): 
+        try:
+            # Retrieve all profiles on the node (paginated)
+            get_remote_response = get_remote_authors(request)  # This saves them to the database
+            print(f"GET REMOVE AUTHORS RESPONSE {get_remote_response}")
+            
+            # Fetch all authors from the database
+            all_authors = Author.objects.all()
+            print(f"ALL AUTHORS {all_authors}")
+            if not all_authors:
+                return Response({"error": "Something went wrong", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
+            serializer = AuthorSerializer(all_authors, many=True)
+            print(f"SERIALIZER AUTHORS DATA: {serializer} aND DATA: {serializer.data}")
+            
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"Error: {str(e)}")  
+            
+            return Response({"error": "Something went wrong", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class FollowerView(APIView):
     
     def get(self, request, author_id, follower_id):

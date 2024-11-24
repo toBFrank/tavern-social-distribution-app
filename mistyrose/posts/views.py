@@ -3,7 +3,7 @@ import re
 import uuid
 from django.shortcuts import render
 import requests
-from .utils import get_remote_authors, get_remote_friends, post_to_remote_inboxes,get_remote_followers_you
+from .utils import get_remote_authors, get_remote_friends, post_to_remote_inboxes, get_remote_followers_you
 from users.models import Author
 from rest_framework import status
 from rest_framework.views import APIView
@@ -35,11 +35,12 @@ def handle_remote_inboxes(post, request, object_data, author):
     author - the author who is sending the post
     ''' 
     #author is the one sending the request out
-    remote_authors = get_remote_authors(request)
+    #remote_authors = get_remote_authors(request) 
                 
     if post.visibility == 'PUBLIC' or post.visibility == 'DELETED':
-        # send to all remote inboxes if public post
-        post_to_remote_inboxes(request, remote_authors, object_data)
+        # send to remote follower inboxes if public post
+        remote_followers = get_remote_followers_you(author)
+        post_to_remote_inboxes(request, remote_followers, object_data)
         
     elif post.visibility == 'FRIENDS':
         # send only to remote friends inboxes if friends post
@@ -148,7 +149,7 @@ class AuthorPostsView(APIView):
 
     def post(self, request, author_serial):
         '''
-        create post locally and send to all remote inboxes if public, and remote friends if friends only post
+        create post locally and send to remote followers inboxes if public, and remote friends if friends only post
         '''
         with transaction.atomic(): #a lot of datbase operations, better to do transaction so that if something fails, we can rollback instead of half updates
             # create post locally first 
