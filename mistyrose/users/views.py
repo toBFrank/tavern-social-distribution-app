@@ -288,8 +288,6 @@ class AuthorProfileView(APIView):
             # if no trailing slash, append it
             if not pk.endswith('/'):
                 pk += '/'
-        else:
-            pk = str(pk).split('/')[0]
         
         friends_view = FriendsView()
         friends_response = friends_view.get(request, pk=pk)
