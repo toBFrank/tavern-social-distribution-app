@@ -204,6 +204,8 @@ class AuthorDetailView(generics.RetrieveAPIView):
         Override get_object to handle both SERIALs (local IDs) and FQIDs (URLs).
         """
         pk = self.kwargs.get(self.lookup_field)  # Retrieve the 'pk' from the URL
+        if isinstance(pk, uuid.UUID):
+            pk = str(pk)
 
         # Check if `pk` is a URL (FQID) or an integer (SERIAL)
         if self.is_fqid(pk):
