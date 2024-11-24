@@ -28,8 +28,8 @@ class Author(models.Model):
             self.page = f"{self.host.rstrip('/')}/profile/{self.id}/"
             
         # check if profile_image is a valid URL or base64 string
-        if self.profile_image and not self.is_valid_url_or_base64(self.profile_image):
-            raise ValidationError("profile_image must be a valid URL or base64 string, babe.")
+        # if self.profile_image and not self.is_valid_url_or_base64(self.profile_image):
+        #     raise ValidationError("profile_image must be a valid URL or base64 string, babe.")
         
         super().save(*args, **kwargs)
         
