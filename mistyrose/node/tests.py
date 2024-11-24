@@ -7,6 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 
 # User Story #56 Test: As a node admin, I want to be able to connect to remote nodes by entering only the URL of the remote node, a username, and a password.
+# User Story #60 Test: As a node admin, I can prevent nodes from connecting to my node if they don't have a valid username and password.
 class RemoteNodeConnectionTestCase(TestCase):
     def setUp(self):
         """
