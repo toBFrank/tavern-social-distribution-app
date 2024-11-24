@@ -356,16 +356,30 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
     
 class GetRemoteAuthorsView(ListAPIView): 
     # getting a consolidated list of remote authors from all nodes as well as the authors on this node
-    
+    authentication_classes = [NodeAuthentication, JWTAuthentication]
     def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
         #retrieve all profiles on the node (paginated)
-        get_remote_authors(request) #this saves them to the database
-        #TODO: actually get all the authors this time...
-        all_authors = Author.objects.all()
-        serializer = AuthorSerializer(all_authors, many=True)
-        
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
+        try:
+            # Retrieve all profiles on the node (paginated)
+            get_remote_authors(request)  # This saves them to the database
+            
+            # Fetch all authors from the database
+            all_authors = Author.objects.all()
+            print(f"ALL AUTHORS {all_authors}")
+            if not all_authors:
+                return Response({"error": "Something went wrong", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            serializer = AuthorSerializer(all_authors, many=True)
+            print(f"SERIALIZER AUTHORS DATA: {serializer} aND DATA: {serializer.data}")
+            
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"Error: {str(e)}")  
+            
+            return Response({"error": "Something went wrong", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class FollowerView(APIView):
     
     def get(self, request, author_id, follower_id):
