@@ -684,11 +684,9 @@ class ProfileImageUploadView(APIView):
                 print("ProfileImageUploadView - POST - You forgot the image file, babe.")
                 return Response({"error": "ProfileImageUploadView - POST - You forgot the image file, babe."}, status=status.HTTP_400_BAD_REQUEST)
 
-            image_data = file.read()
-            print(f"ProfileImageUploadView - POST - Image data: {image_data}")
-            imgur_url, error = upload_to_imgur(image_data)
+            imgur_url, error = upload_to_imgur(file)
             if error:
-                return Response({"error": f"ProfileImageUploadView - POST - Couldn't upload {image_data}, babe. {str(error)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({"error": f"ProfileImageUploadView - POST - Couldn't upload {file.name}, babe. {str(error)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             return Response({"message": "You uploaded a profile image successfully, babe!", "url": imgur_url}, status=status.HTTP_200_OK)
         
