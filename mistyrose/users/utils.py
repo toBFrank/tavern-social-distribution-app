@@ -1,8 +1,6 @@
 from urllib.parse import urlparse
 import requests
 import base64
-
-from users.models import Author
 from node.models import Node
 from django.conf import settings
 
@@ -11,6 +9,8 @@ def get_remote_authors(request):
     Get authors from remote nodes and save them to the local database if not already created.
     """
   
+    from users.models import Author
+    
     remote_authors = []
     failed_nodes_urls = []
     

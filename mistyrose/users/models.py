@@ -4,6 +4,7 @@ from django.db import models
 import uuid
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from users.utils import upload_to_imgur
 
 class Author(models.Model):
     # Each author will have a unique identifier (UUID).
@@ -31,10 +32,12 @@ class Author(models.Model):
             
         if not self.page:
             self.page = f"{self.host.rstrip('/')}/profile/{self.id}/"
-            
-        # check if profile_image is a valid URL or base64 string
-        # if self.profile_image and not self.is_valid_url_or_base64(self.profile_image):
-        #     raise ValidationError("profile_image must be a valid URL or base64 string, babe.")
+        
+        # # if profile_image is a base64 string, upload to imgur and get the URL
+        # if self.is_valid_base64(self.profile_image):
+        #     img_url, error = upload_to_imgur(self.profile_image)
+        #     if img_url and self.is_valid_url(img_url[0]):
+        #         self.profile_image = img_url[0]
         
         # add github link if not provided
         if not self.github:
@@ -44,25 +47,24 @@ class Author(models.Model):
         super().save(*args, **kwargs)
         
     @staticmethod
-    def is_valid_url_or_base64(value):
+    def is_valid_base64(value):
         """
-        Checks if the value (profile_image) is a valid URL or a base64 string.
+        Checks if the value is a valid base64 string.
         """
-        # check if valid URL
-        url_regex = re.compile(
-            r'^(http|https):\/\/([A-Za-z0-9\.-]+)\.([A-Za-z]{2,})([\/\w\.-]*)*\/?$'
-        )
-        if url_regex.match(value):
-            return True
-        
-        # check if valid base64
         base64_regex = re.compile(
             r'^data:image\/[a-zA-Z]+;base64,[a-zA-Z0-9+/]+={0,2}$'
         )
-        if base64_regex.match(value):
-            return True
-        
-        return False
+        return base64_regex.match(value)
+    
+    @staticmethod
+    def is_valid_url(value):
+        """
+        Checks if the value is a valid URL.
+        """
+        url_regex = re.compile(
+            r'^(http|https):\/\/([A-Za-z0-9\.-]+)\.([A-Za-z]{2,})([\/\w\.-]*)*\/?$'
+        )
+        return url_regex.match(value)
         
     def __str__(self):
         return self.display_name
