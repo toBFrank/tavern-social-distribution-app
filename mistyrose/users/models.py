@@ -19,6 +19,11 @@ class Author(models.Model):
     updated_at = models.DateTimeField(auto_now=True)  # Timestamp for when the author was last updated
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='author', null=True, blank=True)  # User object for the author
 
+    def clean(self):
+        if not self.local_follower_id and not self.remote_follower_url:
+            raise ValidationError("Either local_follower_id or remote_follower_url must be provided.")
+        super().clean()
+    
     def save(self, *args, **kwargs):
         # if url is not provided, construct it from host and id (assume author is local)
         if not self.url:
@@ -70,5 +75,10 @@ class Follows(models.Model):
     is_remote = models.BooleanField(default=False)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
 
+    def clean(self):
+        if not self.local_follower_id and not self.remote_follower_url:
+            raise ValidationError("Either local_follower_id or remote_follower_url must be provided.")
+        super().clean()
+    
     def __str__(self):
       return f'{self.local_follower_id} is following or has requested to follow {self.followed_id}'
