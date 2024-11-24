@@ -208,6 +208,7 @@ class AuthorDetailView(generics.RetrieveAPIView):
 
         # Check if `pk` is a URL (FQID) or an integer (SERIAL)
         if self.is_fqid(pk):
+            print(f"it is a url! {pk}")
             pk = urllib.parse.unquote(pk)
             # if no trailing slash, append it
             if not pk.endswith('/'):
@@ -215,6 +216,7 @@ class AuthorDetailView(generics.RetrieveAPIView):
             # Try to find the author by its URL (FQID)
             author = self.queryset.filter(url=pk).first()
         else:
+            print(f"it is a serial! {pk}")
             # Try to find the author by its SERIAL (id)
             author = self.queryset.filter(id=pk).first()
             
@@ -230,7 +232,7 @@ class AuthorDetailView(generics.RetrieveAPIView):
         """
         try:
             # Parse the value as a URL
-            result = urllib.parse.unquote(value)
+            result = urlparse(value)
             return all([result.scheme, result.netloc])  # Valid URL requires scheme and netloc
         except ValueError:
             return False
