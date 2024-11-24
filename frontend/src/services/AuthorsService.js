@@ -28,7 +28,7 @@ export const getAuthor = async (authorSerial) => {
 export const getRemoteAuthors = async () => {
   try {
     const response = await api.get(
-      `authors/get_remote_authors/`
+      `authors/all/`
     );
     return response.data;
   } catch (error) {

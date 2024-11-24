@@ -360,7 +360,8 @@ class GetRemoteAuthorsView(APIView):
     def get(self, request): 
         try:
             # Retrieve all profiles on the node (paginated)
-            get_remote_authors(request)  # This saves them to the database
+            get_remote_response = get_remote_authors(request)  # This saves them to the database
+            print(f"GET REMOVE AUTHORS RESPONSE {get_remote_response}")
             
             # Fetch all authors from the database
             all_authors = Author.objects.all()
