@@ -5,7 +5,7 @@ from django.shortcuts import render
 import requests
 
 from users.utils import is_fqid
-from .utils import get_remote_authors, get_remote_friends, post_to_remote_inboxes,get_remote_followers_you
+from .utils import get_remote_friends, post_to_remote_inboxes, get_remote_followers_you
 from users.models import Author
 from rest_framework import status
 from rest_framework.views import APIView
@@ -191,7 +191,7 @@ class AuthorPostsView(APIView):
 
     def post(self, request, author_serial):
         '''
-        create post locally and send to all remote inboxes if public, and remote friends if friends only post
+        create post locally and send to remote followers inboxes if public, and remote friends if friends only post
         '''
         with transaction.atomic(): #a lot of datbase operations, better to do transaction so that if something fails, we can rollback instead of half updates
             try:

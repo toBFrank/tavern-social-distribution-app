@@ -23,3 +23,15 @@ export const getAuthor = async (authorSerial) => {
     console.error(error);
   }
 };
+
+// URL: ://service/api/authors/get_remote_authors
+export const getRemoteAuthors = async () => {
+  try {
+    const response = await api.get(
+      `authors/all/`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
