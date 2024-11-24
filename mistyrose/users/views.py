@@ -27,6 +27,7 @@ from .pagination import AuthorsPagination
 from posts.serializers import PostSerializer  
 from uuid import UUID 
 from users.utils import get_remote_authors
+from urllib.parse import urlparse
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -329,9 +330,18 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
     authentication_classes = [NodeAuthentication, JWTAuthentication]
     #asked chatGPT how to get the authors using ListAPIView 2024-10-18
     # variables that ListAPIView needs
-    queryset = Author.objects.all()
+    # only get authors on our own node
     serializer_class = AuthorSerializer
     pagination_class = AuthorsPagination
+    def get_queryset(self):
+        # only get authors who are on this node
+        request_host = self.request.get_host().rstrip('/')
+
+        authors = Author.objects.all()
+        authors = [author for author in authors if urlparse(author.host).netloc.rstrip('/') == request_host]
+        
+        return authors
+    
     def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
         #retrieve all profiles on the node (paginated)
         response = super().get(request, *args, **kwargs) #get provided by ListAPIView that queries database, serializes, and handles pagination
@@ -345,16 +355,16 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
         return response
     
 class GetRemoteAuthorsView(ListAPIView): 
-    authentication_classes = [NodeAuthentication, JWTAuthentication]
     # getting a consolidated list of remote authors from all nodes, returning the responses they give us in one list
     
     def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
         #retrieve all profiles on the node (paginated)
-        remote_authors = get_remote_authors(request)
-        serializer = AuthorSerializer(remote_authors, many=True)
+        remote_authors = get_remote_authors(request) #this saves them to the database
+        #TODO: actually get all the authors this time...
+        all_authors = Author.objects.all()
+        serializer = AuthorSerializer(all_authors, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class FollowerView(APIView):
     
