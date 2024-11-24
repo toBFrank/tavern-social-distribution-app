@@ -24,11 +24,11 @@ urlpatterns = [
    
     path('authors/<str:username>/upload_image/', ProfileImageUploadView.as_view(), name='upload-profile-image'),
    
-    path('api/authors/<uuid:pk>/profile/', AuthorProfileView.as_view(), name='author-profile'),  # Author profile view
-    path('api/authors/<uuid:pk>/profile/edit/', AuthorEditProfileView.as_view(), name='author-edit-profile'),  # Edit author profile
-    path('api/authors/<uuid:pk>/followers/', FollowersDetailView.as_view(), name='author-followers'),  # Followers endpoint
-    path('api/authors/<uuid:pk>/friends/', FriendsView.as_view(), name='author-friends'),  # Friends endpoint
-    path('api/authors/<uuid:pk>/following/', FollowingDetailView.as_view(), name='author-following'),  # Friends endpoint
+    path('api/authors/<str:pk>/profile/', AuthorProfileView.as_view(), name='author-profile'),  # Author profile view
+    path('api/authors/<str:pk>/profile/edit/', AuthorEditProfileView.as_view(), name='author-edit-profile'),  # Edit author profile
+    path('api/authors/<str:pk>/followers/', FollowersDetailView.as_view(), name='author-followers'),  # Followers endpoint
+    path('api/authors/<str:pk>/friends/', FriendsView.as_view(), name='author-friends'),  # Friends endpoint
+    path('api/authors/<str:pk>/following/', FollowingDetailView.as_view(), name='author-following'),  # Friends endpoint
    
     path('api/authors/<path:pk>/profile/', AuthorProfileView.as_view(), name='author-profile-fqid'),  # Author profile view
     path('api/authors/<path:pk>/profile/edit/', AuthorEditProfileView.as_view(), name='author-edit-profile-fqid'),  # Edit author profile
