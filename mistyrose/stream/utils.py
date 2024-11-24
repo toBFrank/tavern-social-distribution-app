@@ -28,7 +28,8 @@ def handle_follow_request(request, author):
 
   # Extract actor_id and object_id safely
   actor_id = actor_data['id'].rstrip('/').split('/')[-1]
-  object_id = object_data['page'].rstrip('/').split('/')[-1]
+  object_id = object_data['id'].rstrip('/').split('/')[-1]
+#   object_id = object_data['page'].rstrip('/').split('/')[-1]
   print(object_id)
   # Extract host information and normalize
   actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")

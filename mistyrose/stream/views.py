@@ -1,4 +1,5 @@
 from django.shortcuts import render
+import urllib
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .serializers import FollowSerializer
@@ -6,7 +7,7 @@ from users.models import Author, Follows
 from django.shortcuts import get_object_or_404
 from rest_framework import status  
 from .utils import handle_follow_request, handle_post_inbox, handle_comment_inbox, handle_like_inbox
-
+from users.utils import is_fqid
 
 class InboxView(APIView):
     """
@@ -14,6 +15,17 @@ class InboxView(APIView):
     """
     
     def post(self, request, author_id):
+        print("InboxView - POST - request.data: ", request.data, "author_id: ", author_id)
+        try:
+            # check if author_id is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_id):
+                author_id = urllib.parse.unquote(author_id)
+                if not author_id.endswith('/'):
+                    author_id += '/'
+                author_id = Author.objects.get(url=author_id).id
+        except:
+            return Response({"error": "InboxView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
 
@@ -41,6 +53,15 @@ class FollowRequests(APIView):
     get follow requests for user
     """
     def get(self, request, author_id):
+        try:
+            # check if author_id is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_id):
+                author_id = urllib.parse.unquote(author_id)
+                if not author_id.endswith('/'):
+                    author_id += '/'
+                author_id = Author.objects.get(url=author_id).id
+        except:
+            return Response({"error": "FollowRequests - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         author = get_object_or_404(Author, id=author_id)
         pending_follow_requests = Follows.objects.filter(followed_id=author, status='PENDING')
 
