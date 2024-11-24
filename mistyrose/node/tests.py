@@ -3,6 +3,8 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from node.models import Node
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import User
 
 # User Story #56 Test: As a node admin, I want to be able to connect to remote nodes by entering only the URL of the remote node, a username, and a password.
 class RemoteNodeConnectionTestCase(TestCase):
@@ -107,3 +109,53 @@ class RemoteNodeConnectionTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("host", response.data)
         self.assertEqual(response.data["host"][0], "Enter a valid URL.")
+
+# User Story #58 Test: As a node admin, I want to be able to add nodes to share with.
+class NodeAddingTestCase(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        # Create user
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+
+        # Authentication
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
+
+        # Create a node directly in the database
+        self.node = Node.objects.create(
+            remote_node_url="http://existing-node.com",
+            remote_username="existing_user",
+            remote_password="existing_password",
+            is_whitelisted=True,
+        )
+
+    def test_get_shared_nodes(self):
+        """
+        Test retrieving shared nodes as a node admin.
+        - Adding nodes is simulated by directly creating nodes in the database.
+        - Sharing nodes is verified by checking if the nodes are correctly returned via the API.
+        """
+        # Make a GET request
+        response = self.client.get("/api/node/list/", format="json")
+
+        # print("Response content:", response.content)
+        # print("Response type:", type(response))
+
+        # Check if the status code is 200 (OK)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify response content
+        try:
+            response_json = response.json()
+        except ValueError:
+            self.fail("Response is not in JSON format")
+
+        self.assertIn("type", response_json)
+        self.assertEqual(response_json["type"], "nodes")
+        self.assertIn("items", response_json)
+        self.assertEqual(len(response_json["items"]), 1)
+        self.assertEqual(response_json["items"][0]["host"], self.node.remote_node_url)
+        self.assertEqual(response_json["items"][0]["username"], self.node.remote_username)
