@@ -5,7 +5,7 @@ from .views import (
     AuthorsView,
     UnfollowView,
     FollowersDetailView,
-    FriendsView
+    FriendsView,
 )
 
 """
