@@ -206,12 +206,12 @@ class AuthorDetailView(generics.RetrieveAPIView):
         pk = self.kwargs.get(self.lookup_field)  # Retrieve the 'pk' from the URL
         if isinstance(pk, uuid.UUID):
             pk = str(pk)
-            # if no trailing slash, append it
-            if not pk.endswith('/'):
-                pk += '/'
 
         # Check if `pk` is a URL (FQID) or an integer (SERIAL)
         if self.is_fqid(pk):
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
             # Try to find the author by its URL (FQID)
             author = self.queryset.filter(url=pk).first()
         else:
