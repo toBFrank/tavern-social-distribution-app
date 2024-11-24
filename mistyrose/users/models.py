@@ -31,6 +31,10 @@ class Author(models.Model):
         # if self.profile_image and not self.is_valid_url_or_base64(self.profile_image):
         #     raise ValidationError("profile_image must be a valid URL or base64 string, babe.")
         
+        # add github link if not provided
+        if not self.github:
+            self.github = "https://github.com/"
+        
         super().save(*args, **kwargs)
         
     @staticmethod
