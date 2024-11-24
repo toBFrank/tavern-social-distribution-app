@@ -5,7 +5,7 @@ urlpatterns = [
     path('<path:post_fqid>/comments/', CommentsByFQIDView.as_view(), name='get_comments_fqid'),
       
     # Like URLs
-    path('<path:post_fqid>/likes/', LikesViewByFQIDView.as_view(), name='get_likes_fqid')
+    path('<path:post_fqid>/likes/', LikesViewByFQIDView.as_view(), name='get_likes_fqid'),
     
     # Post URLs
     path('github/events/<str:username>/', GitHubEventsView.as_view(), name='github-events'),
