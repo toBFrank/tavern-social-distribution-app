@@ -2,44 +2,47 @@
 
 import { useState } from 'react';
 import { Search } from '@mui/icons-material';
-import { getAuthors } from '../services/AuthorsService';
+import { getRemoteAuthors } from '../services/AuthorsService';
 
 import '../styles/components/SearchBar.css';
 
 const SearchBar = ({ setResults }) => {
   const [input, setInput] = useState('');
+  const [authors, setAuthors] = useState([]);  // State to store the list of authors
 
   //TODO: ONLY RETURN AUTHORS THAT ARENT THE AUTHOR SEARCHING IT UP
-  const fetchData = async (value) => {
+  const fetchData = async () => {
     try {
-      const authorsData = await getAuthors();
-      const authorsArray = authorsData.authors;
+      const authorsArray = await getRemoteAuthors(); //call local endpoint to get remote authors as well as authors on this node
 
       if (Array.isArray(authorsArray)) {
-        const results = authorsArray.filter((author) => {
-            return (
-              value && //check that they've entered value into search bar --> if value is empy --> wont render anything
-              author && //check that user exists
-              author.displayName && //check that user has a display name
-              author.displayName.toLowerCase().includes(value.toLowerCase()) //check if lowercase of authors name includes value entered into search bar
-            );
-          });
-          
-          setResults(results);
+        setAuthors(authorsArray);  // Store the authors in the state
       } else {
-        console.error(
-          'Expected authors to be an array, but got:',
-          authorsArray
-        );
+        console.error('Expected authors to be an array, but got:', authorsArray);
       }
     } catch (error) {
       console.error('Error fetching authors:', error);
     }
+
   };
 
   const handleChange = (value) => {
     setInput(value);
-    fetchData(value);
+
+    const filteredResults = authors.filter((author) => {
+      return (
+        value && //check that they've entered value into search bar --> if value is empy --> wont render anything
+        author && //check that user exists
+        author.displayName && //check that user has a display name
+        author.displayName.toLowerCase().includes(value.toLowerCase()) //check if lowercase of authors name includes value entered into search bar
+      );
+    });
+
+    setResults(filteredResults);
+  };
+
+  const handleFocus = () => {
+    fetchData();  // Fetch the authors once when focused
   };
 
   return (
@@ -50,6 +53,7 @@ const SearchBar = ({ setResults }) => {
         placeholder="Search for authors..."
         value={input}
         onChange={(e) => handleChange(e.target.value)} // whenever change is made to text, the fetch is called
+        onFocus={handleFocus}
       />
     </div>
   );

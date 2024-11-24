@@ -3,7 +3,9 @@ import re
 import uuid
 from django.shortcuts import render
 import requests
-from .utils import get_remote_authors, get_remote_friends, post_to_remote_inboxes,get_remote_followers_you
+
+from users.utils import is_fqid
+from .utils import get_remote_friends, post_to_remote_inboxes, get_remote_followers_you
 from users.models import Author
 from rest_framework import status
 from rest_framework.views import APIView
@@ -34,11 +36,19 @@ def handle_remote_inboxes(post, request, object_data, author):
     author - the author who is sending the post
     ''' 
     #author is the one sending the request out
-    remote_authors = get_remote_authors(request)
+    #remote_authors = get_remote_authors(request) 
+
+    if object_data['type'] == 'post':
+        #format id
+        object_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
+
+    print(f"WE ARE SENDING THIS {object_data}")
+
                 
     if post.visibility == 'PUBLIC' or post.visibility == 'DELETED':
-        # send to all remote inboxes if public post
-        post_to_remote_inboxes(request, remote_authors, object_data)
+        # send to remote follower inboxes if public post
+        remote_followers = get_remote_followers_you(author)
+        post_to_remote_inboxes(request, remote_followers, object_data)
         
     elif post.visibility == 'FRIENDS':
         # send only to remote friends inboxes if friends post
@@ -63,8 +73,20 @@ class PostDetailsView(APIView):
         Retrieve a post instance by author ID & post ID.
         """
         try:
+            # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            # check if post_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_serial):
+                author_serial = urllib.parse.unquote(author_serial)
+                if not author_serial.endswith("/"):
+                    author_serial += "/"
+                author_serial = Author.objects.get(url=author_serial).id
+            if is_fqid(post_serial):
+                post_serial = urllib.parse.unquote(post_serial)
+                if not post_serial.endswith("/"):
+                    post_serial += "/"
+                post_serial = Post.objects.get(url=post_serial).id
             post = Post.objects.get(id=post_serial, author_id=author_serial)
-        except Post.DoesNotExist:
+        except:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         serializer = PostSerializer(post)
@@ -75,8 +97,27 @@ class PostDetailsView(APIView):
         Update a post instance by author ID & post ID.
         """
         with transaction.atomic():
+            print("In PostDetailsView - PUT")
+            try:
+                # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+                # check if post_serial is a URL (FQID) or a uuid (SERIAL)
+                if is_fqid(author_serial):
+                    author_serial = urllib.parse.unquote(author_serial)
+                    if not author_serial.endswith("/"):
+                        author_serial += "/"
+                    author_serial = Author.objects.get(url=author_serial).id
+                if is_fqid(post_serial):
+                    post_serial = urllib.parse.unquote(post_serial)
+                    if not post_serial.endswith("/"):
+                        post_serial += "/"
+                    post_serial = Post.objects.get(url=post_serial).id
+            except:
+                print("In PostDetailsView - PUT - You didn't give me a valid FQID or SERIAL, babe.")
+                return Response({"error": "PostDetailsView - PUT - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            
             # get the post instance
             try:
+                print(f"author_serial: {author_serial}, post_serial: {post_serial}")
                 old_post = Post.objects.get(id=post_serial, author_id=author_serial)
             except Post.DoesNotExist:
                 return Response({"error": f"What post? {post_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
@@ -128,7 +169,7 @@ class PostDetailsByFqidView(APIView):
     
     def get(self, request, post_fqid):
         try:
-            post = Post.objects.get(id=post_fqid)
+            post = Post.objects.get(url=post_fqid)
         except Post.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
@@ -141,15 +182,35 @@ class AuthorPostsView(APIView):
     """
 
     def get(self, request, author_serial):
+        try:
+            # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_serial):
+                author_serial = urllib.parse.unquote(author_serial)
+                if not author_serial.endswith("/"):
+                    author_serial += "/"
+                author_serial = Author.objects.get(url=author_serial).id
+        except:
+            return Response({"error": "AuthorPostsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         posts = Post.objects.filter(author_id=author_serial)
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
 
     def post(self, request, author_serial):
         '''
-        create post locally and send to all remote inboxes if public, and remote friends if friends only post
+        create post locally and send to remote followers inboxes if public, and remote friends if friends only post
         '''
         with transaction.atomic(): #a lot of datbase operations, better to do transaction so that if something fails, we can rollback instead of half updates
+            try:
+                # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+                if is_fqid(author_serial):
+                    author_serial = urllib.parse.unquote(author_serial)
+                    if not author_serial.endswith("/"):
+                        author_serial += "/"
+                    author_serial = Author.objects.get(url=author_serial).id
+            except:
+                return Response({"error": "AuthorPostsView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            
             # create post locally first 
             try:
                 author = Author.objects.get(id=author_serial)
@@ -167,7 +228,6 @@ class AuthorPostsView(APIView):
             try:
                 # Prepare post data 
                 post_data = PostSerializer(post).data
-                post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
                 
                 # if post.visibility == 'PUBLIC':
                 #     # send to all remote inboxes if public post
@@ -200,6 +260,22 @@ class PostImageView(APIView):
     # permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, author_serial, post_serial):
+        try:
+            # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            # check if post_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_serial):
+                author_serial = urllib.parse.unquote(author_serial)
+                if not author_serial.endswith("/"):
+                    author_serial += "/"
+                author_serial = Author.objects.get(url=author_serial).id
+            if is_fqid(post_serial):
+                post_serial = urllib.parse.unquote(post_serial)
+                if not post_serial.endswith("/"):
+                    post_serial += "/"
+                post_serial = Post.objects.get(url=post_serial).id
+        except:
+            return Response({"error": "PostImageView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         author = get_object_or_404(Author, id=author_serial)
         post = get_object_or_404(Post, author_id=author, id=post_serial)
 
@@ -308,6 +384,16 @@ class CommentedView(APIView):
         """
         Comment on a post
         """
+        try:
+            # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_serial):
+                author_serial = urllib.parse.unquote(author_serial)
+                if not author_serial.endswith("/"):
+                    author_serial += "/"
+                author_serial = Author.objects.get(url=author_serial).id
+        except:
+            return Response({"error": "CommentedView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         #author who created the comment
         author = get_object_or_404(Author, id=author_serial)
        
@@ -366,6 +452,16 @@ class CommentedView(APIView):
         """ 
         Get the list of comments author has made on any post [local]
         """
+        try:
+            # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_serial):
+                author_serial = urllib.parse.unquote(author_serial)
+                if not author_serial.endswith("/"):
+                    author_serial += "/"
+                author_serial = Author.objects.get(url=author_serial).id
+        except:
+            return Response({"error": "CommentedView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         author = get_object_or_404(Author, id=author_serial)
 
         comments = author.comments.all().order_by('-published')
@@ -428,6 +524,16 @@ class CommentView(APIView):
         """
         Get a single comment
         """
+        try:
+            # check if comment_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(comment_serial):
+                comment_serial = urllib.parse.unquote(comment_serial)
+                if not comment_serial.endswith("/"):
+                    comment_serial += "/"
+                comment_serial = Comment.objects.get(url=comment_serial).id
+        except:
+            return Response({"error": "CommentView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         comment = get_object_or_404(Comment, id=comment_serial)
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -440,6 +546,16 @@ class CommentsView(APIView):
         """
         get comments on a post 
         """
+        try:
+            # check if post_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(post_serial):
+                post_serial = urllib.parse.unquote(post_serial)
+                if not post_serial.endswith("/"):
+                    post_serial += "/"
+                post_serial = Post.objects.get(url=post_serial).id
+        except:
+            return Response({"error": "CommentsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         post = get_object_or_404(Post, id=post_serial)
 
         comments = post.comments.all().order_by('-published')
@@ -556,6 +672,16 @@ class LikedView(APIView):
     get or like a post
     """
     def post(self, request, author_serial):
+        try:
+            # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_serial):
+                author_serial = urllib.parse.unquote(author_serial)
+                if not author_serial.endswith("/"):
+                    author_serial += "/"
+                author_serial = Author.objects.get(url=author_serial).id
+        except:
+            return Response({"error": "LikedView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         #author who created the like
         author = get_object_or_404(Author, id=author_serial)
        
@@ -628,6 +754,16 @@ class LikedView(APIView):
         """
         get list of likes by author_id
         """
+        try:
+            # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_serial):
+                author_serial = urllib.parse.unquote(author_serial)
+                if not author_serial.endswith("/"):
+                    author_serial += "/"
+                author_serial = Author.objects.get(url=author_serial).id
+        except:
+            return Response({"error": "LikedView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         author = get_object_or_404(Author, id=author_serial)
         likes = author.likes.all()
 
@@ -658,6 +794,16 @@ class LikeView(APIView):
         """
         Get a single like by author serial and like serial
         """
+        try:
+            # check if like_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(like_serial):
+                like_serial = urllib.parse.unquote(like_serial)
+                if not like_serial.endswith("/"):
+                    like_serial += "/"
+                like_serial = Like.objects.get(url=like_serial).id
+        except:
+            return Response({"error": "LikeView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         like = get_object_or_404(Like, id=like_serial)
         serializer = LikeSerializer(like)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -670,6 +816,22 @@ class LikesView(APIView):
         """
         Get likes on a post
         """
+        try:
+            # check if post_id is a URL (FQID) or a uuid (SERIAL)
+            # check if author_serial is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_serial):
+                author_serial = urllib.parse.unquote(author_serial)
+                if not author_serial.endswith("/"):
+                    author_serial += "/"
+                author_serial = Author.objects.get(url=author_serial).id
+            if is_fqid(post_id):
+                post_id = urllib.parse.unquote(post_id)
+                if not post_id.endswith("/"):
+                    post_id += "/"
+                post_id = Post.objects.get(url=post_id).id
+        except:
+            return Response({"error": "LikesView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         post = get_object_or_404(Post, id=post_id)
 
         likes = post.likes.all().order_by('-published')
@@ -701,6 +863,28 @@ class LikedCommentsView(APIView):
         """
         get likes for a comment
         """
+        try:
+            # check if author_id is a URL (FQID) or a uuid (SERIAL)
+            # check if post_id is a URL (FQID) or a uuid (SERIAL)
+            # check if comment_id is a URL (FQID) or a uuid (SERIAL)
+            if is_fqid(author_id):
+                author_id = urllib.parse.unquote(author_id)
+                if not author_id.endswith("/"):
+                    author_id += "/"
+                author_id = Author.objects.get(url=author_id).id
+            if is_fqid(post_id):
+                post_id = urllib.parse.unquote(post_id)
+                if not post_id.endswith("/"):
+                    post_id += "/"
+                post_id = Post.objects.get(url=post_id).id
+            if is_fqid(comment_id):
+                comment_id = urllib.parse.unquote(comment_id)
+                if not comment_id.endswith("/"):
+                    comment_id += "/"
+                comment_id = Comment.objects.get(url=comment_id).id
+        except:
+            return Response({"error": "LikedCommentsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+        
         post = get_object_or_404(Post, id=post_id)
         comment = get_object_or_404(Comment, id=comment_id, post_id=post)
 

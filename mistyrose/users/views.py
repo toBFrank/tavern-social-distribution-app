@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from django.shortcuts import render
 import os
 from node.authentication import NodeAuthentication
@@ -26,6 +27,12 @@ from django.http import HttpRequest
 from .pagination import AuthorsPagination  
 from posts.serializers import PostSerializer  
 from uuid import UUID 
+from users.utils import get_remote_authors
+from urllib.parse import urlparse
+from rest_framework.exceptions import NotFound
+import urllib.parse
+
+from .utils import is_fqid
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -194,9 +201,34 @@ class VerifyTokenView(APIView):
 
 # View to retrieve a specific author's details using the author ID (primary key)
 class AuthorDetailView(generics.RetrieveAPIView):
-    queryset = Author.objects.all()  # Specify the queryset of authors
-    serializer_class = AuthorSerializer  # Use the AuthorSerializer for serialization
-    lookup_field = 'pk'  # The lookup field used for retrieving a specific author is the primary key
+    queryset = Author.objects.all()  # Base queryset
+    serializer_class = AuthorSerializer
+
+    def get_object(self):
+        """
+        Override get_object to handle both SERIALs (local IDs) and FQIDs (URLs).
+        """
+        pk = self.kwargs.get(self.lookup_field)  # Retrieve the 'pk' from the URL
+        pk = str(pk)  # Convert the pk to a string
+
+        # Check if `pk` is a URL (FQID) or an integer (SERIAL)
+        if is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
+            # Try to find the author by its URL (FQID)
+            author = get_object_or_404(Author, url=pk)
+        else:
+            pk = uuid.UUID(pk)
+            # Try to find the author by its SERIAL (id)
+            author = get_object_or_404(Author, id=pk)
+
+        return author
+# class AuthorDetailView(generics.RetrieveAPIView):
+#     queryset = Author.objects.all()  # Specify the queryset of authors
+#     serializer_class = AuthorSerializer  # Use the AuthorSerializer for serialization
+#     lookup_field = 'pk'  # The lookup field used for retrieving a specific author is the primary key
 
 '''
 class AuthorProfileView(APIView):
@@ -250,6 +282,15 @@ class AuthorProfileView(APIView):
 class AuthorProfileView(APIView):
     def get_friends_count(self, request, pk):
         """Retrieve the count of mutual friends using FriendsView."""
+        pk = str(pk)
+        # check if pk is a URL (FQID) or a uuid (SERIAL)
+        if is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
+        pk = uuid.UUID(pk)
+        
         friends_view = FriendsView()
         friends_response = friends_view.get(request, pk=pk)
         return len(friends_response.data.get('friends', []))
@@ -269,8 +310,18 @@ class AuthorProfileView(APIView):
         ).data
 
     def get(self, request, pk):
+        pk = str(pk)
         # Retrieve the author instance by primary key (pk)
-        author = get_object_or_404(Author, pk=pk)
+        # check if pk is a URL (FQID) or an integer (SERIAL)
+        if is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
+            author = get_object_or_404(Author, url=pk)
+        else:
+            pk = uuid.UUID(pk)
+            author = get_object_or_404(Author, pk=pk)
         
         # Serialize author data
         author_data = AuthorSerializer(author).data
@@ -300,8 +351,18 @@ class AuthorProfileView(APIView):
 
 class AuthorEditProfileView(APIView):
     def get(self, request, pk):
+        pk = str(pk)
         # Retrieve the author by primary key (pk)
-        author = get_object_or_404(Author, pk=pk)
+        # check if pk is a URL (FQID) or an integer (SERIAL)
+        if is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
+            author = get_object_or_404(Author, url=pk)
+        else:
+            pk = uuid.UUID(pk)
+            author = get_object_or_404(Author, pk=pk)
         
         # Serialize the author for editing profile purposes
         serializer = AuthorEditProfileSerializer(author)
@@ -310,8 +371,18 @@ class AuthorEditProfileView(APIView):
         return Response(serializer.data)
 
     def put(self, request, pk):
+        pk = str(pk)
         # Retrieve the author instance by primary key (pk)
-        author = get_object_or_404(Author, pk=pk)
+        # check if pk is a URL (FQID) or an integer (SERIAL)
+        if is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
+            author = get_object_or_404(Author, url=pk)
+        else:
+            pk = uuid.UUID(pk)
+            author = get_object_or_404(Author, pk=pk)
         
         # Deserialize and validate the incoming data
         serializer = AuthorEditProfileSerializer(author, data=request.data)
@@ -328,9 +399,18 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
     authentication_classes = [NodeAuthentication, JWTAuthentication]
     #asked chatGPT how to get the authors using ListAPIView 2024-10-18
     # variables that ListAPIView needs
-    queryset = Author.objects.all()
+    # only get authors on our own node
     serializer_class = AuthorSerializer
     pagination_class = AuthorsPagination
+    def get_queryset(self):
+        # only get authors who are on this node
+        request_host = self.request.get_host().rstrip('/')
+
+        authors = Author.objects.all()
+        authors = [author for author in authors if urlparse(author.host).netloc.rstrip('/') == request_host]
+        
+        return authors
+    
     def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
         #retrieve all profiles on the node (paginated)
         response = super().get(request, *args, **kwargs) #get provided by ListAPIView that queries database, serializes, and handles pagination
@@ -342,9 +422,32 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
         }
 
         return response
+    
+class GetRemoteAuthorsView(APIView): 
+    # getting a consolidated list of remote authors from all nodes as well as the authors on this node
+    #authentication_classes = [NodeAuthentication, JWTAuthentication]
+    def get(self, request): 
+        try:
+            # Retrieve all profiles on the node (paginated)
+            get_remote_response = get_remote_authors(request)  # This saves them to the database
+            print(f"GET REMOVE AUTHORS RESPONSE {get_remote_response}")
+            
+            # Fetch all authors from the database
+            all_authors = Author.objects.all()
+            print(f"ALL AUTHORS {all_authors}")
+            if not all_authors:
+                return Response({"error": "Something went wrong", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
+            serializer = AuthorSerializer(all_authors, many=True)
+            print(f"SERIALIZER AUTHORS DATA: {serializer} AND DATA: {serializer.data}")
+            
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"Error: {str(e)}")  
+            
+            return Response({"error": "Something went wrong", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class FollowerView(APIView):
     
     def get(self, request, author_id, follower_id):
@@ -437,8 +540,18 @@ class UnfollowView(APIView):
 
 class FollowersDetailView(APIView):
     def get(self, request, pk):  # Add 'pk' parameter
+        pk = str(pk)
         # Get the author based on the provided pk
-        author = get_object_or_404(Author, id=pk)
+        # check if pk is a URL (FQID) or an integer (SERIAL)
+        if is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
+            author = get_object_or_404(Author, url=pk)
+        else:
+            pk = uuid.UUID(pk)
+            author = get_object_or_404(Author, id=pk)
         
         # Retrieve all followers who have an accepted follow request for the author
         followers = Follows.objects.filter(followed_id=author, status='ACCEPTED').select_related('local_follower_id')
@@ -464,8 +577,19 @@ class FollowersDetailView(APIView):
 
 class FollowingDetailView(APIView):
     def get(self, request, pk):  # Add 'pk' parameter for the current user's ID
+        pk = str(pk)
         # Get the author based on the provided pk (the current user)
-        author = get_object_or_404(Author, id=pk)
+        # check if pk is a URL (FQID) or an integer (SERIAL)
+        if is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
+            author = get_object_or_404(Author, url=pk)
+        else:
+            pk = uuid.UUID(pk)
+            author = get_object_or_404(Author, id=pk)
+            
         
         # Retrieve all users that the author is following with accepted follow requests
         following = Follows.objects.filter(local_follower_id=author, status='ACCEPTED').select_related('followed_id')
@@ -498,7 +622,17 @@ class FriendsView(APIView):
 
         # Check if an author_id is provided, else use the current logged-in user as the viewed author
         if pk:
-            viewed_author = get_object_or_404(Author, id=pk)
+            pk = str(pk)
+            # check if pk is a URL (FQID) or an integer (SERIAL)
+            if is_fqid(pk):
+                pk = urllib.parse.unquote(pk)
+                # if no trailing slash, append it
+                if not pk.endswith('/'):
+                    pk += '/'
+                viewed_author = get_object_or_404(Author, url=pk)
+            else:
+                pk = uuid.UUID(pk)
+                viewed_author = get_object_or_404(Author, id=pk)
         else:
             viewed_author = current_user
 
