@@ -104,7 +104,7 @@ class PostDetailsView(APIView):
                         post_serial += "/"
                     post_serial = Post.objects.get(url=post_serial).id
             except:
-                return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "PostDetailsView - PUT - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
             
             # get the post instance
             try:
@@ -180,7 +180,7 @@ class AuthorPostsView(APIView):
                     author_serial += "/"
                 author_serial = Author.objects.get(url=author_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "AuthorPostsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         posts = Post.objects.filter(author_id=author_serial)
         serializer = PostSerializer(posts, many=True)
@@ -199,7 +199,7 @@ class AuthorPostsView(APIView):
                         author_serial += "/"
                     author_serial = Author.objects.get(url=author_serial).id
             except:
-                return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "AuthorPostsView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
             
             # create post locally first 
             try:
@@ -265,7 +265,7 @@ class PostImageView(APIView):
                     post_serial += "/"
                 post_serial = Post.objects.get(url=post_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "PostImageView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         author = get_object_or_404(Author, id=author_serial)
         post = get_object_or_404(Post, author_id=author, id=post_serial)
@@ -383,7 +383,7 @@ class CommentedView(APIView):
                     author_serial += "/"
                 author_serial = Author.objects.get(url=author_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "CommentedView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         #author who created the comment
         author = get_object_or_404(Author, id=author_serial)
@@ -451,7 +451,7 @@ class CommentedView(APIView):
                     author_serial += "/"
                 author_serial = Author.objects.get(url=author_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "CommentedView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         author = get_object_or_404(Author, id=author_serial)
 
@@ -523,7 +523,7 @@ class CommentView(APIView):
                     comment_serial += "/"
                 comment_serial = Comment.objects.get(url=comment_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "CommentView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         comment = get_object_or_404(Comment, id=comment_serial)
         serializer = CommentSerializer(comment)
@@ -545,7 +545,7 @@ class CommentsView(APIView):
                     post_serial += "/"
                 post_serial = Post.objects.get(url=post_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "CommentsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         post = get_object_or_404(Post, id=post_serial)
 
@@ -671,7 +671,7 @@ class LikedView(APIView):
                     author_serial += "/"
                 author_serial = Author.objects.get(url=author_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "LikedView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         #author who created the like
         author = get_object_or_404(Author, id=author_serial)
@@ -753,7 +753,7 @@ class LikedView(APIView):
                     author_serial += "/"
                 author_serial = Author.objects.get(url=author_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "LikedView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         author = get_object_or_404(Author, id=author_serial)
         likes = author.likes.all()
@@ -793,7 +793,7 @@ class LikeView(APIView):
                     like_serial += "/"
                 like_serial = Like.objects.get(url=like_serial).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "LikeView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         like = get_object_or_404(Like, id=like_serial)
         serializer = LikeSerializer(like)
@@ -821,7 +821,7 @@ class LikesView(APIView):
                     post_id += "/"
                 post_id = Post.objects.get(url=post_id).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "LikesView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         post = get_object_or_404(Post, id=post_id)
 
@@ -874,7 +874,7 @@ class LikedCommentsView(APIView):
                     comment_id += "/"
                 comment_id = Comment.objects.get(url=comment_id).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "LikedCommentsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         post = get_object_or_404(Post, id=post_id)
         comment = get_object_or_404(Comment, id=comment_id, post_id=post)

@@ -23,7 +23,7 @@ class InboxView(APIView):
                     author_id += '/'
                 author_id = Author.objects.get(url=author_id).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "InboxView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         object_type = request.data.get('type')
         author = get_object_or_404(Author, id=author_id)
@@ -60,7 +60,7 @@ class FollowRequests(APIView):
                     author_id += '/'
                 author_id = Author.objects.get(url=author_id).id
         except:
-            return Response({"error": "You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "FollowRequests - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         author = get_object_or_404(Author, id=author_id)
         pending_follow_requests = Follows.objects.filter(followed_id=author, status='PENDING')
 
