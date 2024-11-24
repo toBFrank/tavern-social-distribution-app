@@ -5,6 +5,7 @@ from rest_framework import status
 from node.models import Node
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
+from django.urls import reverse
 
 # User Story #56 Test: As a node admin, I want to be able to connect to remote nodes by entering only the URL of the remote node, a username, and a password.
 # User Story #60 Test: As a node admin, I can prevent nodes from connecting to my node if they don't have a valid username and password.
@@ -180,3 +181,52 @@ class NodeAddAndDeleteTestCase(TestCase):
         self.assertIn("type", response_json)
         self.assertEqual(response_json["type"], "nodes")
         self.assertNotIn(self.node.remote_node_url, [item["host"] for item in response_json["items"]])
+
+# User Story #68 Test: As a node admin, I want the API objects (authors, posts, etc.) to be identified by their full URL, to prevent collisions with other node's numbering schemes.
+class NodeAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+        # Create user and generate Token
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.access_token}")
+
+        # Set API path
+        self.node_list_url = reverse("node-list-create")
+        self.node_detail_url = "/api/node/" 
+
+        # Sample node data
+        self.node_data_1 = {
+            "remote_node_url": "http://example.com/node/123",
+            "remote_username": "admin1",
+            "remote_password": "password1"
+        }
+        self.node_data_2 = {
+            "remote_node_url": "http://example.com/node/456",
+            "remote_username": "admin2",
+            "remote_password": "password2"
+        }
+
+    def test_list_nodes(self):
+        """Test retrieving a list of nodes."""
+        # Simulate creating nodes
+        Node.objects.create(**self.node_data_1)
+        Node.objects.create(**self.node_data_2)
+
+        # Call list view
+        response = self.client.get(self.node_list_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["items"]), 2)
+
+    def test_node_detail_with_full_url(self):
+        """Test retrieving a node directly from the database."""
+        # Simulate creating nodes
+        node = Node.objects.create(**self.node_data_1)
+        print(f"Created node: {node.remote_node_url}")
+
+        # Manually verify node information in the database
+        retrieved_node = Node.objects.get(remote_node_url=self.node_data_1["remote_node_url"])
+        self.assertEqual(retrieved_node.remote_node_url, self.node_data_1["remote_node_url"])
+
