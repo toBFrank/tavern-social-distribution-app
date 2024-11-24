@@ -355,7 +355,7 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
         return response
     
 class GetRemoteAuthorsView(ListAPIView): 
-    # getting a consolidated list of remote authors from all nodes, returning the responses they give us in one list
+    # getting a consolidated list of remote authors from all nodes as well as the authors on this node
     
     def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
         #retrieve all profiles on the node (paginated)
