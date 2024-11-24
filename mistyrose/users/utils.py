@@ -115,7 +115,7 @@ def upload_to_imgur(image_data):
         }
         
         # request
-        response = requests.post(url, headers=headers, data=payload)
+        response = requests.post(url, headers=headers, files=payload)
         response_data = response.json()
         
         if response.status_code == 200:
