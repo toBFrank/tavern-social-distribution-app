@@ -42,9 +42,9 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name="swagger"),
     path('', include('users.urls')),
+    path('api/authors/<path:author_id>/inbox/', include('stream.urls')),
     path('api/authors/', include('posts.authors_urls')), #api/authors/ urls for posts, likes, comments
     re_path(r'^api/authors/', include('users.authors_urls')), #api/authors/ for urls like following and authors
-    path('api/authors/<path:author_id>/inbox/', include('stream.urls')),
     path('api/liked/', include('posts.liked_urls')), #api/liked urls
     path('api/comment/', include('posts.comment_urls')), #api/comment urls
     path('api/commented/', include('posts.comment_urls')), #TODO: asked if there is an error in the project description, is this supposed to be the same one as the comments/comment_fqid?  
