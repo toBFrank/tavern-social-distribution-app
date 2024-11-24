@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth.models import User
-from users.models import Author
+from users.models import Author, Follows
 from posts.models import Comment, Like, Post
 import urllib.parse
 import json
@@ -1142,3 +1142,99 @@ class DeletePostTestCase(APITestCase):
         # Verify the visibility in the response
         self.assertEqual(response.data.get("visibility"), "DELETED")
 
+# User Story #09 Test: As an author, I want my node to send my posts to my remote followers and friends.
+class PostDeliveryTestCase(APITestCase):
+    def setUp(self):
+        # Create two users and corresponding authors
+        self.user_a = User.objects.create_user(username="user_a", password="pass_a")
+        self.author_a = Author.objects.create(
+            id=uuid.uuid4(),
+            display_name="Author A",
+            host="http://localhost",
+            user=self.user_a
+        )
+        self.user_b = User.objects.create_user(username="user_b", password="pass_b")
+        self.author_b = Author.objects.create(
+            id=uuid.uuid4(),
+            display_name="Author B",
+            host="http://remote.node",
+            user=self.user_b
+        )
+        # Set up API client and authentication
+        self.client = APIClient()
+        self.login_user_a()
+    def login_user_a(self):
+        # Log in to User A and set up authentication
+        login_url = "/api/login/"
+        response = self.client.post(
+            login_url,
+            {"username": "user_a", "password": "pass_a"},
+            format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Login failed for User A")
+        token = response.data.get("access_token")
+        self.assertIsNotNone(token, "No access token returned for User A")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    def create_follow_relationship(self, follower, followed):
+        # Create following relationship
+        Follows.objects.create(
+            local_follower_id=follower,
+            followed_id=followed,
+            is_remote=False,
+            status="ACCEPTED"
+        )
+    def test_public_post_visible_to_remote_author(self):
+        """Test whether PUBLIC posts are visible to remote authors (no following relationship required)"""
+        post_id = uuid.uuid4()
+        post_data = {
+            "type": "post",
+            "id": f"http://localhost/api/authors/{self.author_a.id}/posts/{post_id}/",
+            "title": "Public Test Post",
+            "content": "This is a public test post.",
+            "visibility": "PUBLIC",
+            "contentType": "text/plain",
+            "author": {
+                "id": str(self.author_a.id),
+                "host": "http://localhost",
+                "displayName": "Author A",
+                "url": f"http://localhost/authors/{self.author_a.id}/",
+                "github": "",
+                "profileImage": "",
+                "page": f"http://localhost/authors/{self.author_a.id}/"  # Make sure to include 'page'
+            }
+        }
+        response = self.client.post(f"/api/authors/{self.author_b.id}/inbox/", post_data, format="json")
+        # print("Response data (public post):", response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_friends_post_visible_to_friend(self):
+        """Test whether FRIENDS posts are visible to friends (follow each other)"""
+        # Create a two-way following relationship
+        self.create_follow_relationship(self.author_a, self.author_b)
+        self.create_follow_relationship(self.author_b, self.author_a)
+        # Verify following relationship
+        follows_a_to_b = Follows.objects.filter(local_follower_id=self.author_a, followed_id=self.author_b).exists()
+        follows_b_to_a = Follows.objects.filter(local_follower_id=self.author_b, followed_id=self.author_a).exists()
+        # print("Follows A->B:", follows_a_to_b)
+        # print("Follows B->A:", follows_b_to_a)
+        self.assertTrue(follows_a_to_b and follows_b_to_a, "The two-way following relationship has not been established")
+        post_id = uuid.uuid4()
+        post_data = {
+            "type": "post",
+            "id": f"http://localhost/api/authors/{self.author_a.id}/posts/{post_id}/",
+            "title": "Friends Test Post",
+            "content": "This is a friends test post.",
+            "visibility": "FRIENDS",
+            "contentType": "text/plain",
+            "author": {
+                "id": str(self.author_a.id),
+                "host": "http://localhost",
+                "displayName": "Author A",
+                "url": f"http://localhost/authors/{self.author_a.id}/",
+                "github": "",
+                "profileImage": "",
+                "page": f"http://localhost/authors/{self.author_a.id}/"
+            }
+        }
+        response = self.client.post(f"/api/authors/{self.author_b.id}/inbox/", post_data, format="json")
+        # print("Response data (friends post):", response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
