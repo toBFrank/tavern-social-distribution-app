@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from rest_framework import serializers
 from users.models import Author
 
@@ -30,6 +31,23 @@ class AuthorSerializer(serializers.Serializer):
         if not data.get('profileImage'):
             data.pop('profileImage', None)
     
+        return data
+    
+    def to_internal_value(self, data):
+        data = super().to_internal_value(data)
+        
+        # Normalize the host field
+        if 'host' in data:
+            parsed_host = urlparse(data['host'])
+            data['host'] = f"{parsed_host.scheme}://{parsed_host.netloc}"
+        else:
+            # if host is not provided, set to my host
+            request = self.context.get('request')
+            if request:
+                scheme = request.scheme
+                host = request.get_host()
+                data['host'] = f"{scheme}://{host}"
+        
         return data
     
 class AuthorEditProfileSerializer(serializers.ModelSerializer):

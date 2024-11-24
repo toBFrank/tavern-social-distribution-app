@@ -439,7 +439,7 @@ class GetRemoteAuthorsView(APIView):
                 return Response({"error": "Something went wrong", "message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             serializer = AuthorSerializer(all_authors, many=True)
-            print(f"SERIALIZER AUTHORS DATA: {serializer} aND DATA: {serializer.data}")
+            print(f"SERIALIZER AUTHORS DATA: {serializer} AND DATA: {serializer.data}")
             
             return Response(serializer.data, status=status.HTTP_200_OK)
         
