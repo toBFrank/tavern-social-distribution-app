@@ -32,7 +32,7 @@ from urllib.parse import urlparse
 from rest_framework.exceptions import NotFound
 import urllib.parse
 
-from .utils import is_fqid
+from .utils import is_fqid, upload_to_imgur
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -675,40 +675,54 @@ class ProfileImageUploadView(APIView):
         try:
             # Ensure the username is provided
             if not username:
-                return Response({"error": "Username not provided."}, status=status.HTTP_400_BAD_REQUEST)
+                print("ProfileImageUploadView - POST - You forgot the username, babe.")
+                return Response({"error": "ProfileImageUploadView - POST - You forgot the username, babe."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Check if a file (profile image) was uploaded in the request
             file = request.FILES.get('profile_image')
             if not file:
-                return Response({"error": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+                print("ProfileImageUploadView - POST - You forgot the image file, babe.")
+                return Response({"error": "ProfileImageUploadView - POST - You forgot the image file, babe."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Create a unique file path for saving the image based on the username
-            file_path = f'profiles/{username}/{file.name}'
-            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-
-            # Ensure the directory exists (create if necessary)
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-
-            # Save the file to the media folder in chunks
-            with open(full_path, 'wb+') as destination:
-                for chunk in file.chunks():
-                    destination.write(chunk)
-
-            # Construct the media URL for accessing the profile image via HTTP
-            base_url = self.get_base_url(request)
-            media_url = f'{base_url}{settings.MEDIA_URL}{file_path}'
-
-            # Return a success message along with the image URL
-            return Response({"message": "Profile image uploaded successfully", "url": media_url}, status=status.HTTP_200_OK)
+            image_data = file.read()
+            imgur_url, error = upload_to_imgur(image_data)
+            if error:
+                return Response({"error": f"ProfileImageUploadView - POST - Couldn't upload that, babe. {str(error)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            return Response({"message": "You uploaded a profile image successfully, babe!", "url": imgur_url}, status=status.HTTP_200_OK)
         
         except Exception as e:
-            # Handle any errors and return a server error response
-            return Response({"error": f"Failed to upload profile image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(f"ProfileImageUploadView - POST - Error: {str(e)}")
+            return Response({"error": f"ProfileImageUploadView - POST - {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def get_base_url(self, request: HttpRequest):
-        """
-        Generate the base URL (protocol + host) based on the request.
-        """
-        protocol = 'https' if request.is_secure() else 'http'
-        host = request.get_host()  # This gives the hostname and port (if not default)
-        return f'{protocol}://{host}'
+        
+        #     # Create a unique file path for saving the image based on the username
+        #     file_path = f'profiles/{username}/{file.name}'
+        #     full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+
+        #     # Ensure the directory exists (create if necessary)
+        #     os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+        #     # Save the file to the media folder in chunks
+        #     with open(full_path, 'wb+') as destination:
+        #         for chunk in file.chunks():
+        #             destination.write(chunk)
+
+        #     # Construct the media URL for accessing the profile image via HTTP
+        #     base_url = self.get_base_url(request)
+        #     media_url = f'{base_url}{settings.MEDIA_URL}{file_path}'
+
+        #     # Return a success message along with the image URL
+        #     return Response({"message": "Profile image uploaded successfully", "url": media_url}, status=status.HTTP_200_OK)
+        
+        # except Exception as e:
+        #     # Handle any errors and return a server error response
+        #     return Response({"error": f"Failed to upload profile image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # def get_base_url(self, request: HttpRequest):
+    #     """
+    #     Generate the base URL (protocol + host) based on the request.
+    #     """
+    #     protocol = 'https' if request.is_secure() else 'http'
+    #     host = request.get_host()  # This gives the hostname and port (if not default)
+    #     return f'{protocol}://{host}'
