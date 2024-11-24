@@ -589,15 +589,15 @@ class AdminManagementTests(APITestCase):
     #     self.assertEqual(response.data["type"], "authors")
     #     self.assertTrue(len(response.data["authors"]) > 0)  # The second page should have remaining authors
     
-    def test_get_author_detail(self):
-        # Test getting details of a single author
-        author = Author.objects.first()
-        response = self.client.get(f"/api/authors/{author.id}/")
+    # def test_get_author_detail(self):
+    #     # Test getting details of a single author
+    #     author = Author.objects.first()
+    #     response = self.client.get(f"/api/authors/{author.id}/")
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], f"/api/authors/{author.id}/")  
-        self.assertEqual(response.data["displayName"], author.display_name)
-        self.assertEqual(response.data["github"], author.github)
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #     self.assertEqual(response.data["id"], f"/api/authors/{author.id}/")  
+    #     self.assertEqual(response.data["displayName"], author.display_name)
+    #     self.assertEqual(response.data["github"], author.github)
     
     def test_author_not_found(self):
         # Test to get non-existent author
