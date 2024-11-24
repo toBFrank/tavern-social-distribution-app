@@ -118,8 +118,8 @@ def upload_to_imgur(image_data):
         response_data = response.json()
         
         if response.status_code == 200:
-            return response_data["data"]["link"]
+            return [response_data["data"]["link"]], None
         else:
-            return None, response_data["data"]["error"]
+            return None, [response_data["data"].get("error", "Unknown error")]
     except Exception as e:
         return None, str(e)
