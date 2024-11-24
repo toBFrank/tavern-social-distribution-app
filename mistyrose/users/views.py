@@ -356,7 +356,7 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
     
 class GetRemoteAuthorsView(APIView): 
     # getting a consolidated list of remote authors from all nodes as well as the authors on this node
-    authentication_classes = [NodeAuthentication, JWTAuthentication]
+    #authentication_classes = [NodeAuthentication, JWTAuthentication]
     def get(self, request): 
         try:
             # Retrieve all profiles on the node (paginated)
