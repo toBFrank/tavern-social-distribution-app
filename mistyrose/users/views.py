@@ -282,6 +282,13 @@ class AuthorProfileView(APIView):
 class AuthorProfileView(APIView):
     def get_friends_count(self, request, pk):
         """Retrieve the count of mutual friends using FriendsView."""
+        # check if pk is a URL (FQID) or an integer (SERIAL)
+        if is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
+            if not pk.endswith('/'):
+                pk += '/'
+        
         friends_view = FriendsView()
         friends_response = friends_view.get(request, pk=pk)
         return len(friends_response.data.get('friends', []))
