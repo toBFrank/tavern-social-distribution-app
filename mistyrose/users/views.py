@@ -28,6 +28,7 @@ from .pagination import AuthorsPagination
 from posts.serializers import PostSerializer  
 from uuid import UUID 
 from rest_framework.exceptions import NotFound
+import urllib.parse
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -204,11 +205,10 @@ class AuthorDetailView(generics.RetrieveAPIView):
         Override get_object to handle both SERIALs (local IDs) and FQIDs (URLs).
         """
         pk = self.kwargs.get(self.lookup_field)  # Retrieve the 'pk' from the URL
-        if isinstance(pk, uuid.UUID):
-            pk = str(pk)
 
         # Check if `pk` is a URL (FQID) or an integer (SERIAL)
         if self.is_fqid(pk):
+            pk = urllib.parse.unquote(pk)
             # if no trailing slash, append it
             if not pk.endswith('/'):
                 pk += '/'
