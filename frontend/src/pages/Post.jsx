@@ -32,9 +32,11 @@ const Post = () => {
   const sharedPostAuthor = location.state?.authorId;
   const currentHost = window.location.origin; // Get host for post URL
 
-
-  // console.log('authorId:', authorId, 'postId:', postId);
-
+  useEffect(() => {
+    if (!postId) {
+      setUploadedImage(null);
+    }
+  }, [postId]);
   
   // Fetch current author profile on component mount
   useEffect(() => {
@@ -66,32 +68,26 @@ const Post = () => {
   //#region Fetch Post Data (for editing)
   useEffect(() => {
     if (postId && !sharePost) {
-      // console.log('Editing authorId:', authorId);
-      // console.log('Editing postId:', postId);
-      // If we're editing a post, fetch its data
-      // console.log('useEffect triggered for postId:', postId);
       getPost(authorId, postId)
         .then((response) => {
           const post = response.data;
           setTitle(post.title || '');
-          if (post.content_type === 'text/markdown') {
+          console.log('here', post)
+          if (post.contentType === 'text/markdown') {
             setMarkdown(post.content || ''); // Set the markdown content
             setSelectedOption('Markdown'); // Set the editor mode to Markdown
-          } else {
+          } else if ((post.contentType === 'text/plain')) {
             setPlainText(post.content || ''); // Set plain text content
             setSelectedOption('Plain'); // Set the editor mode to Plain
+          } else {
+            // console.log('Image!')
+            if (post.contentType.startsWith('image/')) {
+              const isBase64 = post.content.startsWith('data:image/');
+              setUploadedImage(isBase64 ? post.content : `${currentHost}${post.content}`);
+              setSelectedOption('Image');
+            }
           }
           setVisibility(post.visibility.toLowerCase());
-          setSelectedOption(
-            post.image_content
-              ? 'Image'
-              : post.content_type === 'text/markdown'
-                ? 'Markdown'
-                : 'Plain'
-          );
-          if (post.image_content) {
-            setUploadedImage(`${currentHost}${post.image_content}`);
-          }
           setLoading(false);
         })
         .catch((error) => {
@@ -140,7 +136,7 @@ const Post = () => {
           } else {
             const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.content || 'No Content Available'}`;
             setPlainText(creditsContent);
-            setSelectedOption('Plain'); // Set the editor mode to Plain
+            setSelectedOption('Image'); // Set the editor mode to Plain
           }
 
           setLoading(false); // Set loading to false after processing
