@@ -11,7 +11,8 @@ from .views import (
     ProfileImageUploadView,
     FollowersDetailView,
     FriendsView,
-    FollowingDetailView
+    FollowingDetailView,
+    GetRemoteAuthorsView
 )
 
 urlpatterns = [
@@ -27,4 +28,5 @@ urlpatterns = [
     path('api/authors/<uuid:pk>/followers/', FollowersDetailView.as_view(), name='author-followers'),  # Followers endpoint
     path('api/authors/<uuid:pk>/friends/', FriendsView.as_view(), name='author-friends'),  # Friends endpoint
     path('api/authors/<uuid:pk>/following/', FollowingDetailView.as_view(), name='author-following'),  # Friends endpoint
+    path('api/authors/all/', GetRemoteAuthorsView.as_view(), name='all-authors'),
 ]

@@ -5,8 +5,7 @@ from .views import (
     AuthorsView,
     UnfollowView,
     FollowersDetailView,
-    FriendsView,
-    GetRemoteAuthorsView
+    FriendsView
 )
 
 """
@@ -18,5 +17,4 @@ urlpatterns = [
     path('<str:author_id>/followers/<str:follower_id>/unfollow/', UnfollowView.as_view(), name='unfollow'),
     path('<str:author_id>/followers/', FollowersDetailView.as_view(), name='followers'),
     path('<str:author_id>/friends/', FriendsView.as_view(), name='friends'),
-    path('get_remote_authors/', GetRemoteAuthorsView.as_view(), name='remote_authors'),
 ]
