@@ -204,6 +204,7 @@ class AuthorDetailView(generics.RetrieveAPIView):
         """
         Override get_object to handle both SERIALs (local IDs) and FQIDs (URLs).
         """
+        print(f"self.kwargs: {self.kwargs}")
         pk = self.kwargs.get(self.lookup_field)  # Retrieve the 'pk' from the URL
         print(f"untouched pk: {pk}")
 
