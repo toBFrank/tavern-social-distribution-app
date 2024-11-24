@@ -3,7 +3,7 @@ import re
 import uuid
 from django.shortcuts import render
 import requests
-from .utils import get_remote_authors, get_remote_friends, post_to_remote_inboxes, get_remote_followers_you
+from .utils import get_remote_friends, post_to_remote_inboxes, get_remote_followers_you
 from users.models import Author
 from rest_framework import status
 from rest_framework.views import APIView
