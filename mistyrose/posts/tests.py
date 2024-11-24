@@ -1238,3 +1238,71 @@ class PostDeliveryTestCase(APITestCase):
         response = self.client.post(f"/api/authors/{self.author_b.id}/inbox/", post_data, format="json")
         # print("Response data (friends post):", response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+# User Story #11 Test: As an author, I want my node to re-send posts I've edited to everywhere they were already sent, so that people don't keep seeing the old version.
+class PostEditResendTestCase(APITestCase):
+    def setUp(self):
+        # Create users and corresponding authors
+        self.user_a = User.objects.create_user(username="user_a", password="pass_a")
+        self.author_a = Author.objects.create(
+            id=uuid.uuid4(),
+            display_name="Author A",
+            host="http://localhost",
+            user=self.user_a
+        )
+        self.user_b = User.objects.create_user(username="user_b", password="pass_b")
+        self.author_b = Author.objects.create(
+            id=uuid.uuid4(),
+            display_name="Author B",
+            host="http://remote.node",
+            user=self.user_b
+        )
+        # Set up API client and log in user A
+        self.client = APIClient()
+        self.login_user_a()
+    def login_user_a(self):
+        login_url = "/api/login/"
+        response = self.client.post(
+            login_url,
+            {"username": "user_a", "password": "pass_a"},
+            format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Login failed for User A")
+        token = response.data.get("access_token")
+        self.assertIsNotNone(token, "No access token returned for User A")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    def test_public_post_edit_resends_to_recipients(self):
+        """Test whether to resend to recipients after editing a public post"""
+        # Step 1: Create a public post
+        post_data = {
+            "type": "post",
+            "title": "Original Test Post",
+            "content": "This is the original content.",
+            "visibility": "PUBLIC",
+            "contentType": "text/plain",
+            "author": {
+                "id": str(self.author_a.id),
+                "host": "http://localhost",
+                "displayName": "Author A",
+            }
+        }
+        response = self.client.post(f"/api/authors/{self.author_a.id}/posts/", post_data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Failed to create the original post")
+        # # Verify that the post was created successfully
+        # print("Post creation response:", response.data)
+        # Get created post ID from response
+        created_post_id = response.data.get("id")
+        self.assertIsNotNone(created_post_id, "Post creation did not return a valid ID")
+        # Step 2: Edit post content
+        edited_post_data = post_data.copy()
+        edited_post_data["id"] = created_post_id  # Use the post ID returned on creation
+        edited_post_data["title"] = "Edited Test Post"
+        edited_post_data["content"] = "This is the edited content."
+        # Construct the correct edit URL
+        edit_url = f"/api/authors/{self.author_a.id}/posts/{created_post_id}/"
+        response = self.client.put(edit_url, edited_post_data, format="json")
+        # print("Edit post response:", response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Failed to edit the post")
+        # Verify that the response contains the edited content
+        self.assertEqual(response.data["title"], "Edited Test Post", "Post title was not updated")
+        self.assertEqual(response.data["content"], "This is the edited content.", "Post content was not updated")
