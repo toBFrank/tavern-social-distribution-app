@@ -206,13 +206,11 @@ class AuthorDetailView(generics.RetrieveAPIView):
         """
         Override get_object to handle both SERIALs (local IDs) and FQIDs (URLs).
         """
-        print(f"self.kwargs: {self.kwargs}")
         pk = self.kwargs.get(self.lookup_field)  # Retrieve the 'pk' from the URL
-        print(f"untouched pk: {pk}")
+        pk = str(pk)  # Convert the pk to a string
 
         # Check if `pk` is a URL (FQID) or an integer (SERIAL)
         if is_fqid(pk):
-            print(f"it is a url! {pk}")
             pk = urllib.parse.unquote(pk)
             # if no trailing slash, append it
             if not pk.endswith('/'):
@@ -220,7 +218,7 @@ class AuthorDetailView(generics.RetrieveAPIView):
             # Try to find the author by its URL (FQID)
             author = get_object_or_404(Author, url=pk)
         else:
-            print(f"it is a serial! {pk}")
+            pk = uuid.UUID(pk)
             # Try to find the author by its SERIAL (id)
             author = get_object_or_404(Author, id=pk)
 
@@ -282,12 +280,14 @@ class AuthorProfileView(APIView):
 class AuthorProfileView(APIView):
     def get_friends_count(self, request, pk):
         """Retrieve the count of mutual friends using FriendsView."""
+        pk = str(pk)
         # check if pk is a URL (FQID) or a uuid (SERIAL)
         if is_fqid(pk):
             pk = urllib.parse.unquote(pk)
             # if no trailing slash, append it
             if not pk.endswith('/'):
                 pk += '/'
+        pk = uuid.UUID(pk)
         
         friends_view = FriendsView()
         friends_response = friends_view.get(request, pk=pk)
@@ -308,6 +308,7 @@ class AuthorProfileView(APIView):
         ).data
 
     def get(self, request, pk):
+        pk = str(pk)
         # Retrieve the author instance by primary key (pk)
         # check if pk is a URL (FQID) or an integer (SERIAL)
         if is_fqid(pk):
@@ -317,6 +318,7 @@ class AuthorProfileView(APIView):
                 pk += '/'
             author = get_object_or_404(Author, url=pk)
         else:
+            pk = uuid.UUID(pk)
             author = get_object_or_404(Author, pk=pk)
         
         # Serialize author data
@@ -347,6 +349,7 @@ class AuthorProfileView(APIView):
 
 class AuthorEditProfileView(APIView):
     def get(self, request, pk):
+        pk = str(pk)
         # Retrieve the author by primary key (pk)
         # check if pk is a URL (FQID) or an integer (SERIAL)
         if is_fqid(pk):
@@ -356,6 +359,7 @@ class AuthorEditProfileView(APIView):
                 pk += '/'
             author = get_object_or_404(Author, url=pk)
         else:
+            pk = uuid.UUID(pk)
             author = get_object_or_404(Author, pk=pk)
         
         # Serialize the author for editing profile purposes
@@ -365,6 +369,7 @@ class AuthorEditProfileView(APIView):
         return Response(serializer.data)
 
     def put(self, request, pk):
+        pk = str(pk)
         # Retrieve the author instance by primary key (pk)
         # check if pk is a URL (FQID) or an integer (SERIAL)
         if is_fqid(pk):
@@ -374,6 +379,7 @@ class AuthorEditProfileView(APIView):
                 pk += '/'
             author = get_object_or_404(Author, url=pk)
         else:
+            pk = uuid.UUID(pk)
             author = get_object_or_404(Author, pk=pk)
         
         # Deserialize and validate the incoming data
@@ -499,6 +505,7 @@ class UnfollowView(APIView):
 
 class FollowersDetailView(APIView):
     def get(self, request, pk):  # Add 'pk' parameter
+        pk = str(pk)
         # Get the author based on the provided pk
         # check if pk is a URL (FQID) or an integer (SERIAL)
         if is_fqid(pk):
@@ -508,6 +515,7 @@ class FollowersDetailView(APIView):
                 pk += '/'
             author = get_object_or_404(Author, url=pk)
         else:
+            pk = uuid.UUID(pk)
             author = get_object_or_404(Author, id=pk)
         
         # Retrieve all followers who have an accepted follow request for the author
@@ -534,6 +542,7 @@ class FollowersDetailView(APIView):
 
 class FollowingDetailView(APIView):
     def get(self, request, pk):  # Add 'pk' parameter for the current user's ID
+        pk = str(pk)
         # Get the author based on the provided pk (the current user)
         # check if pk is a URL (FQID) or an integer (SERIAL)
         if is_fqid(pk):
@@ -543,6 +552,7 @@ class FollowingDetailView(APIView):
                 pk += '/'
             author = get_object_or_404(Author, url=pk)
         else:
+            pk = uuid.UUID(pk)
             author = get_object_or_404(Author, id=pk)
             
         
@@ -577,6 +587,7 @@ class FriendsView(APIView):
 
         # Check if an author_id is provided, else use the current logged-in user as the viewed author
         if pk:
+            pk = str(pk)
             # check if pk is a URL (FQID) or an integer (SERIAL)
             if is_fqid(pk):
                 pk = urllib.parse.unquote(pk)
@@ -585,6 +596,7 @@ class FriendsView(APIView):
                     pk += '/'
                 viewed_author = get_object_or_404(Author, url=pk)
             else:
+                pk = uuid.UUID(pk)
                 viewed_author = get_object_or_404(Author, id=pk)
         else:
             viewed_author = current_user
