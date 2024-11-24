@@ -4,6 +4,7 @@ import base64
 
 from users.models import Author
 from node.models import Node
+from django.conf import settings
 
 def get_remote_authors(request):
     """
@@ -96,3 +97,29 @@ def is_fqid(value):
     except ValueError as e:
         print(f"error: {e}")
         return False
+    
+def upload_to_imgur(image_data):
+    """
+    Upload image to imgur.
+    """
+    try:
+        print(f"Image data: {image_data}")
+        # endpoint + headers
+        url = "https://api.imgur.com/3/image"
+        headers = {
+            "Authorization": f"Client-ID {settings.IMGUR_CLIENT_ID}",
+        }
+        files = {
+            "image": image_data
+        }
+        
+        # request
+        response = requests.post(url, headers=headers, files=files)
+        response_data = response.json()
+        
+        if response.status_code == 200:
+            return [response_data["data"]["link"]], None
+        else:
+            return None, [response_data["data"].get("error", "Unknown error")]
+    except Exception as e:
+        return None, str(e)
