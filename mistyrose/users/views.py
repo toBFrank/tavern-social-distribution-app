@@ -359,7 +359,7 @@ class GetRemoteAuthorsView(ListAPIView):
     
     def get(self, request, *args, **kwargs): #args and kwargs for the page and size 
         #retrieve all profiles on the node (paginated)
-        remote_authors = get_remote_authors(request) #this saves them to the database
+        get_remote_authors(request) #this saves them to the database
         #TODO: actually get all the authors this time...
         all_authors = Author.objects.all()
         serializer = AuthorSerializer(all_authors, many=True)
