@@ -206,18 +206,18 @@ class AuthorDetailView(generics.RetrieveAPIView):
         """
         pk = self.kwargs.get(self.lookup_field)  # Retrieve the 'pk' from the URL
 
-        # Check if `pk` is an FQID (URL) or a SERIAL (UUID/integer)
+        # Check if `pk` is a URL (FQID) or an integer (SERIAL)
         if self.is_fqid(pk):
-            pk = urllib.parse.unquote(pk)  # URL-decode the FQID
-            # Ensure the URL has a trailing slash
+            pk = urllib.parse.unquote(pk)
+            # if no trailing slash, append it
             if not pk.endswith('/'):
                 pk += '/'
-            # Try to find the author by its FQID URL
+            # Try to find the author by its URL (FQID)
             author = self.queryset.filter(url=pk).first()
         else:
-            # Try to find the author by its SERIAL (id, which is UUID or integer)
+            # Try to find the author by its SERIAL (id)
             author = self.queryset.filter(id=pk).first()
-
+            
         if not author:
             raise NotFound("Author not found.")
 
@@ -226,11 +226,11 @@ class AuthorDetailView(generics.RetrieveAPIView):
     @staticmethod
     def is_fqid(value):
         """
-        Check if the value is an FQID (a URL) or a SERIAL (UUID or integer).
+        Check if the value is an FQID (a URL) or a SERIAL (integer).
         """
         try:
             # Parse the value as a URL
-            result = urlparse(value)
+            result = urllib.parse.unquote(value)
             return all([result.scheme, result.netloc])  # Valid URL requires scheme and netloc
         except ValueError:
             return False
