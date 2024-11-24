@@ -90,6 +90,7 @@ class PostDetailsView(APIView):
         Update a post instance by author ID & post ID.
         """
         with transaction.atomic():
+            print("In PostDetailsView - PUT")
             try:
                 # check if author_serial is a URL (FQID) or a uuid (SERIAL)
                 # check if post_serial is a URL (FQID) or a uuid (SERIAL)
@@ -104,10 +105,12 @@ class PostDetailsView(APIView):
                         post_serial += "/"
                     post_serial = Post.objects.get(url=post_serial).id
             except:
+                print("In PostDetailsView - PUT - You didn't give me a valid FQID or SERIAL, babe.")
                 return Response({"error": "PostDetailsView - PUT - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
             
             # get the post instance
             try:
+                print(f"author_serial: {author_serial}, post_serial: {post_serial}")
                 old_post = Post.objects.get(id=post_serial, author_id=author_serial)
             except Post.DoesNotExist:
                 return Response({"error": f"What post? {post_serial} not found, babe."}, status=status.HTTP_404_NOT_FOUND)
