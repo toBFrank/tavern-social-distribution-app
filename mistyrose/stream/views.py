@@ -15,6 +15,7 @@ class InboxView(APIView):
     """
     
     def post(self, request, author_id):
+        print("InboxView - POST - request.data: ", request.data, "author_id: ", author_id)
         try:
             # check if author_id is a URL (FQID) or a uuid (SERIAL)
             if is_fqid(author_id):
