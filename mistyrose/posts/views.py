@@ -37,6 +37,13 @@ def handle_remote_inboxes(post, request, object_data, author):
     ''' 
     #author is the one sending the request out
     #remote_authors = get_remote_authors(request) 
+
+    if object_data['type'] == 'post':
+        #format id
+        object_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
+
+    print(f"WE ARE SENDING THIS {object_data}")
+
                 
     if post.visibility == 'PUBLIC' or post.visibility == 'DELETED':
         # send to remote follower inboxes if public post
@@ -221,7 +228,6 @@ class AuthorPostsView(APIView):
             try:
                 # Prepare post data 
                 post_data = PostSerializer(post).data
-                post_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
                 
                 # if post.visibility == 'PUBLIC':
                 #     # send to all remote inboxes if public post

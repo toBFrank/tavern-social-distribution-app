@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlparse
 from django.db import models
 import uuid
 from django.contrib.auth.models import User
@@ -20,6 +21,10 @@ class Author(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='author', null=True, blank=True)  # User object for the author
 
     def save(self, *args, **kwargs):
+        # normalize the host field
+        parsed_host = urlparse(self.host)
+        self.host = f"{parsed_host.scheme}://{parsed_host.netloc}"
+        
         # if url is not provided, construct it from host and id (assume author is local)
         if not self.url:
             self.url = f"{self.host.rstrip('/')}/api/authors/{self.id}/"
@@ -34,6 +39,7 @@ class Author(models.Model):
         # add github link if not provided
         if not self.github:
             self.github = "https://github.com/"
+            
         
         super().save(*args, **kwargs)
         
