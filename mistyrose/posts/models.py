@@ -96,7 +96,7 @@ class Comment(models.Model):
     published = models.DateTimeField(auto_now_add=True)
     comment = models.TextField()
     post_id = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    content_type = models.CharField(max_length=50, blank=True, null=True)
+    content_type = models.CharField(max_length=50, blank=True, null=True, default='text/markdown')
     page = models.URLField(blank=True, null=True)
 
     # generic relation for reverse lookup for 'Like' objects on the post - because we are using generic foreign key in the like
