@@ -59,12 +59,12 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
     
     try:
         for remote_author in remote_authors:
-            print(f"remote author host: {remote_author.host.rstrip('/')}")
-            host_without_api = remote_author.host.rstrip('/').replace('/api', '')
-            node = Node.objects.filter(remote_node_url=remote_author.host.rstrip('/')).first()
+            print(f"THIS IS THE REMOTE URL: {remote_author.host.removesuffix('/api/')}")
+            node = Node.objects.filter(remote_node_url=remote_author.host.removesuffix('/api/')).first()
+            print(f"ABLE TO GET NODE {node}")
             if node:
                 author_inbox_remote_endpoint = f"{remote_author.url.rstrip('/')}/inbox/"
-                
+                print(f"author_inbox_remote_endpoint")
                 # my local node's host with scheme
                 parsed_url = urlparse(request.build_absolute_uri())
                 host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
