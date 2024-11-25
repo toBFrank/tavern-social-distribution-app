@@ -430,26 +430,26 @@ class AuthorApiConsistencyTestCase(APITestCase):
             expected_url = f"http://example.com/api/authors/{author.id}/"
             self.assertEqual(f"http://example.com/api/authors/{author.id}/", expected_url)
 
-    # def test_deleted_authors_not_in_api_list(self):
-    #     # After removing an author, verify that it no longer appears in the API list
-    #     deleted_author = self.authors[0]
-    #     deleted_author.delete()
-    #     response = self.client.get("authors/")
-    #     self.assertEqual(response.status_code, 200)
-    #     # Check if the `id` field does not contain a deleted author
-    #     self.assertNotIn(
-    #         str(deleted_author.id), 
-    #         [author["id"] for author in response.json()["authors"]]
-    #     )
+    def test_deleted_authors_not_in_api_list(self):
+        # After removing an author, verify that it no longer appears in the API list
+        deleted_author = self.authors[0]
+        deleted_author.delete()
+        response = self.client.get("/api/authors/")
+        self.assertEqual(response.status_code, 200)
+        # Check if the `id` field does not contain a deleted author
+        self.assertNotIn(
+            str(deleted_author.id), 
+            [author["id"] for author in response.json()["authors"]]
+        )
 
-    # def test_api_author_list_url_format(self):
-    #     # Verify that the `id` format in the author list is correct
-    #     response = self.client.get("authors/")
-    #     self.assertEqual(response.status_code, 200)
-    #     for author in response.json()["authors"]:
-    #         self.assertTrue(
-    #             author["id"].startswith("http://example.com/api/authors/")  
-    #         )
+    def test_api_author_list_url_format(self):
+        # Verify that the `id` format in the author list is correct
+        response = self.client.get("/api/authors/")
+        self.assertEqual(response.status_code, 200)
+        for author in response.json()["authors"]:
+            self.assertTrue(
+                author["id"].startswith("http://example.com/api/authors/")  
+            )
 
 # User Story #3 Test: As a node admin, I want to host multiple authors on my node, so I can have a friendly online community.
 class AdminManagementTests(APITestCase):
