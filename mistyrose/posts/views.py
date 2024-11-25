@@ -353,7 +353,7 @@ class PublicPostsView(APIView):
                 current_host = request.get_host().rstrip('/')
                 current_host_full = f"{request.scheme}://{current_host}"
 
-                print(f"PUBLIC POSTS AUTHOR_HOST {author_host} AND CURRENT HOST {current_host}")
+                print(f"PUBLIC POSTS AUTHOR_HOST {author_host} AND CURRENT HOST {current_host_full}")
                 if author_host == current_host_full: #its a local author
                     authorized_authors.add(current_author.id)
                 else:  
@@ -387,11 +387,15 @@ class PublicPostsView(APIView):
 
 
             # Include visibility_type in the authorized_authors_per_post dictionary
-            authorized_authors_per_post.append({
-                'post_id': post_data['id'], 
-                'authorized_authors': list(authorized_authors),
-                'visibility_type': post_visibility  # Add visibility_type here
-            })
+            print(f"AUTHORIZED AUTHORS FOR STREAM {authorized_authors}")
+            if authorized_authors: #if list is not empty
+                authorized_authors_per_post.append({
+                    'post_id': post_data['id'], 
+                    'authorized_authors': list(authorized_authors),
+                    'visibility_type': post_visibility  # Add visibility_type here
+                })
+
+        print(f"BIG DICTIONARY {authorized_authors_per_post}")
 
         # Create response data with posts and their respective authorized authors
         response_data = {
