@@ -12,10 +12,10 @@ import { useNavigate } from 'react-router-dom';
 import shareLinkIcon from '../assets/share_link.png';
 
 const PostBox = ({ post, poster, isUserEditable }) => {
-  const [imageUrl, setImageUrl] = useState(null);
+  // const [imageUrl, setImageUrl] = useState(null);
   const [originalPost, setOriginalPost] = useState(null);
   const [originalAuthor, setOriginalAuthor] = useState(null);
-  const [originalImageUrl, setOriginalImageUrl] = useState(null);
+  // const [originalImageUrl, setOriginalImageUrl] = useState(null);
   const [posterImageUrl, setPosterImageUrl] = useState(
     poster ? poster.profileImage : null
   );
@@ -29,7 +29,6 @@ const PostBox = ({ post, poster, isUserEditable }) => {
   const navigate = useNavigate();
   const postLink = `${window.location.origin}/post/${post.id}`;
 
-
   const handleCopyLink = () => {
     navigator.clipboard
       .writeText(postLink)
@@ -40,24 +39,24 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       .catch((err) => console.error('Failed to copy link: ', err));
   };
 
-  useEffect(() => {
-    const getImgUrlFromServer = async () => {
-      try {
-        const imageUrlFromServer = await getPostImageUrl(
-          post.author.id.split('/')[5],
-          post.id
-        );
-        console.log("Fetched image URL:", imageUrlFromServer); // Log the image URL
-        setImageUrl(imageUrlFromServer);
-      } catch {
-        console.log("Failed to fetch image URL"); // Log failure to fetch image URL
-        setImageUrl(null);
-      }
-    };
-    if (post.contentType?.includes('image') && post.visibility !== 'SHARED') {
-      getImgUrlFromServer();
-    }
-  }, [post.author, post.contentType, post.id, post.visibility]);
+  // useEffect(() => {
+  //   const getImgUrlFromServer = async () => {
+  //     try {
+  //       const imageUrlFromServer = await getPostImageUrl(
+  //         post.author.id.split('/')[5],
+  //         post.id
+  //       );
+  //       console.log("Fetched image URL:", imageUrlFromServer); // Log the image URL
+  //       setImageUrl(imageUrlFromServer);
+  //     } catch {
+  //       console.log("Failed to fetch image URL"); // Log failure to fetch image URL
+  //       setImageUrl(null);
+  //     }
+  //   };
+  //   if (post.contentType?.includes('image') && post.visibility !== 'SHARED') {
+  //     getImgUrlFromServer();
+  //   }
+  // }, [post.author, post.contentType, post.id, post.visibility]);
 
   // Fetch post have visibility of SHARED it will take the original posts info
   useEffect(() => {
@@ -76,8 +75,8 @@ const PostBox = ({ post, poster, isUserEditable }) => {
               response.data.author.id.split('/')[5],
               response.data.id
             );
-            console.log("Original Image URL:", originalImgUrl); 
-            setOriginalImageUrl(originalImgUrl);
+            console.log('Original Image URL:', originalImgUrl);
+            // setOriginalImageUrl(originalImgUrl);
           }
         } catch (error) {
           console.error('Error fetching shared post:', error);
@@ -98,17 +97,16 @@ const PostBox = ({ post, poster, isUserEditable }) => {
             originalPost.author.id.split('/')[5]
           );
           // console.log('orig post url: ', post.visibility);
-          console.log("Original Author Profile:", authorProfile); 
+          console.log('Original Author Profile:', authorProfile);
           setOriginalAuthor(authorProfile);
 
           // Set poster image if originalAuthor has a profile image
-            setPosterImageUrl(authorProfile.profileImage ?? '');
+          setPosterImageUrl(authorProfile.profileImage ?? '');
         } catch (error) {
           console.error('Error fetching original author profile:', error);
         }
       }
     };
-
 
     fetchOriginalAuthorProfile();
   }, [originalPost]);
@@ -121,7 +119,10 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         </div>
       )}
       <div className="post-header">
-        <Link to={`/profile/${post.author.id.split('/')[5]}`} style={{ display: 'flex' }}>
+        <Link
+          to={`/profile/${post.author.id.split('/')[5]}`}
+          style={{ display: 'flex' }}
+        >
           {' '}
           {/* Add display: flex */}
           <div className="profile-image-container">
@@ -161,9 +162,23 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         {post.contentType === 'text/plain' && <p>{post.content}</p>}
         {post.contentType?.startsWith('image/') &&
           (originalPost && post.visibility === 'SHARED' ? (
-            <img src={post.content} alt="post share" />
+            <img
+              src={`data:${post.contentType}, ${post.content}`}
+              alt="post share"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://imgur.com/CPMEv4Z';
+              }}
+            />
           ) : (
-            <img src={post.content} alt="post" />
+            <img
+              src={`data:${post.contentType}, ${post.content}`}
+              alt="post"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://imgur.com/CPMEv4Z';
+              }}
+            />
           ))}
         {post.contentType === 'text/markdown' && (
           <div dangerouslySetInnerHTML={getMarkdownText(post.content)} />
@@ -175,8 +190,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         <CommentsModal postId={post.id} />
         {post.visibility !== 'FRIENDS' &&
           post.visibility !== 'UNLISTED' &&
-          post.visibility !== 'SHARED'  
-          }
+          post.visibility !== 'SHARED'}
         {(post.visibility === 'PUBLIC' ||
           post.visibility === 'UNLISTED' ||
           post.visibility === 'FRIENDS' ||
