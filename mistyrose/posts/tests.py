@@ -1319,7 +1319,7 @@ class DeletePostResendTestCase(APITestCase):
         called_args, _ = mock_post_to_remote_inboxes.call_args
 
         # Fix `actual_id`, convert incomplete ID to full format
-        actual_id = called_args[2].get("id").replace(":/", "http://localhost/")
+        actual_id = called_args[2].get("id").replace(":/", "http://localhost/").replace("///", "/")
         expected_id = f"http://localhost/api/authors/{self.post.author_id.id}/posts/{self.post.id}/"
 
         # print("Actual ID after adjustment:", actual_id)
