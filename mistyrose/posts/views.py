@@ -686,14 +686,12 @@ class LikedView(APIView):
         author = get_object_or_404(Author, id=author_serial)
        
         like_data = request.data
-        print(f"LIKE DATA 1 {like_data}")
         request_type = like_data.get('type')
 
         if request_type != 'like':
             return Response({"detail: Must be 'like' type"}, status=status.HTTP_400_BAD_REQUEST)
         
         object_url = like_data.get("object") #object can be either a comment or post
-        print(f"LIKE OBJECT URL FROM REQ {object_url}")
         if not object_url:
             return Response({"Error": "object URL is required."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -713,7 +711,6 @@ class LikedView(APIView):
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
         
-        print(f"REMOTE OBJECT URL {object_url_remote}")
         
         #check if user has already liked the object
         existing_like = Like.objects.filter(
