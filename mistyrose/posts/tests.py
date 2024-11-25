@@ -22,7 +22,7 @@ class BaseTestCase(APITestCase):
         self.author = Author.objects.create(user=self.user)
 
         # Log in and get token
-        login_url = 'login/'
+        login_url = '/api/login/'
         response = self.client.post(
             login_url,
             data=json.dumps({
@@ -77,14 +77,16 @@ class PostDetailsTestCase(BaseTestCase):
 class AuthorPostsViewTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
+        Post.objects.all().delete()
         self.url = reverse('author-posts', args=[self.author.id])
         self.post1 = Post.objects.create(author_id=self.author, title="Post 1", content_type="text/plain", content="Content 1")
         self.post2 = Post.objects.create(author_id=self.author, title="Post 2", content_type="text/plain", content="Content 2")
 
     def test_get_author_posts(self):
         response = self.client.get(self.url)
+        # print("Response data:", response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)  # should return two posts
+        self.assertEqual(len(response.data["src"]), 2)  # should return two posts
 
     def test_create_post(self):
         data = {
@@ -97,42 +99,18 @@ class AuthorPostsViewTestCase(BaseTestCase):
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Post.objects.count(), 3)
-    
-    # def test_get_author_posts_with_invalid_author_id(self):
-    #     invalid_author_url = reverse('author-posts', args=[uuid.uuid4()])  # Non-existent author ID
-    #     response = self.client.get(invalid_author_url)
-    #     self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    # def test_create_post_with_missing_fields(self):
-    #     data = {
-    #         'title': 'New Post',
-    #         # Missing 'content' and other required fields
-    #     }
-    #     response = self.client.post(self.url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    # def test_create_post_with_invalid_author(self):
-    #     data = {
-    #         'author': uuid.uuid4(),
-    #         'title': 'Invalid Author Post',
-    #         'content_type': 'text/plain',
-    #         'content': 'Content for invalid author',
-    #         'visibility': 'PUBLIC',
-    #     }
-    #     response = self.client.post(self.url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    # def test_create_post_unauthenticated(self):
-    #     self.client.credentials()
-    #     data = {
-    #         'author': self.author.id,
-    #         'title': 'Unauthenticated Post',
-    #         'content_type': 'text/plain',
-    #         'content': 'Content for unauthenticated user',
-    #         'visibility': 'PUBLIC',
-    #     }
-    #     response = self.client.post(self.url, data, format='json')
-    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    def test_create_post_unauthenticated(self):
+        self.client.credentials()
+        data = {
+            'author': self.author.id,
+            'title': 'Unauthenticated Post',
+            'content_type': 'text/plain',
+            'content': 'Content for unauthenticated user',
+            'visibility': 'PUBLIC',
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class PostImageViewTestCase(BaseTestCase):
