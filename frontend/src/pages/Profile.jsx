@@ -176,7 +176,7 @@ const Profile = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {profileData.page || 'Profile Link'}
+                  {`${new URL(profileData.host).origin}/profile/${profileData.id}`}
                 </a>
               </p>
             </div>
