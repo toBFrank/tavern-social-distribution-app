@@ -13,6 +13,7 @@ class PostsPagination(PageNumberPagination):
 
 
 class CustomPostsPagination(PageNumberPagination):
+    page_size = 10  # Default page size
     page_size_query_param = 'size'  # Allow the client to set page size
     max_page_size = 100  # Optional: maximum page size
 
