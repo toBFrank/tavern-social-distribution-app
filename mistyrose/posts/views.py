@@ -28,6 +28,8 @@ from urllib.parse import unquote, urlparse
 from node.authentication import NodeAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication  
 from rest_framework.generics import ListAPIView  
+from rest_framework.pagination import PageNumberPagination
+
 
 
 def handle_remote_inboxes(post, request, object_data, author):
@@ -179,39 +181,39 @@ class PostDetailsByFqidView(APIView):
         return Response(serializer.data)
 
 
-class AuthorGetPostsView(ListAPIView):
-    """
-    get all the posts by an author
-    """
-    serializer_class = PostSerializer
-    pagination_class = PostsPagination
+# class AuthorGetPostsView(ListAPIView):
+#     """
+#     get all the posts by an author
+#     """
+#     serializer_class = PostSerializer
+#     pagination_class = PostsPagination
 
-    def get_queryset(self):
-        author_serial = self.kwargs.get("author_serial")
+#     def get_queryset(self):
+#         author_serial = self.kwargs.get("author_serial")
 
-        if is_fqid(author_serial):
-            author_serial = urllib.parse.unquote(author_serial)
-            if not author_serial.endswith("/"):
-                author_serial += "/"
-            try:
-                author_serial = Author.objects.get(url=author_serial).id
-            except Author.DoesNotExist:
-                return Post.objects.none()  # No posts if author not found
+#         if is_fqid(author_serial):
+#             author_serial = urllib.parse.unquote(author_serial)
+#             if not author_serial.endswith("/"):
+#                 author_serial += "/"
+#             try:
+#                 author_serial = Author.objects.get(url=author_serial).id
+#             except Author.DoesNotExist:
+#                 return Post.objects.none()  # No posts if author not found
 
-        return Post.objects.filter(author_id=author_serial)
+#         return Post.objects.filter(author_id=author_serial)
     
-    def get(self, request, *args, **kwargs):
-        response = super().get(request, *args, **kwargs)
+#     def get(self, request, *args, **kwargs):
+#         response = super().get(request, *args, **kwargs)
 
-        # format the response
-        paginated_data = response.data  
-        return Response({
-            "type": "posts",
-            "page_number": paginated_data["page"],  
-            "size": paginated_data["page_size"],    
-            "count": paginated_data["count"],       
-            "src": paginated_data["results"],      
-        }, status=status.HTTP_200_OK)
+#         # format the response
+#         paginated_data = response.data  
+#         return Response({
+#             "type": "posts",
+#             "page_number": paginated_data["page"],  
+#             "size": paginated_data["page_size"],    
+#             "count": paginated_data["count"],       
+#             "src": paginated_data["results"],      
+#         }, status=status.HTTP_200_OK)
     
 
 class AuthorPostsView(APIView):
@@ -220,6 +222,11 @@ class AuthorPostsView(APIView):
     """
 
     def get(self, request, author_serial):
+        paginator = PageNumberPagination()
+        paginator.page_size_query_param = 'size'  # Allow the client to set page size
+        paginator.page_size = 10  # Default page size
+        paginator.max_page_size = 100
+
         try:
             # check if author_serial is a URL (FQID) or a uuid (SERIAL)
             if is_fqid(author_serial):
@@ -231,8 +238,18 @@ class AuthorPostsView(APIView):
             return Response({"error": "AuthorPostsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         posts = Post.objects.filter(author_id=author_serial)
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+
+        # paginate request
+        paginated_posts = paginator.paginate_queryset(posts, request)
+        serializer = PostSerializer(paginated_posts, many=True)
+
+        return paginator.get_paginated_response({
+            "type": "posts",
+            "page_number": paginator.page.number,
+            "size": paginator.page.paginator.per_page,
+            "count": paginator.page.paginator.count,
+            "src": serializer.data,
+        })
 
     def post(self, request, author_serial):
         '''
