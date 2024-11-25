@@ -926,7 +926,7 @@ class EditPostTest(APITestCase):
         )
 
         # Edit post API URL
-        self.edit_url = f"authors/{self.author.id}/posts/{self.post.id}/"
+        self.edit_url = f"/api/authors/{self.author.id}/posts/{self.post.id}/"
 
     def test_edit_post_success(self):
         updated_data = {
