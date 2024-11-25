@@ -124,6 +124,8 @@ class PostSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         
         representation['author'] = AuthorSerializer(instance.author_id).data
+        if representation['description'] is None:
+            representation['description'] = 'No Description' 
         
         # if instance.content_type.startswith('image/'):
         #     representation['content'] = f"data:{instance.content_type};base64,{instance.content}"
