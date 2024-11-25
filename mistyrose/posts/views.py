@@ -701,18 +701,21 @@ class LikedView(APIView):
             object_id = object_url.rstrip('/').split("/posts/")[-1]
             liked_object = get_object_or_404(Post, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Post)
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/api/authors/{author.id}/posts/{object_id}/"
         elif "/commented/" in object_url:
             # object is a comment
             object_id = object_url.rstrip('/').split("/commented/")[-1]
             liked_object = get_object_or_404(Comment, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Comment)
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/api/authors/{author.id}/commented/{object_id}/"
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
+        
         
         #check if user has already liked the object
         existing_like = Like.objects.filter(
             author_id=author,
-            object_url=object_url
+            object_url=object_url_remote
         ).first()
 
         if existing_like:
@@ -726,7 +729,7 @@ class LikedView(APIView):
                 author_id=author,  
                 object_id=liked_object.id,
                 content_type=object_content_type,
-                object_url=object_url
+                object_url=object_url_remote
             )
 
             # #creating Inbox object to forward to correct inbox
