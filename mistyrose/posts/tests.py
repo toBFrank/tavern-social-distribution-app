@@ -251,15 +251,15 @@ class CommentsByAuthorFQIDViewTestCase(BaseTestCase):
 
         self.fqid_url = f"http://localhost/api/authors/{self.author.id}/"
 
-    # def test_get_comments_by_author_success(self):
-    #     # URL encode the FQID for the request
-    #     url = reverse('comments_by_author_fqid', args=[urllib.parse.quote(self.fqid_url)])
-    #     response = self.client.get(url)
+    def test_get_comments_by_author_success(self):
+        # URL encode the FQID for the request
+        url = reverse('comments_by_author_fqid', args=[urllib.parse.quote(self.fqid_url)])
+        response = self.client.get(url)
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data["type"], "comments")
-    #     self.assertEqual(response.data["page"], f"{self.author.host}authors/{self.author.id}")
-    #     self.assertEqual(response.data["id"], f"{self.author.host}authors/{self.author.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "comments")
+        self.assertEqual(response.data["page"], f"{self.author.host}authors/{self.author.id}")
+        self.assertEqual(response.data["id"], f"{self.author.host}authors/{self.author.id}")
 
     def test_get_comments_by_author_invalid_fqid(self):
         # Test with an invalid FQID format - 400
