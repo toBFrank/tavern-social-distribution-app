@@ -11,10 +11,11 @@ class AuthorSerializer(serializers.Serializer):
     github = serializers.CharField(required=False, allow_null=True, allow_blank=True)  # URL of the user's GitHub
     profileImage = serializers.CharField(required=False, source='profile_image', allow_null=True, allow_blank=True)
     page = serializers.CharField(required=False, allow_null=True, allow_blank=True) 
+    description = serializers.CharField(required=False, default='No Description', allow_null=True, allow_blank=True)
 
     def get_id(self, author):
     # Constructs the URL based on the author's host and their UUID
-       return f"{author.host.rstrip('/')}/api/authors/{author.id}/"
+       return f"{author.host.rstrip('/')}/authors/{author.id}/"
     
     # https://dev.to/amanbothra/understanding-the-torepresentation-and-tointernalvalue-methods-in-the-django-rest-framework-naa want 'type' to be in serialized output but not part of model
     def to_representation(self, instance):
@@ -22,15 +23,9 @@ class AuthorSerializer(serializers.Serializer):
         data['type'] = 'author'  # Add 'type' to the representation
 
          # Ensure fields match specification
-        data['displayName'] = data.pop('displayName', None)
-        data['profileImage'] = data.pop('profileImage', None)
-
-        # Remove fields if they are empty or None to prevent error in follow requests with empty string fields
-        if not data.get('github'):
-            data.pop('github', None)
-        if not data.get('profileImage'):
-            data.pop('profileImage', None)
-    
+        data['displayName'] = data.pop('displayName', "")
+        data['profileImage'] = data.pop('profileImage', "")
+        
         return data
     
     def to_internal_value(self, data):

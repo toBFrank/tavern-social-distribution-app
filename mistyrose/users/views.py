@@ -32,7 +32,7 @@ from urllib.parse import urlparse
 from rest_framework.exceptions import NotFound
 import urllib.parse
 
-from .utils import is_fqid
+from .utils import is_fqid, upload_to_imgur
 
 # Default profile picture URL to be used when no image is provided
 DEFAULT_PROFILE_PIC = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
@@ -42,7 +42,7 @@ def create_author(author_data, request, user):
     author_id = author_data.get('id', uuid.uuid4())  # Generate or get the UUID for the author
     host = request.build_absolute_uri('/')[:-1]  # Build the host
     #page_url = reverse('author-detail', kwargs={'pk': author_id}, request=request)  # Generate the URL for the author's page
-    page_url = f"{host}/profile/{author_id}"
+    page_url = f"{host}/authors/{author_id}"
     author = Author.objects.create(  # Create the Author object
         id=author_id,
         host=host,
@@ -402,6 +402,7 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
     # only get authors on our own node
     serializer_class = AuthorSerializer
     pagination_class = AuthorsPagination
+    
     def get_queryset(self):
         # only get authors who are on this node
         request_host = self.request.get_host().rstrip('/')
@@ -559,10 +560,10 @@ class FollowersDetailView(APIView):
         followers_data = [
             {
                 "type": "author",
-                "id": request.build_absolute_uri(f'/api/authors/{follower.local_follower_id.id}/'),  # Full URL for ID 
+                "id": request.build_absolute_uri(f'/authors/{follower.local_follower_id.id}/'),  # Full URL for ID 
                 "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
                 "displayName": follower.local_follower_id.display_name, 
-                "page": request.build_absolute_uri(f'/api/authors/{follower.local_follower_id.id}/'),
+                "page": request.build_absolute_uri(f'/authors/{follower.local_follower_id.id}/'),
                 "github": follower.local_follower_id.github,  # Assuming github is a field on the Author model
                 "profileImage": follower.local_follower_id.profile_image if follower.local_follower_id.profile_image else None
             } 
@@ -598,10 +599,10 @@ class FollowingDetailView(APIView):
         following_data = [
             {
                 "type": "author",
-                "id": request.build_absolute_uri(f'/api/authors/{follow.followed_id.id}/'),  # Full URL for ID
+                "id": request.build_absolute_uri(f'/authors/{follow.followed_id.id}/'),  # Full URL for ID
                 "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
                 "displayName": follow.followed_id.display_name,
-                "page": request.build_absolute_uri(f'/api/authors/{follow.followed_id.id}/'),
+                "page": request.build_absolute_uri(f'/authors/{follow.followed_id.id}/'),
                 "github": follow.followed_id.github,  # Assuming github is a field on the Author model
                 "profileImage": follow.followed_id.profile_image if follow.followed_id.profile_image else None
             }
@@ -652,10 +653,10 @@ class FriendsView(APIView):
         friends_data = [
             {
                 "type": "author",
-                "id": request.build_absolute_uri(f'/api/authors/{friend.id}/'),  # Full URL for ID
+                "id": request.build_absolute_uri(f'/authors/{friend.id}/'),  # Full URL for ID
                 "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
                 "displayName": friend.display_name,
-                "page": request.build_absolute_uri(f'/api/authors/{friend.id}/'),
+                "page": request.build_absolute_uri(f'/authors/{friend.id}/'),
                 "github": friend.github,  # Assuming github is a field on the Author model
                 "profileImage": friend.profile_image if friend.profile_image else None
             }
@@ -675,40 +676,53 @@ class ProfileImageUploadView(APIView):
         try:
             # Ensure the username is provided
             if not username:
-                return Response({"error": "Username not provided."}, status=status.HTTP_400_BAD_REQUEST)
+                print("ProfileImageUploadView - POST - You forgot the username, babe.")
+                return Response({"error": "ProfileImageUploadView - POST - You forgot the username, babe."}, status=status.HTTP_400_BAD_REQUEST)
 
             # Check if a file (profile image) was uploaded in the request
             file = request.FILES.get('profile_image')
             if not file:
-                return Response({"error": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+                print("ProfileImageUploadView - POST - You forgot the image file, babe.")
+                return Response({"error": "ProfileImageUploadView - POST - You forgot the image file, babe."}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Create a unique file path for saving the image based on the username
-            file_path = f'profiles/{username}/{file.name}'
-            full_path = os.path.join(settings.MEDIA_ROOT, file_path)
-
-            # Ensure the directory exists (create if necessary)
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-
-            # Save the file to the media folder in chunks
-            with open(full_path, 'wb+') as destination:
-                for chunk in file.chunks():
-                    destination.write(chunk)
-
-            # Construct the media URL for accessing the profile image via HTTP
-            base_url = self.get_base_url(request)
-            media_url = f'{base_url}{settings.MEDIA_URL}{file_path}'
-
-            # Return a success message along with the image URL
-            return Response({"message": "Profile image uploaded successfully", "url": media_url}, status=status.HTTP_200_OK)
+            imgur_url, error = upload_to_imgur(file)
+            if error:
+                return Response({"error": f"ProfileImageUploadView - POST - Couldn't upload {file.name}, babe. {str(error)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            return Response({"message": "You uploaded a profile image successfully, babe!", "url": imgur_url[0]}, status=status.HTTP_200_OK)
         
         except Exception as e:
-            # Handle any errors and return a server error response
-            return Response({"error": f"Failed to upload profile image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(f"ProfileImageUploadView - POST - Error: {str(e)}")
+            return Response({"error": f"ProfileImageUploadView - POST - {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def get_base_url(self, request: HttpRequest):
-        """
-        Generate the base URL (protocol + host) based on the request.
-        """
-        protocol = 'https' if request.is_secure() else 'http'
-        host = request.get_host()  # This gives the hostname and port (if not default)
-        return f'{protocol}://{host}'
+        
+        #     # Create a unique file path for saving the image based on the username
+        #     file_path = f'profiles/{username}/{file.name}'
+        #     full_path = os.path.join(settings.MEDIA_ROOT, file_path)
+
+        #     # Ensure the directory exists (create if necessary)
+        #     os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+        #     # Save the file to the media folder in chunks
+        #     with open(full_path, 'wb+') as destination:
+        #         for chunk in file.chunks():
+        #             destination.write(chunk)
+
+        #     # Construct the media URL for accessing the profile image via HTTP
+        #     base_url = self.get_base_url(request)
+        #     media_url = f'{base_url}{settings.MEDIA_URL}{file_path}'
+
+        #     # Return a success message along with the image URL
+        #     return Response({"message": "Profile image uploaded successfully", "url": media_url}, status=status.HTTP_200_OK)
+        
+        # except Exception as e:
+        #     # Handle any errors and return a server error response
+        #     return Response({"error": f"Failed to upload profile image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # def get_base_url(self, request: HttpRequest):
+    #     """
+    #     Generate the base URL (protocol + host) based on the request.
+    #     """
+    #     protocol = 'https' if request.is_secure() else 'http'
+    #     host = request.get_host()  # This gives the hostname and port (if not default)
+    #     return f'{protocol}://{host}'

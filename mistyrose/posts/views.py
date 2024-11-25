@@ -18,7 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
 from node.models import Node
-from .pagination import LikesPagination
+from .pagination import LikesPagination, CustomPostsPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 from django.http import FileResponse
 import requests
@@ -27,6 +27,10 @@ from django.db import transaction #transaction requests so that if something hap
 from urllib.parse import unquote, urlparse
 from node.authentication import NodeAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication  
+from rest_framework.generics import ListAPIView  
+from rest_framework.pagination import PageNumberPagination
+
+
 
 def handle_remote_inboxes(post, request, object_data, author):
     '''
@@ -40,7 +44,7 @@ def handle_remote_inboxes(post, request, object_data, author):
 
     if object_data['type'] == 'post':
         #format id
-        object_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
+        object_data['id'] = f"{author.host.rstrip('/')}/authors/{author.id}/posts/{post.id}/"
 
     print(f"WE ARE SENDING THIS {object_data}")
 
@@ -175,13 +179,17 @@ class PostDetailsByFqidView(APIView):
         
         serializer = PostSerializer(post)
         return Response(serializer.data)
+    
 
 class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
     """
+    pagination_class = CustomPostsPagination
 
     def get(self, request, author_serial):
+        paginator = self.pagination_class()
+
         try:
             # check if author_serial is a URL (FQID) or a uuid (SERIAL)
             if is_fqid(author_serial):
@@ -193,8 +201,13 @@ class AuthorPostsView(APIView):
             return Response({"error": "AuthorPostsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         posts = Post.objects.filter(author_id=author_serial)
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+
+        # paginate request
+        paginated_posts = paginator.paginate_queryset(posts, request, view=self)
+        serializer = PostSerializer(paginated_posts, many=True)
+
+        return Response(paginator.get_paginated_response(serializer.data), status=status.HTTP_200_OK)
+
 
     def post(self, request, author_serial):
         '''
@@ -283,10 +296,11 @@ class PostImageView(APIView):
             return Response({'detail': 'No image available for this post'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            if ';base64,' in post.content:
-                header, encoded_image = post.content.split(';base64,')
-            else:
-                encoded_image = post.content
+            encoded_image = post.content
+            # if ';base64,' in post.content:
+            #     header, encoded_image = post.content.split(';base64,')
+            # else:
+            #     encoded_image = post.content
 
             missing_padding = len(encoded_image) % 4
             if missing_padding:
@@ -326,14 +340,28 @@ class PublicPostsView(APIView):
         followers_ids = set(Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True))  
         mutual_friend_ids = following_ids.intersection(followers_ids)
 
+        posts_to_remove = []
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
             post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
-                authorized_authors.update(all_authors)
-            
+                post_author_url = post_data.get('author').get('id')
+                parsed_url = urlparse(post_author_url)
+                author_host = f"{parsed_url.scheme}://{parsed_url.hostname}"
+
+                current_host = request.get_host().rstrip('/')
+                current_host_full = f"{request.scheme}://{current_host}"
+
+                print(f"PUBLIC POSTS AUTHOR_HOST {author_host} AND CURRENT HOST {current_host_full}")
+                if author_host == current_host_full: #its a local author
+                    authorized_authors.add(current_author.id)
+                else:  
+                    print(f"REMOTE THEREFORE FOLLOWING IDS {following_ids} WITH {post_author_id}")
+                    if post_author_id in following_ids:
+                        authorized_authors.add(current_author.id)
+                    
             elif post_visibility == 'UNLISTED':
                 accepted_following_ids = Follows.objects.filter(
                 local_follower_id=current_author, 
@@ -360,15 +388,23 @@ class PublicPostsView(APIView):
 
 
             # Include visibility_type in the authorized_authors_per_post dictionary
-            authorized_authors_per_post.append({
-                'post_id': post_data['id'], 
-                'authorized_authors': list(authorized_authors),
-                'visibility_type': post_visibility  # Add visibility_type here
-            })
+            print(f"AUTHORIZED AUTHORS FOR STREAM {authorized_authors}")
+            if authorized_authors: #if list is not empty
+                authorized_authors_per_post.append({
+                    'post_id': post_data['id'], 
+                    'authorized_authors': list(authorized_authors),
+                    'visibility_type': post_visibility  # Add visibility_type here
+                })
+            else:
+                posts_to_remove.append(post_data['id'])
+
+            filtered_posts = [post for post in serializer.data if post['id'] not in posts_to_remove]
+
+        print(f"BIG DICTIONARY {authorized_authors_per_post}")
 
         # Create response data with posts and their respective authorized authors
         response_data = {
-            'posts': serializer.data,  
+            'posts': filtered_posts,  
             'authorized_authors_per_post': authorized_authors_per_post
         }        
         return Response(response_data, status=status.HTTP_200_OK)
@@ -472,8 +508,8 @@ class CommentedView(APIView):
 
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{author_serial}",
-            "id": f"{host}/api/authors/{author_serial}",
+            "page": f"{host}/authors/{author_serial}",
+            "id": f"{host}/authors/{author_serial}",
             "page_number": 1,
             "size": author.comments.count(),
             "count": author.comments.count(),
@@ -506,8 +542,8 @@ class CommentsByAuthorFQIDView(APIView):
 
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{author_serial}",
-            "id": f"{host}/api/authors/{author_serial}",
+            "page": f"{host}/authors/{author_serial}",
+            "id": f"{host}/authors/{author_serial}",
             "page_number": 1,
             "size": author.comments.count(),
             "count": author.comments.count(),
@@ -566,11 +602,11 @@ class CommentsView(APIView):
         post_author_id = post.author_id
 
         # "page":"http://nodebbbb/authors/222/posts/249",
-        # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
+        # "id":"http://nodebbbb/authors/222/posts/249/comments"
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{post_author_id}/posts/{post_serial}",
-            "id": f"{host}/api/authors/{post_author_id}/posts/{post_serial}/comments",
+            "page": f"{host}/authors/{post_author_id}/posts/{post_serial}",
+            "id": f"{host}/authors/{post_author_id}/posts/{post_serial}/comments",
             "page_number": 1,
             "size": post.comments.count(),
             "count": post.comments.count(),
@@ -608,8 +644,8 @@ class CommentsByFQIDView(APIView):
         # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{post_author_id}/posts/{post_serial}",
-            "id": f"{host}/api/authors/{post_author_id}/posts/{post_serial}/comments",
+            "page": f"{host}/authors/{post_author_id}/posts/{post_serial}",
+            "id": f"{host}/authors/{post_author_id}/posts/{post_serial}/comments",
             "page_number": 1,
             "size": post.comments.count(),
             "count": post.comments.count(),
@@ -701,18 +737,21 @@ class LikedView(APIView):
             object_id = object_url.rstrip('/').split("/posts/")[-1]
             liked_object = get_object_or_404(Post, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Post)
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{author.id}/posts/{object_id}/"
         elif "/commented/" in object_url:
             # object is a comment
             object_id = object_url.rstrip('/').split("/commented/")[-1]
             liked_object = get_object_or_404(Comment, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Comment)
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{author.id}/commented/{object_id}/"
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
+        
         
         #check if user has already liked the object
         existing_like = Like.objects.filter(
             author_id=author,
-            object_url=object_url
+            object_url=object_url_remote
         ).first()
 
         if existing_like:
@@ -726,7 +765,7 @@ class LikedView(APIView):
                 author_id=author,  
                 object_id=liked_object.id,
                 content_type=object_content_type,
-                object_url=object_url
+                object_url=object_url_remote
             )
 
             # #creating Inbox object to forward to correct inbox
@@ -776,8 +815,8 @@ class LikedView(APIView):
         host = request.get_host()
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_serial}",
-            "id": f"http://{host}/api/authors/{author_serial}/liked",
+            "page": f"http://{host}/authors/{author_serial}",
+            "id": f"http://{host}/authors/{author_serial}/liked",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": author.likes.count(),
@@ -842,11 +881,11 @@ class LikesView(APIView):
 
         serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
 
-        host = request.get_host()
+        host = request.get_host().rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_serial}/posts/{post_id}",
-            "id": f"http://{host}/api/authors/{author_serial}/posts/{post_id}/likes",
+            "page": f"http://{host}/authors/{author_serial}/posts/{post_id}",
+            "id": f"http://{host}/authors/{author_serial}/posts/{post_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": post.likes.count(),
@@ -896,11 +935,11 @@ class LikedCommentsView(APIView):
 
         serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
 
-        host = request.get_host()
+        host = request.get_host().rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_id}/commented/{comment_id}",
-            "id": f"http://{host}/api/authors/{author_id}/commented/{comment_id}/likes",
+            "page": f"http://{host}/authors/{author_id}/commented/{comment_id}",
+            "id": f"http://{host}/authors/{author_id}/commented/{comment_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": comment.likes.count(),
@@ -940,11 +979,11 @@ class LikesViewByFQIDView(APIView):
 
         serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
 
-        host = request.get_host()
+        host = request.get_host().rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_id}/posts/{post_id}",
-            "id": f"http://{host}/api/authors/{author_id}/posts/{post_id}/likes",
+            "page": f"http://{host}/authors/{author_id}/posts/{post_id}",
+            "id": f"http://{host}/authors/{author_id}/posts/{post_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": post.likes.count(),
@@ -1003,11 +1042,11 @@ class LikedFQIDView(APIView):
 
         serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
 
-        host = request.get_host()
+        host = request.get_host().rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_serial}",
-            "id": f"http://{host}/api/authors/{author_serial}/liked",
+            "page": f"http://{host}/authors/{author_serial}",
+            "id": f"http://{host}/authors/{author_serial}/liked",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": author.likes.count(),

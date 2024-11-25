@@ -12,7 +12,7 @@ class CommentSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     post = serializers.SerializerMethodField()
-    contentType = serializers.CharField(source='content_type', default='text/plain', read_only=True)
+    contentType = serializers.CharField(source='content_type', default='text/markdown', read_only=True)
 
     class Meta:
         model = Comment
@@ -29,14 +29,14 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_id(self, comment_object): #get is for turning into JSON response "id": "http://nodeaaaa/api/authors/111/commented/130"
         author_host = comment_object.author_id.host.rstrip('/')
-        return f"{author_host}/api/authors/{comment_object.author_id.id}/commented/{comment_object.id}"
+        return f"{author_host}/authors/{comment_object.author_id.id}/commented/{comment_object.id}"
     
     def get_post(self, comment_object):
         post_id = comment_object.post_id.id
         post_author = comment_object.post_id.author_id
         post_author_host = post_author.host.rstrip('/')
         post_author_id = post_author.id
-        return f"{post_author_host}/api/authors/{post_author_id}/posts/{post_id}" #"http://nodebbbb/api/authors/222/posts/249"
+        return f"{post_author_host}/authors/{post_author_id}/posts/{post_id}" #"http://nodebbbb/api/authors/222/posts/249"
     
     def get_likes(self, comment_object):
         likes = comment_object.likes.all().order_by('-published')
@@ -46,8 +46,8 @@ class CommentSerializer(serializers.ModelSerializer):
         host = comment_object.author_id.host.rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"{host}/api/authors/{comment_object.author_id.id}/commented/{comment_object.id}/likes",
-            "id": f"{host}/api/authors/{comment_object.author_id.id}/commented/{comment_object.id}/likes",
+            "page": f"{host}/authors/{comment_object.author_id.id}/commented/{comment_object.id}/likes",
+            "id": f"{host}/authors/{comment_object.author_id.id}/commented/{comment_object.id}/likes",
             "page_number": 1,
             "size": comment_object.likes.count(),
             "count": comment_object.likes.count(),
@@ -63,7 +63,7 @@ class LikeSerializer(serializers.ModelSerializer):
     type = serializers.CharField(default='like', read_only=True)
     #author = serializers.SerializerMethodField()
     author = AuthorSerializer(source='author_id')  
-    object = serializers.SerializerMethodField() # calls get_object with current Like instance -> method will get the object_url
+    object = serializers.SerializerMethodField() # calls get_object with current Like instance to set the object url
     id = serializers.SerializerMethodField()
     class Meta:
         model = Like
@@ -78,7 +78,7 @@ class LikeSerializer(serializers.ModelSerializer):
     #asked chatGPT how to set the host in the serializer, need to send context from the view and call it as shown 2024-11-02
     def get_id(self, like_object): #get is for turning into JSON response
         author_host = like_object.author_id.host.rstrip('/')
-        return f"{author_host}/api/authors/{like_object.author_id.id}/liked/{like_object.id}"
+        return f"{author_host}/authors/{like_object.author_id.id}/liked/{like_object.id}"
 
 
     def get_object(self, like_object):
@@ -92,6 +92,8 @@ class PostSerializer(serializers.ModelSerializer):
     likes = LikeSerializer(many=True, read_only=True)
     contentType = serializers.CharField(source='content_type', default='text/plain')
     #original_url = serializers.ListField(child=serializers.CharField(), allow_null=True, required=False)
+    description = serializers.CharField(required=False, default='No Description', allow_null=True, allow_blank=True)
+
     class Meta:
         model = Post
         fields = [
@@ -122,15 +124,17 @@ class PostSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         
         representation['author'] = AuthorSerializer(instance.author_id).data
+        if representation['description'] is None:
+            representation['description'] = 'No Description' 
         
-        if instance.content_type.startswith('image/'):
-            representation['content'] = f"data:{instance.content_type};base64,{instance.content}"
+        # if instance.content_type.startswith('image/'):
+        #     representation['content'] = f"data:{instance.content_type};base64,{instance.content}"
         
         return representation
     
     def get_id(self, post_object): #get is for turning into JSON response
         author_host = post_object.author_id.host.rstrip('/')
-        return f"{author_host}/api/authors/{post_object.author_id.id}/posts/{post_object.id}"
+        return f"{author_host}/authors/{post_object.author_id.id}/posts/{post_object.id}"
     
 #endregion
     
