@@ -290,22 +290,22 @@ class FollowRequestTestCase(TestCase):
         
         # print(f"Generated URL: {self.url}")
 
-    # def test_approve_follow_request(self):
-    #     # Send a PUT request to approve the follow request
-    #     response = self.client.put(self.url, format='json')
+    def test_approve_follow_request(self):
+        # Send a PUT request to approve the follow request
+        response = self.client.put(self.url, format='json')
 
-    #     # Confirm that the status code is 200
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Confirm that the status code is 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # def test_deny_follow_request(self):
-    #     # Send a DELETE request to deny the follow request
-    #     response = self.client.delete(self.url)
+    def test_deny_follow_request(self):
+        # Send a DELETE request to deny the follow request
+        response = self.client.delete(self.url)
 
-    #     # Confirm that the status code is 204
-    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Confirm that the status code is 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    #     # Verify that the follow_request has been deleted
-    #     self.assertFalse(Follows.objects.filter(id=self.follow_request.id).exists())
+        # Verify that the follow_request has been deleted
+        self.assertFalse(Follows.objects.filter(id=self.follow_request.id).exists())
 
 class UnfollowTestCase(TestCase):
     def setUp(self):
