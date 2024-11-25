@@ -169,7 +169,7 @@ const Profile = () => {
               <p>
                 Profile Link:{' '}
                 <a
-                  href={profileData.page}
+                  href={`${new URL(profileData.host).origin}/profile/${profileData.id.endsWith('/') ? profileData.id.slice(0, -1).split('/').pop() : profileData.id.split('/').pop()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
