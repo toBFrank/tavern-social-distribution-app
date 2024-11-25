@@ -488,24 +488,6 @@ class LikedViewTest(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['type'], 'like')
 
-    # def test_like_comment(self):
-    #     like_data = {
-    #         "type": "like",
-    #         'author': {
-    #             'type': 'author',
-    #             'id': f'http://localhost/api/authors/{self.author.id}/',
-    #             'host': 'http://localhost',
-    #             'page': f'http://localhost/api/authors/{self.author.id}/',
-    #             'displayName': 'Greg',
-    #         },
-    #         "object": f"http://{self.author.host}/authors/{self.author.id}/commented/{self.comment.id}"
-    #     }
-
-    #     response = self.client.post(self.like_url, like_data, format='json')
-
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     self.assertEqual(response.data['type'], 'like')
-
     def test_like_invalid_type(self):
         invalid_like_data = {
             "type": "invalid_type",
@@ -539,7 +521,7 @@ class LikedViewTest(BaseTestCase):
 
         response = self.client.post(self.like_url, like_data, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_likes(self):
         Like.objects.create(
