@@ -472,7 +472,7 @@ class AdminManagementTests(APITestCase):
             )
 
         # Log in as administrator user and obtain JWT Token
-        response = self.client.post('login/', {
+        response = self.client.post('/api/login/', {
             'username': 'admin',
             'password': 'password123'
         })
@@ -484,35 +484,17 @@ class AdminManagementTests(APITestCase):
         self.assertIsNotNone(access_token, "Access token not found in response")
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
     
-    # def test_get_all_authors(self):
-    #     # Test to get a list of all authors
-    #     response = self.client.get("authors/")
+    def test_get_all_authors(self):
+        # Test to get a list of all authors
+        response = self.client.get("/api/authors/")
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data["type"], "authors")
-    #     self.assertTrue("authors" in response.data)
-    #     self.assertTrue(len(response.data["authors"]) <= 10)  # Assuming pagination returns a maximum of 10 authors per page
-    
-    # def test_pagination_on_authors_list(self):
-    #     # Test paging functionality
-    #     response = self.client.get("authors/?page=2")
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data["type"], "authors")
-    #     self.assertTrue(len(response.data["authors"]) > 0)  # The second page should have remaining authors
-    
-    # def test_get_author_detail(self):
-    #     # Test getting details of a single author
-    #     author = Author.objects.first()
-    #     response = self.client.get(f"authors/{author.id}/")
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data["id"], f"authors/{author.id}/")  
-    #     self.assertEqual(response.data["displayName"], author.display_name)
-    #     self.assertEqual(response.data["github"], author.github)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "authors")
+        self.assertTrue("authors" in response.data)
+        self.assertTrue(len(response.data["authors"]) <= 10)  # Assuming pagination returns a maximum of 10 authors per page
     
     def test_author_not_found(self):
         # Test to get non-existent author
-        response = self.client.get("authors/00000000-0000-0000-0000-000000000000/")
+        response = self.client.get("/api/authors/00000000-0000-0000-0000-000000000000/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data["detail"], "No Author matches the given query.")
