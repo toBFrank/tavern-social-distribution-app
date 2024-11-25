@@ -38,6 +38,7 @@ def get_remote_authors(request):
             
             # if successful, get the authors
             if response.status_code == 200:
+                print(f"get_remote_authors - responsejson - {response.json()}")
                 authors_data = response.json()["authors"]
                 for author_data in authors_data:
                     # get host from author id
