@@ -194,8 +194,7 @@ const Post = () => {
     } else if (selectedOption === 'Image' && imgFile) {
       const base64Image = await imgToBase64(imgFile);
       postData.content = base64Image;
-      //`${imgFile.type.split('/')[1]};base64`
-      postData.contentType = imgFile.type;
+      postData.contentType = `image/${imgFile.type.split('/')[1]};base64`
       console.log("Uploaded file type:", imgFile.type);
     }
 
