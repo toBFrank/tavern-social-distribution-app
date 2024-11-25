@@ -346,8 +346,20 @@ class PublicPostsView(APIView):
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
-                authorized_authors.update(all_authors)
-            
+                post_author_url = post_data.get('author').get('id')
+                parsed_url = urlparse(post_author_url)
+                author_host = f"{parsed_url.scheme}://{parsed_url.hostname}"
+
+                current_host = request.get_host().rstrip('/')
+
+                print(f"PUBLIC POSTS AUTHOR_HOST {author_host} AND CURRENT HOST {current_host}")
+                if author_host == current_host: #its a local author
+                    authorized_authors.add(current_author.id)
+                else:  
+                    print(f"REMOTE THEREFORE FOLLOWING IDS {following_ids} WITH {post_author_id}")
+                    if post_author_id in following_ids:
+                        authorized_authors.add(current_author.id)
+
             elif post_visibility == 'UNLISTED':
                 accepted_following_ids = Follows.objects.filter(
                 local_follower_id=current_author, 
