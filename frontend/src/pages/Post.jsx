@@ -183,7 +183,7 @@ const Post = () => {
       title: title || 'New Post',
       visibility: visibility.toUpperCase(),
     };
-    console.log("selectedOption: ", selectedOption)
+    console.log("selectedOption: ", selectedOption);
     console.log("Uploaded file object:", imgFile);
     if (selectedOption === 'Plain') {
       postData.content = plainText;
