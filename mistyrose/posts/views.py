@@ -18,7 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
 from node.models import Node
-from .pagination import LikesPagination, PostsPagination, CustomPostsPagination
+from .pagination import LikesPagination, CustomPostsPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 from django.http import FileResponse
 import requests
@@ -179,41 +179,6 @@ class PostDetailsByFqidView(APIView):
         
         serializer = PostSerializer(post)
         return Response(serializer.data)
-
-
-# class AuthorGetPostsView(ListAPIView):
-#     """
-#     get all the posts by an author
-#     """
-#     serializer_class = PostSerializer
-#     pagination_class = PostsPagination
-
-#     def get_queryset(self):
-#         author_serial = self.kwargs.get("author_serial")
-
-#         if is_fqid(author_serial):
-#             author_serial = urllib.parse.unquote(author_serial)
-#             if not author_serial.endswith("/"):
-#                 author_serial += "/"
-#             try:
-#                 author_serial = Author.objects.get(url=author_serial).id
-#             except Author.DoesNotExist:
-#                 return Post.objects.none()  # No posts if author not found
-
-#         return Post.objects.filter(author_id=author_serial)
-    
-#     def get(self, request, *args, **kwargs):
-#         response = super().get(request, *args, **kwargs)
-
-#         # format the response
-#         paginated_data = response.data  
-#         return Response({
-#             "type": "posts",
-#             "page_number": paginated_data["page"],  
-#             "size": paginated_data["page_size"],    
-#             "count": paginated_data["count"],       
-#             "src": paginated_data["results"],      
-#         }, status=status.HTTP_200_OK)
     
 
 class AuthorPostsView(APIView):

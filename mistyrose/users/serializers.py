@@ -11,6 +11,7 @@ class AuthorSerializer(serializers.Serializer):
     github = serializers.CharField(required=False, allow_null=True, allow_blank=True)  # URL of the user's GitHub
     profileImage = serializers.CharField(required=False, source='profile_image', allow_null=True, allow_blank=True)
     page = serializers.CharField(required=False, allow_null=True, allow_blank=True) 
+    description = serializers.CharField(required=False, default='No Description', allow_null=True, allow_blank=True)
 
     def get_id(self, author):
     # Constructs the URL based on the author's host and their UUID
