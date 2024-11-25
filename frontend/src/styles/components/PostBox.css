@@ -1,0 +1,151 @@
+.post-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 89%;
+  margin-top: 20px;
+  background-color: #fff9f3;
+  border-radius: 40px;
+  border: 3px solid black;
+  padding: 20px;
+  align-items: flex-start;
+}
+
+.post-header {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-start;
+}
+.profile-image-container {
+  margin-right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 3px solid black;
+  overflow: hidden;
+  background-color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-image {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+.profile-image-default {
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.poster-name-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.poster-name-date h4 {
+  font-size: large;
+  margin: 0;
+}
+.poster-name-date p {
+  font-size: medium;
+  margin: 0;
+}
+
+.post-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  white-space: pre-wrap;
+}
+.post-content h2 {
+  font-size: large;
+}
+.post-content p {
+  font-size: large;
+  margin: 0;
+}
+.post-content img {
+  max-width: 100%;
+  height: auto;
+  max-height: 200px;
+  object-fit: contain;
+  align-self: start;
+}
+
+.post-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 40px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.post-edit {
+  margin-left: auto;
+}
+
+.post-edit-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.post-edit-icon {
+  opacity: 50%;
+}
+
+.poster-author-header {
+  display: flex;
+  flex-direction: row;
+  font-size: 12px;
+  color: grey;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.copy-notification {
+  color: green;
+  font-size: 0.9em;
+  margin-left: 10px;
+}
+
+.share-link-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #555;
+  /* Adjust color as needed */
+  font-size: 0.9em;
+  padding: 0;
+  margin-left: 10px;
+  /* Space between buttons */
+}
+
+.share-link-button img.share-link-icon {
+  width: 16px;
+  /* Adjust size to match other icons */
+  height: 16px;
+  margin-right: 4px;
+  /* Space between icon and text */
+}
+
+.share-link-button:hover {
+  color: #333;
+  /* Hover color */
+}
