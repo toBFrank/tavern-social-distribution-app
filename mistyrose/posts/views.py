@@ -18,7 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
 from node.models import Node
-from .pagination import LikesPagination, PostsPagination
+from .pagination import LikesPagination, PostsPagination, CustomPostsPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 from django.http import FileResponse
 import requests
@@ -220,12 +220,10 @@ class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
     """
+    pagination_class = CustomPostsPagination()
 
     def get(self, request, author_serial):
-        paginator = PageNumberPagination()
-        paginator.page_size_query_param = 'size'  # Allow the client to set page size
-        paginator.page_size = 10  # Default page size
-        paginator.max_page_size = 100
+        paginator = self.pagination_class
 
         try:
             # check if author_serial is a URL (FQID) or a uuid (SERIAL)
@@ -243,13 +241,8 @@ class AuthorPostsView(APIView):
         paginated_posts = paginator.paginate_queryset(posts, request)
         serializer = PostSerializer(paginated_posts, many=True)
 
-        return paginator.get_paginated_response({
-            "type": "posts",
-            "page_number": paginator.page.number,
-            "size": paginator.page.paginator.per_page,
-            "count": paginator.page.paginator.count,
-            "src": serializer.data,
-        })
+        return Response(paginator.get_paginated_response(serializer.data), status=status.HTTP_200_OK)
+
 
     def post(self, request, author_serial):
         '''
