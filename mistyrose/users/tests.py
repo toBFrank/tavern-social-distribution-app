@@ -346,18 +346,18 @@ class UnfollowTestCase(TestCase):
             'follower_id': str(self.author1.id)
         })
 
-    # def test_unfollow_success(self):
-    #     # Test successful unfollow
-    #     response = self.client.delete(self.unfollow_url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data['message'], 'Successfully unfollowed the author.')
+    def test_unfollow_success(self):
+        # Test successful unfollow
+        response = self.client.delete(self.unfollow_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'Successfully unfollowed the author.')
 
-    #     # Ensure the follow relationship is deleted from the database
-    #     follow_exists = Follows.objects.filter(
-    #         followed_id=self.author2, 
-    #         local_follower_id=self.author1
-    #     ).exists()
-    #     self.assertFalse(follow_exists)
+        # Ensure the follow relationship is deleted from the database
+        follow_exists = Follows.objects.filter(
+            followed_id=self.author2, 
+            local_follower_id=self.author1
+        ).exists()
+        self.assertFalse(follow_exists)
 
 class FriendsViewTest(APITestCase):
     def setUp(self):
