@@ -5,6 +5,7 @@ import { transformFollowData } from "../utils/transformer";
 import { getFollowRequests } from '../services/FollowService';
 import { acceptFollowRequest, rejectFollowRequest } from '../services/FollowService';
 import Cookies from 'js-cookie';
+import unknownUser from  '../assets/followerUserUnknown.png';
 
 const FollowRequests = () => {
     const [followRequests, setFollowRequests] = useState([]);
@@ -62,7 +63,7 @@ const FollowRequests = () => {
                         <div className="follower-picAndName"> 
                             <img
                                 className="follower-profilePic"
-                                src={followRequest.actor.profileImage} 
+                                src={followRequest.actor.profileImage || unknownUser } 
                                 alt={`Img`} 
                             />
                             <div className="follower-name">{followRequest.actor.displayName}</div>

@@ -9,6 +9,7 @@ import { getFollowers } from '../services/FollowDetailService';
 import { getFriends } from '../services/FriendsDetailService';
 import { getFollowing } from '../services/FollowingDetailService';
 import AuthorsListModal from '../components/AuthorsListModal';
+import unknownUser from  '../assets/unknownUser.png';
 
 const Profile = () => {
   const { authorId } = useParams();
@@ -107,7 +108,7 @@ const Profile = () => {
       <div className="profile-header">
         <div className="Img-details">
           <img
-            src={profileData.profileImage}
+            src={profileData.profileImage || unknownUser}
             alt={profileData.displayName}
             className="profile-image"
           />
