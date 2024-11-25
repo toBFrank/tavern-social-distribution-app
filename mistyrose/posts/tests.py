@@ -1224,7 +1224,7 @@ class PostEditResendTestCase(APITestCase):
         self.client = APIClient()
         self.login_user_a()
     def login_user_a(self):
-        login_url = "login/"
+        login_url = "/api/login/"
         response = self.client.post(
             login_url,
             {"username": "user_a", "password": "pass_a"},
@@ -1249,7 +1249,7 @@ class PostEditResendTestCase(APITestCase):
                 "displayName": "Author A",
             }
         }
-        response = self.client.post(f"authors/{self.author_a.id}/posts/", post_data, format="json")
+        response = self.client.post(f"/api/authors/{self.author_a.id}/posts/", post_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Failed to create the original post")
         # # Verify that the post was created successfully
         # print("Post creation response:", response.data)
@@ -1262,7 +1262,7 @@ class PostEditResendTestCase(APITestCase):
         edited_post_data["title"] = "Edited Test Post"
         edited_post_data["content"] = "This is the edited content."
         # Construct the correct edit URL
-        edit_url = f"authors/{self.author_a.id}/posts/{created_post_id}/"
+        edit_url = f"/api/authors/{self.author_a.id}/posts/{created_post_id}/"
         response = self.client.put(edit_url, edited_post_data, format="json")
         # print("Edit post response:", response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Failed to edit the post")
