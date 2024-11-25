@@ -10,7 +10,6 @@ import { getFriends } from '../services/FriendsDetailService';
 import { getFollowing } from '../services/FollowingDetailService';
 import AuthorsListModal from '../components/AuthorsListModal';
 
-
 const Profile = () => {
   const { authorId } = useParams();
   const currentUserId = Cookies.get('author_id');
@@ -20,7 +19,6 @@ const Profile = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);
   const [modalTitle, setModalTitle] = useState(''); // To display the title dynamically
- 
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,7 +60,7 @@ const Profile = () => {
       setModalTitle('Followers');
       setShowModal(true);
     } catch (error) {
-      console.error("Error fetching followers:", error);
+      console.error('Error fetching followers:', error);
     }
   };
   // Function to fetch friends and toggle the display
@@ -73,7 +71,7 @@ const Profile = () => {
       setModalTitle('Friends');
       setShowModal(true);
     } catch (error) {
-      console.error("Error fetching friends:", error);
+      console.error('Error fetching friends:', error);
     }
   };
 
@@ -84,7 +82,7 @@ const Profile = () => {
       setModalTitle('Following');
       setShowModal(true);
     } catch (error) {
-      console.error("Error fetching following:", error);
+      console.error('Error fetching following:', error);
     }
   };
 
@@ -103,7 +101,6 @@ const Profile = () => {
   const unlistedPosts = profileData.unlisted_posts || [];
   const sharedPosts = profileData.shared_posts || [];
   const UnlistedAndSharesPosts = [...unlistedPosts, ...sharedPosts];
-
 
   return (
     <div className="profile-page">
@@ -147,7 +144,7 @@ const Profile = () => {
               <p>Followers</p>
             </div>
             <div>
-            <h2 style={{ cursor: 'pointer' }} onClick={handleFollowingClick}>
+              <h2 style={{ cursor: 'pointer' }} onClick={handleFollowingClick}>
                 {profileData.following_count || 0}
               </h2>
               <p>Following</p>
@@ -176,7 +173,7 @@ const Profile = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {`${new URL(profileData.host).origin}/profile/${profileData.id}`}
+                  {`${new URL(profileData.host).origin}/profile/${profileData.id.endsWith('/') ? profileData.id.slice(0, -1).split('/').pop() : profileData.id.split('/').pop()}`}
                 </a>
               </p>
             </div>
@@ -219,19 +216,25 @@ const Profile = () => {
 
             <h2>Unlisted Posts</h2>
             {UnlistedAndSharesPosts.length > 0 ? (
-              UnlistedAndSharesPosts.sort((a, b) => new Date(b.published) - new Date(a.published)).map((post) => {
+              UnlistedAndSharesPosts.sort(
+                (a, b) => new Date(b.published) - new Date(a.published)
+              ).map((post) => {
                 // console.log('Unlisted Post:', post);
                 return (
                   <div key={post.id}>
-                    <PostBox post={post} poster={profileData} isUserEditable={isCurrentUser} />
+                    <PostBox
+                      post={post}
+                      poster={profileData}
+                      isUserEditable={isCurrentUser}
+                    />
                   </div>
                 );
               })
             ) : (
               <p>No unlisted or shared posts available.</p>
             )}
-            </>
-          ) : (
+          </>
+        ) : (
           <>
             <h2>Public Posts</h2>
             {publicPosts.length > 0 ? (
@@ -256,11 +259,9 @@ const Profile = () => {
         <AuthorsListModal
           authors={modalData}
           onModalClose={closeModal}
-          title={modalTitle} 
+          title={modalTitle}
         />
       )}
-
-
     </div>
   );
 };
