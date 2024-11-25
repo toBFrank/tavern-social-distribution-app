@@ -20,6 +20,7 @@ def get_remote_authors(request):
             
             # endpoint to get authors from remote node    
             authors_remote_endpoint = f"{node.remote_node_url}/authors/"
+            print(f"author_remote_endpoint: {authors_remote_endpoint}" )
             
             # my local node's host with scheme
             parsed_url = urlparse(request.build_absolute_uri())
