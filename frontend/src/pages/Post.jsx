@@ -176,13 +176,15 @@ const Post = () => {
   };
 
   const handlePostClick = async () => {
+    console.log("handlePostClick triggered");
     const postData = {
       type: 'post',
       author: currentProfileData,
       title: title || 'New Post',
       visibility: visibility.toUpperCase(),
     };
-    
+    console.log("selectedOption: ", selectedOption);
+    console.log("Uploaded file object:", imgFile);
     if (selectedOption === 'Plain') {
       postData.content = plainText;
       postData.contentType = 'text/plain';
@@ -192,7 +194,8 @@ const Post = () => {
     } else if (selectedOption === 'Image' && imgFile) {
       const base64Image = await imgToBase64(imgFile);
       postData.content = base64Image;
-      postData.contentType = `${imgFile.type.split('/')[1]};base64`;
+      postData.contentType = `image/${imgFile.type.split('/')[1]};base64`
+      console.log("Uploaded file type:", imgFile.type);
     }
 
     try {
