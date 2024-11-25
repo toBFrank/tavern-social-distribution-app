@@ -229,24 +229,13 @@ class AuthorsViewTest(APITestCase):
 
         self.url = reverse('authors-list')
 
-    # def test_get_authors_list(self):
-    #     response = self.client.get(self.url)
+    def test_empty_authors_list(self):
+        Author.objects.all().delete()
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-    #     self.assertEqual(response.data['type'], 'authors')
-    #     self.assertEqual(len(response.data['authors']), 3)
-    #     self.assertEqual(response.data['authors'][0]['displayName'], 'Authenticated Author')
-    #     self.assertEqual(response.data['authors'][1]['displayName'], 'Author 1')
-    #     self.assertEqual(response.data['authors'][2]['displayName'], 'Author 2')
+        response = self.client.get(self.url)
 
-    # def test_empty_authors_list(self):
-    #     Author.objects.all().delete()
-
-    #     response = self.client.get(self.url)
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data['authors'], [])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['authors'], [])
 
 class FollowRequestTestCase(TestCase):
     def setUp(self):
