@@ -49,7 +49,7 @@ class RemoteNodeConnectionTestCase(TestCase):
         mock_response.status_code = 200
         mock_post.return_value = mock_response
 
-        response = self.client.put("node/", data=self.valid_data, format="json")
+        response = self.client.put("/api/node/", data=self.valid_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("type", response.data)
@@ -70,7 +70,7 @@ class RemoteNodeConnectionTestCase(TestCase):
         mock_response.status_code = 401
         mock_post.return_value = mock_response
 
-        response = self.client.put("node/", data=self.invalid_data, format="json")
+        response = self.client.put("/api/node/", data=self.invalid_data, format="json")
 
         # Check if the returned password is different from the test input
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -84,7 +84,7 @@ class RemoteNodeConnectionTestCase(TestCase):
         """
         incomplete_data = {"username": "admin"}  # Missing host and password
 
-        response = self.client.put("node/", data=incomplete_data, format="json")
+        response = self.client.put("/api/node/", data=incomplete_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("host", response.data)
@@ -106,7 +106,7 @@ class RemoteNodeConnectionTestCase(TestCase):
             "password": "password123",
         }
 
-        response = self.client.put("node/", data=invalid_data, format="json")
+        response = self.client.put("/api/node/", data=invalid_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("host", response.data)
@@ -142,7 +142,7 @@ class NodeAddAndDeleteTestCase(TestCase):
         - Sharing nodes is verified by checking if the nodes are correctly returned via the API.
         """
         # Make a GET request
-        response = self.client.get("node/list/", format="json")
+        response = self.client.get("/api/node/list/", format="json")
 
         # print("Response content:", response.content)
         # print("Response type:", type(response))
@@ -175,7 +175,8 @@ class NodeAddAndDeleteTestCase(TestCase):
             Node.objects.get(remote_node_url=self.node.remote_node_url)
 
         # Validation node has been removed from the share list
-        response = self.client.get("node/list/", format="json")
+        response = self.client.get("/api/node/list/", format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_json = response.json()
 
         self.assertIn("type", response_json)
