@@ -172,25 +172,25 @@ class CommentedViewTestCase(BaseTestCase):
         self.author.host = 'http://localhost'
         self.author.save()
 
-    # def test_create_comment_success(self):
-    #     data = {
-    #         'type': 'comment',
-    #         'author': {
-    #             'type': 'author',
-    #             'id': f'http://localhost/api/authors/{self.author.id}/',
-    #             'host': 'http://localhost',
-    #             'page': f'http://localhost/api/authors/{self.author.id}/',
-    #             'displayName': 'Greg',
-    #         },
-    #         'post': f'http://localhost/authors/{self.author.id}/posts/{self.post.id}/',
-    #         'comment': 'This is a test comment.',
-    #         'contentType': 'text/plain'
-    #     }
-    #     response = self.client.post(self.comment_url, data, format='json')
+    def test_create_comment_success(self):
+        data = {
+            'type': 'comment',
+            'author': {
+                'type': 'author',
+                'id': f'http://localhost/api/authors/{self.author.id}/',
+                'host': 'http://localhost',
+                'page': f'http://localhost/api/authors/{self.author.id}/',
+                'displayName': 'Greg',
+            },
+            'post': f'http://localhost/authors/{self.author.id}/posts/{self.post.id}/',
+            'comment': 'This is a test comment.',
+            'contentType': 'text/plain'
+        }
+        response = self.client.post(self.comment_url, data, format='json')
         
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
-    #     self.assertEqual(response.data['comment'], 'This is a test comment.')
-    #     self.assertEqual(Comment.objects.count(), 1)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data['comment'], 'This is a test comment.')
+        self.assertEqual(Comment.objects.count(), 1)
 
     def test_create_comment_invalid_type(self):
         data = {
