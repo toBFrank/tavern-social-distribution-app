@@ -163,21 +163,13 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         {post.contentType?.startsWith('image/') &&
           (originalPost && post.visibility === 'SHARED' ? (
             <img
-              src={`data:${post.contentType}, ${post.content}`}
+              src={`${post.content.startsWith('data:') ? '' : `data:${post.contentType}`}${post.content}`}
               alt="post share"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://imgur.com/CPMEv4Z';
-              }}
             />
           ) : (
             <img
-              src={`data:${post.contentType}, ${post.content}`}
+              src={`${post.content.startsWith('data:') ? '' : `data:${post.contentType}`}${post.content}`}
               alt="post"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = 'https://imgur.com/CPMEv4Z';
-              }}
             />
           ))}
         {post.contentType === 'text/markdown' && (
