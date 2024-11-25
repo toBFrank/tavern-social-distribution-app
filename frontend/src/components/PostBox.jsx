@@ -163,12 +163,12 @@ const PostBox = ({ post, poster, isUserEditable }) => {
         {post.contentType?.startsWith('image/') &&
           (originalPost && post.visibility === 'SHARED' ? (
             <img
-              src={`${post.content.startsWith('data:') ? '' : `data:${post.contentType}`}${post.content}`}
+            src={`${post.content.startsWith('data:') ? '' : `data:${post.contentType},`}${post.content}`}
               alt="post share"
             />
           ) : (
             <img
-              src={`${post.content.startsWith('data:') ? '' : `data:${post.contentType}`}${post.content}`}
+              src={`${post.content.startsWith('data:') ? '' : `data:${post.contentType},`}${post.content}`}
               alt="post"
             />
           ))}
