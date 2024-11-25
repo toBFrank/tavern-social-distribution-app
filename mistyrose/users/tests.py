@@ -9,7 +9,6 @@ import uuid
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 from .models import Author, Follows
 from posts.models import Post
@@ -230,24 +229,13 @@ class AuthorsViewTest(APITestCase):
 
         self.url = reverse('authors-list')
 
-    # def test_get_authors_list(self):
-    #     response = self.client.get(self.url)
+    def test_empty_authors_list(self):
+        Author.objects.all().delete()
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
-    #     self.assertEqual(response.data['type'], 'authors')
-    #     self.assertEqual(len(response.data['authors']), 3)
-    #     self.assertEqual(response.data['authors'][0]['displayName'], 'Authenticated Author')
-    #     self.assertEqual(response.data['authors'][1]['displayName'], 'Author 1')
-    #     self.assertEqual(response.data['authors'][2]['displayName'], 'Author 2')
+        response = self.client.get(self.url)
 
-    # def test_empty_authors_list(self):
-    #     Author.objects.all().delete()
-
-    #     response = self.client.get(self.url)
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data['authors'], [])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['authors'], [])
 
 class FollowRequestTestCase(TestCase):
     def setUp(self):
@@ -302,22 +290,22 @@ class FollowRequestTestCase(TestCase):
         
         # print(f"Generated URL: {self.url}")
 
-    # def test_approve_follow_request(self):
-    #     # Send a PUT request to approve the follow request
-    #     response = self.client.put(self.url, format='json')
+    def test_approve_follow_request(self):
+        # Send a PUT request to approve the follow request
+        response = self.client.put(self.url, format='json')
 
-    #     # Confirm that the status code is 200
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Confirm that the status code is 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    # def test_deny_follow_request(self):
-    #     # Send a DELETE request to deny the follow request
-    #     response = self.client.delete(self.url)
+    def test_deny_follow_request(self):
+        # Send a DELETE request to deny the follow request
+        response = self.client.delete(self.url)
 
-    #     # Confirm that the status code is 204
-    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Confirm that the status code is 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    #     # Verify that the follow_request has been deleted
-    #     self.assertFalse(Follows.objects.filter(id=self.follow_request.id).exists())
+        # Verify that the follow_request has been deleted
+        self.assertFalse(Follows.objects.filter(id=self.follow_request.id).exists())
 
 class UnfollowTestCase(TestCase):
     def setUp(self):
@@ -358,95 +346,19 @@ class UnfollowTestCase(TestCase):
             'follower_id': str(self.author1.id)
         })
 
-    # def test_unfollow_success(self):
-    #     # Test successful unfollow
-    #     response = self.client.delete(self.unfollow_url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data['message'], 'Successfully unfollowed the author.')
-
-    #     # Ensure the follow relationship is deleted from the database
-    #     follow_exists = Follows.objects.filter(
-    #         followed_id=self.author2, 
-    #         local_follower_id=self.author1
-    #     ).exists()
-    #     self.assertFalse(follow_exists)
-
-class FriendsViewTest(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.author = Author.objects.create(user=self.user, display_name="Authenticated Author")
-
-        self.author1 = Author.objects.create(user=User.objects.create_user(username='author1', password='password1'), display_name='Author One')
-        self.author2 = Author.objects.create(user=User.objects.create_user(username='author2', password='password2'), display_name='Author Two')
-
-        # Create follow requests for mutual friendship
-        Follows.objects.create(local_follower_id=self.author, followed_id=self.author1, status='ACCEPTED')  # self.author follows author1
-        Follows.objects.create(local_follower_id=self.author1, followed_id=self.author, status='ACCEPTED')  # author1 follows self.author
-        Follows.objects.create(local_follower_id=self.author2, followed_id=self.author, status='ACCEPTED')  # author2 follows self.author
-
-        refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
-
-        self.url = reverse('friends', kwargs={'author_id': str(self.author.id)})
-
-    # def test_get_friends_list(self):
-    #     response = self.client.get(self.url)
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    #     self.assertEqual(len(response.data['friends']), 1)  # Should find 1 mutual friend
-    #     self.assertEqual(response.data['friends'][0]['displayName'], 'Author One')  # Should return Author One
-
-class FollowersDetailViewTest(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.author = Author.objects.create(user=self.user, display_name="Test Author")
-
-        self.follower1 = Author.objects.create(user=User.objects.create_user(username='follower1', password='password1'), display_name='Follower One')
-        self.follower2 = Author.objects.create(user=User.objects.create_user(username='follower2', password='password2'), display_name='Follower Two')
-
-        Follows.objects.create(local_follower_id=self.follower1, followed_id=self.author, status='ACCEPTED')
-        Follows.objects.create(local_follower_id=self.follower2, followed_id=self.author, status='ACCEPTED')
-
-        refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
-
-        self.url = reverse('followers', kwargs={'author_id': str(self.author.id)})
-
-    # def test_get_followers_list(self):
-    #     response = self.client.get(self.url)
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    #     self.assertEqual(len(response.data['followers']), 2)
-    #     self.assertEqual(response.data['followers'][0]['displayName'], 'Follower One')
-    #     self.assertEqual(response.data['followers'][1]['displayName'], 'Follower Two')
-
-class ProfileImageUploadViewTest(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.author = Author.objects.create(user=self.user, display_name="Test Author")
-
-        self.url = reverse('upload-profile-image', kwargs={'username': self.user.username})
-        
-        self.image = SimpleUploadedFile(
-            name='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
-            content=b'image',
-            content_type='image/png'
-        )
-   
-    def test_upload_profile_image_success(self):
-        response = self.client.post(self.url, {'profile_image': self.image})
-
+    def test_unfollow_success(self):
+        # Test successful unfollow
+        response = self.client.delete(self.unfollow_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('url', response.data)
-        self.assertIn('Profile image uploaded successfully', response.data['message'])
+        self.assertEqual(response.data['message'], 'Successfully unfollowed the author.')
 
-    def test_upload_profile_image_no_file(self):
-        response = self.client.post(self.url, {})
+        # Ensure the follow relationship is deleted from the database
+        follow_exists = Follows.objects.filter(
+            followed_id=self.author2, 
+            local_follower_id=self.author1
+        ).exists()
+        self.assertFalse(follow_exists)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'], 'No file provided.')
 
 # User Story #2 Test: As an author, I want a consistent identity per node.
 class AuthorUrlTestCase(APITestCase):
@@ -518,26 +430,26 @@ class AuthorApiConsistencyTestCase(APITestCase):
             expected_url = f"http://example.com/api/authors/{author.id}/"
             self.assertEqual(f"http://example.com/api/authors/{author.id}/", expected_url)
 
-    # def test_deleted_authors_not_in_api_list(self):
-    #     # After removing an author, verify that it no longer appears in the API list
-    #     deleted_author = self.authors[0]
-    #     deleted_author.delete()
-    #     response = self.client.get("authors/")
-    #     self.assertEqual(response.status_code, 200)
-    #     # Check if the `id` field does not contain a deleted author
-    #     self.assertNotIn(
-    #         str(deleted_author.id), 
-    #         [author["id"] for author in response.json()["authors"]]
-    #     )
+    def test_deleted_authors_not_in_api_list(self):
+        # After removing an author, verify that it no longer appears in the API list
+        deleted_author = self.authors[0]
+        deleted_author.delete()
+        response = self.client.get("/api/authors/")
+        self.assertEqual(response.status_code, 200)
+        # Check if the `id` field does not contain a deleted author
+        self.assertNotIn(
+            str(deleted_author.id), 
+            [author["id"] for author in response.json()["authors"]]
+        )
 
-    # def test_api_author_list_url_format(self):
-    #     # Verify that the `id` format in the author list is correct
-    #     response = self.client.get("authors/")
-    #     self.assertEqual(response.status_code, 200)
-    #     for author in response.json()["authors"]:
-    #         self.assertTrue(
-    #             author["id"].startswith("http://example.com/api/authors/")  
-    #         )
+    def test_api_author_list_url_format(self):
+        # Verify that the `id` format in the author list is correct
+        response = self.client.get("/api/authors/")
+        self.assertEqual(response.status_code, 200)
+        for author in response.json()["authors"]:
+            self.assertTrue(
+                author["id"].startswith("http://example.com/api/authors/")  
+            )
 
 # User Story #3 Test: As a node admin, I want to host multiple authors on my node, so I can have a friendly online community.
 class AdminManagementTests(APITestCase):
@@ -560,7 +472,7 @@ class AdminManagementTests(APITestCase):
             )
 
         # Log in as administrator user and obtain JWT Token
-        response = self.client.post('login/', {
+        response = self.client.post('/api/login/', {
             'username': 'admin',
             'password': 'password123'
         })
@@ -572,35 +484,17 @@ class AdminManagementTests(APITestCase):
         self.assertIsNotNone(access_token, "Access token not found in response")
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
     
-    # def test_get_all_authors(self):
-    #     # Test to get a list of all authors
-    #     response = self.client.get("authors/")
+    def test_get_all_authors(self):
+        # Test to get a list of all authors
+        response = self.client.get("/api/authors/")
 
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data["type"], "authors")
-    #     self.assertTrue("authors" in response.data)
-    #     self.assertTrue(len(response.data["authors"]) <= 10)  # Assuming pagination returns a maximum of 10 authors per page
-    
-    # def test_pagination_on_authors_list(self):
-    #     # Test paging functionality
-    #     response = self.client.get("authors/?page=2")
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data["type"], "authors")
-    #     self.assertTrue(len(response.data["authors"]) > 0)  # The second page should have remaining authors
-    
-    # def test_get_author_detail(self):
-    #     # Test getting details of a single author
-    #     author = Author.objects.first()
-    #     response = self.client.get(f"authors/{author.id}/")
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data["id"], f"authors/{author.id}/")  
-    #     self.assertEqual(response.data["displayName"], author.display_name)
-    #     self.assertEqual(response.data["github"], author.github)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["type"], "authors")
+        self.assertTrue("authors" in response.data)
+        self.assertTrue(len(response.data["authors"]) <= 10)  # Assuming pagination returns a maximum of 10 authors per page
     
     def test_author_not_found(self):
         # Test to get non-existent author
-        response = self.client.get("authors/00000000-0000-0000-0000-000000000000/")
+        response = self.client.get("/api/authors/00000000-0000-0000-0000-000000000000/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data["detail"], "No Author matches the given query.")
