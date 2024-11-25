@@ -92,6 +92,8 @@ class PostSerializer(serializers.ModelSerializer):
     likes = LikeSerializer(many=True, read_only=True)
     contentType = serializers.CharField(source='content_type', default='text/plain')
     #original_url = serializers.ListField(child=serializers.CharField(), allow_null=True, required=False)
+    description = serializers.CharField(required=False, default='No Description', allow_null=True, allow_blank=True)
+
     class Meta:
         model = Post
         fields = [
