@@ -123,8 +123,8 @@ class PostSerializer(serializers.ModelSerializer):
         
         representation['author'] = AuthorSerializer(instance.author_id).data
         
-        if instance.content_type.startswith('image/'):
-            representation['content'] = f"data:{instance.content_type};base64,{instance.content}"
+        # if instance.content_type.startswith('image/'):
+        #     representation['content'] = f"data:{instance.content_type};base64,{instance.content}"
         
         return representation
     

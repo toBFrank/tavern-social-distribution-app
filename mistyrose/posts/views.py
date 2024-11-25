@@ -283,10 +283,11 @@ class PostImageView(APIView):
             return Response({'detail': 'No image available for this post'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            if ';base64,' in post.content:
-                header, encoded_image = post.content.split(';base64,')
-            else:
-                encoded_image = post.content
+            encoded_image = post.content
+            # if ';base64,' in post.content:
+            #     header, encoded_image = post.content.split(';base64,')
+            # else:
+            #     encoded_image = post.content
 
             missing_padding = len(encoded_image) % 4
             if missing_padding:

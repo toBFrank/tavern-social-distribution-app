@@ -141,8 +141,8 @@ class PostImageViewTestCase(BaseTestCase):
         self.post = Post.objects.create(
             author_id=self.author,
             title='Post with Image',
-            content_type='image/png',
-            content='image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII'
+            content_type='image/png;base64',
+            content='iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII'
         )
         self.url = reverse('post-image', args=[self.author.id, self.post.id])
         print(f"SELF.URL: {self.url}")

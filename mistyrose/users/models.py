@@ -46,15 +46,15 @@ class Author(models.Model):
         
         super().save(*args, **kwargs)
         
-    @staticmethod
-    def is_valid_base64(value):
-        """
-        Checks if the value is a valid base64 string.
-        """
-        base64_regex = re.compile(
-            r'^data:image\/[a-zA-Z]+;base64,[a-zA-Z0-9+/]+={0,2}$'
-        )
-        return base64_regex.match(value)
+    # @staticmethod
+    # def is_valid_base64(value):
+    #     """
+    #     Checks if the value is a valid base64 string.
+    #     """
+    #     base64_regex = re.compile(
+    #         r'^data:image\/[a-zA-Z]+;base64,[a-zA-Z0-9+/]+={0,2}$'
+    #     )
+    #     return base64_regex.match(value)
     
     @staticmethod
     def is_valid_url(value):
