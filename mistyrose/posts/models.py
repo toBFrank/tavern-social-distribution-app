@@ -23,10 +23,9 @@ class Post(models.Model):
     CONTENT_TYPE_CHOICES = [
       ('text/plain', 'Plain'),
       ('text/markdown', 'Markdown'),
-      ('image/png', 'PNG Image'),
-      ('image/jpeg', 'JPEG Image'),
-      ('image/gif', 'GIF Image'),  # teehee this one is a bonus
-      
+      ('image/png;base64', 'PNG Image'),
+      ('image/jpeg;base64', 'JPEG Image'),
+      ('image/gif;base64', 'GIF Image'),  # teehee this one is a bonus
     ]
     
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='post')
@@ -34,12 +33,9 @@ class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     url = models.URLField(unique=True, editable=False, blank=True, null=True) #identify post by url
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='posts')
-    description = models.TextField(blank=True, null=True, editable=True)
+    description = models.TextField(blank=True, null=True, editable=True, default='No Description')
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
     content = models.TextField(blank=True, null=True)
-    # text_content = models.TextField(blank=True, null=True)
-    # # put image content to user's media folder media/posts/author_id/post_id/image_content_name
-    # image_content = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     published = models.DateTimeField(auto_now=True)
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='PUBLIC')
     original_url = models.JSONField(blank=True, null=True)
@@ -96,7 +92,7 @@ class Comment(models.Model):
     published = models.DateTimeField(auto_now_add=True)
     comment = models.TextField()
     post_id = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    content_type = models.CharField(max_length=50, blank=True, null=True, default='text/markdown')
+    content_type = models.CharField(max_length=50, blank=True, null=True, default='text/plain')
     page = models.URLField(blank=True, null=True)
 
     # generic relation for reverse lookup for 'Like' objects on the post - because we are using generic foreign key in the like

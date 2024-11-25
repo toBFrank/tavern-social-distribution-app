@@ -141,8 +141,8 @@ class PostImageViewTestCase(BaseTestCase):
         self.post = Post.objects.create(
             author_id=self.author,
             title='Post with Image',
-            content_type='image/png',
-            content='image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII'
+            content_type='image/png;base64',
+            content='iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII'
         )
         self.url = reverse('post-image', args=[self.author.id, self.post.id])
         print(f"SELF.URL: {self.url}")
@@ -1072,7 +1072,7 @@ class ImagePostTest(APITestCase):
         get_response = self.client.get(f"{self.post_url}{post_id}/")
         self.assertEqual(get_response.status_code, 200)
         self.assertEqual(get_response.data['contentType'], "image/png")
-        self.assertEqual(get_response.data['content'], f"data:image/png;base64,{base64_image_content}")
+        self.assertEqual(get_response.data['content'], base64_image_content)
 
 # User Story #15 Test: As an author, posts I create that are in CommonMark can link to images, so that I can illustrate my posts.
 class PostCommonMarkImagesTestCase(APITestCase):
