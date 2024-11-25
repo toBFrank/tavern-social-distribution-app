@@ -176,13 +176,15 @@ const Post = () => {
   };
 
   const handlePostClick = async () => {
+    console.log("handlePostClick triggered");
     const postData = {
       type: 'post',
       author: currentProfileData,
       title: title || 'New Post',
       visibility: visibility.toUpperCase(),
     };
-    
+    console.log("selectedOption: ", selectedOption)
+    console.log("Uploaded file object:", imgFile);
     if (selectedOption === 'Plain') {
       postData.content = plainText;
       postData.contentType = 'text/plain';
