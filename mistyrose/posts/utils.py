@@ -59,6 +59,8 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
     
     try:
         for remote_author in remote_authors:
+            print(f"remote author host: {remote_author.host.rstrip('/')}")
+            host_without_api = remote_author.host.rstrip('/').replace('/api', '')
             node = Node.objects.filter(remote_node_url=remote_author.host.rstrip('/')).first()
             if node:
                 author_inbox_remote_endpoint = f"{remote_author.url.rstrip('/')}/inbox/"
