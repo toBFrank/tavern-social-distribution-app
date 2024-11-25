@@ -40,7 +40,7 @@ def handle_remote_inboxes(post, request, object_data, author):
 
     if object_data['type'] == 'post':
         #format id
-        object_data['id'] = f"{author.host.rstrip('/')}/api/authors/{author.id}/posts/{post.id}/"
+        object_data['id'] = f"{author.host.rstrip('/')}/authors/{author.id}/posts/{post.id}/"
 
     print(f"WE ARE SENDING THIS {object_data}")
 
@@ -473,8 +473,8 @@ class CommentedView(APIView):
 
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{author_serial}",
-            "id": f"{host}/api/authors/{author_serial}",
+            "page": f"{host}/authors/{author_serial}",
+            "id": f"{host}/authors/{author_serial}",
             "page_number": 1,
             "size": author.comments.count(),
             "count": author.comments.count(),
@@ -507,8 +507,8 @@ class CommentsByAuthorFQIDView(APIView):
 
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{author_serial}",
-            "id": f"{host}/api/authors/{author_serial}",
+            "page": f"{host}/authors/{author_serial}",
+            "id": f"{host}/authors/{author_serial}",
             "page_number": 1,
             "size": author.comments.count(),
             "count": author.comments.count(),
@@ -567,11 +567,11 @@ class CommentsView(APIView):
         post_author_id = post.author_id
 
         # "page":"http://nodebbbb/authors/222/posts/249",
-        # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
+        # "id":"http://nodebbbb/authors/222/posts/249/comments"
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{post_author_id}/posts/{post_serial}",
-            "id": f"{host}/api/authors/{post_author_id}/posts/{post_serial}/comments",
+            "page": f"{host}/authors/{post_author_id}/posts/{post_serial}",
+            "id": f"{host}/authors/{post_author_id}/posts/{post_serial}/comments",
             "page_number": 1,
             "size": post.comments.count(),
             "count": post.comments.count(),
@@ -609,8 +609,8 @@ class CommentsByFQIDView(APIView):
         # "id":"http://nodebbbb/api/authors/222/posts/249/comments"
         response_data = {
             "type": "comments",
-            "page": f"{host}/api/authors/{post_author_id}/posts/{post_serial}",
-            "id": f"{host}/api/authors/{post_author_id}/posts/{post_serial}/comments",
+            "page": f"{host}/authors/{post_author_id}/posts/{post_serial}",
+            "id": f"{host}/authors/{post_author_id}/posts/{post_serial}/comments",
             "page_number": 1,
             "size": post.comments.count(),
             "count": post.comments.count(),
@@ -702,13 +702,13 @@ class LikedView(APIView):
             object_id = object_url.rstrip('/').split("/posts/")[-1]
             liked_object = get_object_or_404(Post, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Post)
-            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/api/authors/{author.id}/posts/{object_id}/"
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{author.id}/posts/{object_id}/"
         elif "/commented/" in object_url:
             # object is a comment
             object_id = object_url.rstrip('/').split("/commented/")[-1]
             liked_object = get_object_or_404(Comment, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Comment)
-            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/api/authors/{author.id}/commented/{object_id}/"
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{author.id}/commented/{object_id}/"
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -780,8 +780,8 @@ class LikedView(APIView):
         host = request.get_host()
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_serial}",
-            "id": f"http://{host}/api/authors/{author_serial}/liked",
+            "page": f"http://{host}/authors/{author_serial}",
+            "id": f"http://{host}/authors/{author_serial}/liked",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": author.likes.count(),
@@ -846,11 +846,11 @@ class LikesView(APIView):
 
         serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
 
-        host = request.get_host()
+        host = request.get_host().rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_serial}/posts/{post_id}",
-            "id": f"http://{host}/api/authors/{author_serial}/posts/{post_id}/likes",
+            "page": f"http://{host}/authors/{author_serial}/posts/{post_id}",
+            "id": f"http://{host}/authors/{author_serial}/posts/{post_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": post.likes.count(),
@@ -900,11 +900,11 @@ class LikedCommentsView(APIView):
 
         serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
 
-        host = request.get_host()
+        host = request.get_host().rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_id}/commented/{comment_id}",
-            "id": f"http://{host}/api/authors/{author_id}/commented/{comment_id}/likes",
+            "page": f"http://{host}/authors/{author_id}/commented/{comment_id}",
+            "id": f"http://{host}/authors/{author_id}/commented/{comment_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": comment.likes.count(),
@@ -944,11 +944,11 @@ class LikesViewByFQIDView(APIView):
 
         serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
 
-        host = request.get_host()
+        host = request.get_host().rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_id}/posts/{post_id}",
-            "id": f"http://{host}/api/authors/{author_id}/posts/{post_id}/likes",
+            "page": f"http://{host}/authors/{author_id}/posts/{post_id}",
+            "id": f"http://{host}/authors/{author_id}/posts/{post_id}/likes",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": post.likes.count(),
@@ -1007,11 +1007,11 @@ class LikedFQIDView(APIView):
 
         serializer = LikeSerializer(paginated_likes, many=True)  # many=True specifies that input is not just a single like
 
-        host = request.get_host()
+        host = request.get_host().rstrip('/')
         response_data = {
             "type": "likes",
-            "page": f"http://{host}/api/authors/{author_serial}",
-            "id": f"http://{host}/api/authors/{author_serial}/liked",
+            "page": f"http://{host}/authors/{author_serial}",
+            "id": f"http://{host}/authors/{author_serial}/liked",
             "page_number": paginator.page.number,
             "size": paginator.get_page_size(request),
             "count": author.likes.count(),

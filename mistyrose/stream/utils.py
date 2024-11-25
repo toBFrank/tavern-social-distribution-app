@@ -64,7 +64,7 @@ def handle_follow_request(request, author):
       node = Node.objects.filter(remote_node_url=object_host_with_scheme).first()
       if not node:
           return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
-      remote_inbox_url = f"{object_data['host'].rstrip('/')}/api/authors/{object_id}/inbox/"
+      remote_inbox_url = f"{object_data['host'].rstrip('/')}/authors/{object_id}/inbox/"
       print(remote_inbox_url)
       parsed_url = urlparse(request.build_absolute_uri())
       host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"

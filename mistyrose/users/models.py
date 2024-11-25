@@ -24,11 +24,11 @@ class Author(models.Model):
     def save(self, *args, **kwargs):
         # normalize the host field
         parsed_host = urlparse(self.host)
-        self.host = f"{parsed_host.scheme}://{parsed_host.netloc}"
+        self.host = f"{parsed_host.scheme}://{parsed_host.netloc}/api/"
         
         # if url is not provided, construct it from host and id (assume author is local)
         if not self.url:
-            self.url = f"{self.host.rstrip('/')}/api/authors/{self.id}/"
+            self.url = f"{self.host.rstrip('/')}/authors/{self.id}/"
             
         if not self.page:
             self.page = f"{self.host.rstrip('/')}/profile/{self.id}/"

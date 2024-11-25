@@ -522,7 +522,7 @@ class AuthorApiConsistencyTestCase(APITestCase):
     #     # After removing an author, verify that it no longer appears in the API list
     #     deleted_author = self.authors[0]
     #     deleted_author.delete()
-    #     response = self.client.get("/api/authors/")
+    #     response = self.client.get("authors/")
     #     self.assertEqual(response.status_code, 200)
     #     # Check if the `id` field does not contain a deleted author
     #     self.assertNotIn(
@@ -532,7 +532,7 @@ class AuthorApiConsistencyTestCase(APITestCase):
 
     # def test_api_author_list_url_format(self):
     #     # Verify that the `id` format in the author list is correct
-    #     response = self.client.get("/api/authors/")
+    #     response = self.client.get("authors/")
     #     self.assertEqual(response.status_code, 200)
     #     for author in response.json()["authors"]:
     #         self.assertTrue(
@@ -560,7 +560,7 @@ class AdminManagementTests(APITestCase):
             )
 
         # Log in as administrator user and obtain JWT Token
-        response = self.client.post('/api/login/', {
+        response = self.client.post('login/', {
             'username': 'admin',
             'password': 'password123'
         })
@@ -574,7 +574,7 @@ class AdminManagementTests(APITestCase):
     
     # def test_get_all_authors(self):
     #     # Test to get a list of all authors
-    #     response = self.client.get("/api/authors/")
+    #     response = self.client.get("authors/")
 
     #     self.assertEqual(response.status_code, status.HTTP_200_OK)
     #     self.assertEqual(response.data["type"], "authors")
@@ -583,7 +583,7 @@ class AdminManagementTests(APITestCase):
     
     # def test_pagination_on_authors_list(self):
     #     # Test paging functionality
-    #     response = self.client.get("/api/authors/?page=2")
+    #     response = self.client.get("authors/?page=2")
 
     #     self.assertEqual(response.status_code, status.HTTP_200_OK)
     #     self.assertEqual(response.data["type"], "authors")
@@ -592,15 +592,15 @@ class AdminManagementTests(APITestCase):
     # def test_get_author_detail(self):
     #     # Test getting details of a single author
     #     author = Author.objects.first()
-    #     response = self.client.get(f"/api/authors/{author.id}/")
+    #     response = self.client.get(f"authors/{author.id}/")
 
     #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data["id"], f"/api/authors/{author.id}/")  
+    #     self.assertEqual(response.data["id"], f"authors/{author.id}/")  
     #     self.assertEqual(response.data["displayName"], author.display_name)
     #     self.assertEqual(response.data["github"], author.github)
     
     def test_author_not_found(self):
         # Test to get non-existent author
-        response = self.client.get("/api/authors/00000000-0000-0000-0000-000000000000/")
+        response = self.client.get("authors/00000000-0000-0000-0000-000000000000/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data["detail"], "No Author matches the given query.")

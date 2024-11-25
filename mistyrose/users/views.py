@@ -559,10 +559,10 @@ class FollowersDetailView(APIView):
         followers_data = [
             {
                 "type": "author",
-                "id": request.build_absolute_uri(f'/api/authors/{follower.local_follower_id.id}/'),  # Full URL for ID 
+                "id": request.build_absolute_uri(f'/authors/{follower.local_follower_id.id}/'),  # Full URL for ID 
                 "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
                 "displayName": follower.local_follower_id.display_name, 
-                "page": request.build_absolute_uri(f'/api/authors/{follower.local_follower_id.id}/'),
+                "page": request.build_absolute_uri(f'/authors/{follower.local_follower_id.id}/'),
                 "github": follower.local_follower_id.github,  # Assuming github is a field on the Author model
                 "profileImage": follower.local_follower_id.profile_image if follower.local_follower_id.profile_image else None
             } 
@@ -598,10 +598,10 @@ class FollowingDetailView(APIView):
         following_data = [
             {
                 "type": "author",
-                "id": request.build_absolute_uri(f'/api/authors/{follow.followed_id.id}/'),  # Full URL for ID
+                "id": request.build_absolute_uri(f'/authors/{follow.followed_id.id}/'),  # Full URL for ID
                 "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
                 "displayName": follow.followed_id.display_name,
-                "page": request.build_absolute_uri(f'/api/authors/{follow.followed_id.id}/'),
+                "page": request.build_absolute_uri(f'/authors/{follow.followed_id.id}/'),
                 "github": follow.followed_id.github,  # Assuming github is a field on the Author model
                 "profileImage": follow.followed_id.profile_image if follow.followed_id.profile_image else None
             }
@@ -652,10 +652,10 @@ class FriendsView(APIView):
         friends_data = [
             {
                 "type": "author",
-                "id": request.build_absolute_uri(f'/api/authors/{friend.id}/'),  # Full URL for ID
+                "id": request.build_absolute_uri(f'/authors/{friend.id}/'),  # Full URL for ID
                 "host": request.build_absolute_uri('/'),  # Builds the host URL dynamically
                 "displayName": friend.display_name,
-                "page": request.build_absolute_uri(f'/api/authors/{friend.id}/'),
+                "page": request.build_absolute_uri(f'/authors/{friend.id}/'),
                 "github": friend.github,  # Assuming github is a field on the Author model
                 "profileImage": friend.profile_image if friend.profile_image else None
             }
