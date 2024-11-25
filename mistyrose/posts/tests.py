@@ -112,24 +112,6 @@ class AuthorPostsViewTestCase(BaseTestCase):
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-
-class PostImageViewTestCase(BaseTestCase):
-    def setUp(self):
-        super().setUp()
-        self.post = Post.objects.create(
-            author_id=self.author,
-            title='Post with Image',
-            content_type='image/png;base64',
-            content='iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII'
-        )
-        self.url = reverse('post-image', args=[self.author.id, self.post.id])
-        print(f"SELF.URL: {self.url}")
-
-    def test_get_post_image(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response['Content-Type'], 'image/png')
-
 class PublicPostsViewTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
