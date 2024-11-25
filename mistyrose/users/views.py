@@ -402,6 +402,7 @@ class AuthorsView(ListAPIView): #used ListAPIView because this is used to handle
     # only get authors on our own node
     serializer_class = AuthorSerializer
     pagination_class = AuthorsPagination
+    
     def get_queryset(self):
         # only get authors who are on this node
         request_host = self.request.get_host().rstrip('/')
