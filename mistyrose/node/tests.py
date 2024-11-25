@@ -49,7 +49,7 @@ class RemoteNodeConnectionTestCase(TestCase):
         mock_response.status_code = 200
         mock_post.return_value = mock_response
 
-        response = self.client.put("node/", data=self.valid_data, format="json")
+        response = self.client.put("/api/node/", data=self.valid_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("type", response.data)
@@ -70,7 +70,7 @@ class RemoteNodeConnectionTestCase(TestCase):
         mock_response.status_code = 401
         mock_post.return_value = mock_response
 
-        response = self.client.put("node/", data=self.invalid_data, format="json")
+        response = self.client.put("/api/node/", data=self.invalid_data, format="json")
 
         # Check if the returned password is different from the test input
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -84,7 +84,7 @@ class RemoteNodeConnectionTestCase(TestCase):
         """
         incomplete_data = {"username": "admin"}  # Missing host and password
 
-        response = self.client.put("node/", data=incomplete_data, format="json")
+        response = self.client.put("/api/node/", data=incomplete_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("host", response.data)
@@ -106,7 +106,7 @@ class RemoteNodeConnectionTestCase(TestCase):
             "password": "password123",
         }
 
-        response = self.client.put("node/", data=invalid_data, format="json")
+        response = self.client.put("/api/node/", data=invalid_data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("host", response.data)
