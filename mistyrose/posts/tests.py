@@ -1072,7 +1072,7 @@ class ImagePostTest(APITestCase):
         get_response = self.client.get(f"{self.post_url}{post_id}/")
         self.assertEqual(get_response.status_code, 200)
         self.assertEqual(get_response.data['contentType'], "image/png")
-        self.assertEqual(get_response.data['content'], f"data:image/png;base64,{base64_image_content}")
+        self.assertEqual(get_response.data['content'], base64_image_content)
 
 # User Story #15 Test: As an author, posts I create that are in CommonMark can link to images, so that I can illustrate my posts.
 class PostCommonMarkImagesTestCase(APITestCase):

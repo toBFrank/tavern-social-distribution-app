@@ -82,8 +82,7 @@ const Post = () => {
           } else {
             // console.log('Image!')
             if (post.contentType.startsWith('image/')) {
-              const isBase64 = post.content.startsWith('data:image/');
-              setUploadedImage(isBase64 ? post.content : `${currentHost}${post.content}`);
+              setUploadedImage(post.contentType.includes('base64') ? post.content : `${currentHost}${post.content}`);
               setSelectedOption('Image');
             }
           }
@@ -103,15 +102,16 @@ const Post = () => {
 
           setVisibility(post.visibility.toLowerCase());
 
-          if (post.content_type === 'image') {
+          if (post.content_type.startsWith('image/')) {
             setSelectedOption('Image');
-            setUploadedImage(`${currentHost}${post.image_content}`);
+            // images are stored as base64 strings
+            setUploadedImage(post.content);
             const creditsContent = `Author: ${displayName} (Published on: ${publishedDate}) \n\n Title: ${post.title || 'No Title Available'} \n\n${post.content || 'No Content Available'}`;
             setTitle(
               `Title: ${post.title || 'No Title Available'} \n\n ${creditsContent}`
             );
             // Fetch the image blob
-            fetch(`${currentHost}${post.image_content}`)
+            fetch(`${currentHost}${post.content}`)
               .then((response) => {
                 if (response.ok) {
                   return response.blob();
@@ -121,7 +121,7 @@ const Post = () => {
               .then((blob) => {
                 const file = new File(
                   [blob],
-                  post.image_content.split('/').pop(),
+                  post.content,
                   { type: blob.type }
                 );
                 setImgFile(file); // Set the imgFile state to the file object
@@ -148,7 +148,7 @@ const Post = () => {
     } else {
       setLoading(false);
     }
-  }, [postId, authorId, sharePost, sharedPostAuthor, profileData?.displayName]);
+  }, [postId, authorId, sharePost, sharedPostAuthor, profileData?.displayName, currentHost]);
   //#endregion
 
   //#region Event Handlers
@@ -192,7 +192,7 @@ const Post = () => {
     } else if (selectedOption === 'Image' && imgFile) {
       const base64Image = await imgToBase64(imgFile);
       postData.content = base64Image;
-      postData.contentType = `image/${imgFile.type.split('/')[1]}`;
+      postData.contentType = `${imgFile.type.split('/')[1]};base64`;
     }
 
     try {

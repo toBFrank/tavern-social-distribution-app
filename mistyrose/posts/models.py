@@ -36,9 +36,6 @@ class Post(models.Model):
     description = models.TextField(blank=True, null=True, editable=True, default='No Description')
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
     content = models.TextField(blank=True, null=True)
-    # text_content = models.TextField(blank=True, null=True)
-    # # put image content to user's media folder media/posts/author_id/post_id/image_content_name
-    # image_content = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     published = models.DateTimeField(auto_now=True)
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default='PUBLIC')
     original_url = models.JSONField(blank=True, null=True)
