@@ -43,7 +43,7 @@ def get_remote_authors(request):
                     # get host from author id
                     # for example: https://cmput404-group-project.herokuapp.com/authors/1
                     # host = https://cmput404-group-project.herokuapp.com
-                    host = author_data['id'].rstrip('/').split("/api/authors")[0]
+                    host = author_data['id'].rstrip('/').split("/api/authors")[0] + "/api"
                     print(f"host: {host}, node.remote_node_url: {node.remote_node_url.rstrip('/')}")
                     if host != node.remote_node_url.rstrip('/'):
                         # skip if author is not from the this node
