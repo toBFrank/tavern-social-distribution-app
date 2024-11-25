@@ -22,15 +22,9 @@ class AuthorSerializer(serializers.Serializer):
         data['type'] = 'author'  # Add 'type' to the representation
 
          # Ensure fields match specification
-        data['displayName'] = data.pop('displayName', None)
-        data['profileImage'] = data.pop('profileImage', None)
-
-        # Remove fields if they are empty or None to prevent error in follow requests with empty string fields
-        if not data.get('github'):
-            data.pop('github', None)
-        if not data.get('profileImage'):
-            data.pop('profileImage', None)
-    
+        data['displayName'] = data.pop('displayName', "")
+        data['profileImage'] = data.pop('profileImage', "")
+        
         return data
     
     def to_internal_value(self, data):
