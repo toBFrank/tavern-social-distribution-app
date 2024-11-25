@@ -359,32 +359,6 @@ class UnfollowTestCase(TestCase):
         ).exists()
         self.assertFalse(follow_exists)
 
-class FriendsViewTest(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.author = Author.objects.create(user=self.user, display_name="Authenticated Author")
-
-        self.author1 = Author.objects.create(user=User.objects.create_user(username='author1', password='password1'), display_name='Author One')
-        self.author2 = Author.objects.create(user=User.objects.create_user(username='author2', password='password2'), display_name='Author Two')
-
-        # Create follow requests for mutual friendship
-        Follows.objects.create(local_follower_id=self.author, followed_id=self.author1, status='ACCEPTED')  # self.author follows author1
-        Follows.objects.create(local_follower_id=self.author1, followed_id=self.author, status='ACCEPTED')  # author1 follows self.author
-        Follows.objects.create(local_follower_id=self.author2, followed_id=self.author, status='ACCEPTED')  # author2 follows self.author
-
-        refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
-
-        self.url = reverse('friends', kwargs={'author_id': str(self.author.id)})
-
-    # def test_get_friends_list(self):
-    #     response = self.client.get(self.url)
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    #     self.assertEqual(len(response.data['friends']), 1)  # Should find 1 mutual friend
-    #     self.assertEqual(response.data['friends'][0]['displayName'], 'Author One')  # Should return Author One
-
 class FollowersDetailViewTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
