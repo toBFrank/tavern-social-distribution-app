@@ -92,6 +92,8 @@ class PostSerializer(serializers.ModelSerializer):
     likes = LikeSerializer(many=True, read_only=True)
     contentType = serializers.CharField(source='content_type', default='text/plain')
     #original_url = serializers.ListField(child=serializers.CharField(), allow_null=True, required=False)
+    description = serializers.CharField(required=False, default='No Description', allow_null=True, allow_blank=True)
+
     class Meta:
         model = Post
         fields = [
@@ -122,6 +124,8 @@ class PostSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         
         representation['author'] = AuthorSerializer(instance.author_id).data
+        if representation['description'] is None:
+            representation['description'] = 'No Description' 
         
         # if instance.content_type.startswith('image/'):
         #     representation['content'] = f"data:{instance.content_type};base64,{instance.content}"

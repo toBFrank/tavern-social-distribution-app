@@ -18,7 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Post
 from users.models import Author, Follows  
 from node.models import Node
-from .pagination import LikesPagination
+from .pagination import LikesPagination, CustomPostsPagination
 import urllib.parse  # asked chatGPT how to decode the URL-encoded FQID 2024-11-02
 from django.http import FileResponse
 import requests
@@ -27,6 +27,10 @@ from django.db import transaction #transaction requests so that if something hap
 from urllib.parse import unquote, urlparse
 from node.authentication import NodeAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication  
+from rest_framework.generics import ListAPIView  
+from rest_framework.pagination import PageNumberPagination
+
+
 
 def handle_remote_inboxes(post, request, object_data, author):
     '''
@@ -175,13 +179,17 @@ class PostDetailsByFqidView(APIView):
         
         serializer = PostSerializer(post)
         return Response(serializer.data)
+    
 
 class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
     """
+    pagination_class = CustomPostsPagination
 
     def get(self, request, author_serial):
+        paginator = self.pagination_class()
+
         try:
             # check if author_serial is a URL (FQID) or a uuid (SERIAL)
             if is_fqid(author_serial):
@@ -193,8 +201,13 @@ class AuthorPostsView(APIView):
             return Response({"error": "AuthorPostsView - GET - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         
         posts = Post.objects.filter(author_id=author_serial)
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+
+        # paginate request
+        paginated_posts = paginator.paginate_queryset(posts, request, view=self)
+        serializer = PostSerializer(paginated_posts, many=True)
+
+        return Response(paginator.get_paginated_response(serializer.data), status=status.HTTP_200_OK)
+
 
     def post(self, request, author_serial):
         '''
@@ -327,14 +340,28 @@ class PublicPostsView(APIView):
         followers_ids = set(Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True))  
         mutual_friend_ids = following_ids.intersection(followers_ids)
 
+        posts_to_remove = []
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
             post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
-                authorized_authors.update(all_authors)
-            
+                post_author_url = post_data.get('author').get('id')
+                parsed_url = urlparse(post_author_url)
+                author_host = f"{parsed_url.scheme}://{parsed_url.hostname}"
+
+                current_host = request.get_host().rstrip('/')
+                current_host_full = f"{request.scheme}://{current_host}"
+
+                print(f"PUBLIC POSTS AUTHOR_HOST {author_host} AND CURRENT HOST {current_host_full}")
+                if author_host == current_host_full: #its a local author
+                    authorized_authors.add(current_author.id)
+                else:  
+                    print(f"REMOTE THEREFORE FOLLOWING IDS {following_ids} WITH {post_author_id}")
+                    if post_author_id in following_ids:
+                        authorized_authors.add(current_author.id)
+                    
             elif post_visibility == 'UNLISTED':
                 accepted_following_ids = Follows.objects.filter(
                 local_follower_id=current_author, 
@@ -361,15 +388,23 @@ class PublicPostsView(APIView):
 
 
             # Include visibility_type in the authorized_authors_per_post dictionary
-            authorized_authors_per_post.append({
-                'post_id': post_data['id'], 
-                'authorized_authors': list(authorized_authors),
-                'visibility_type': post_visibility  # Add visibility_type here
-            })
+            print(f"AUTHORIZED AUTHORS FOR STREAM {authorized_authors}")
+            if authorized_authors: #if list is not empty
+                authorized_authors_per_post.append({
+                    'post_id': post_data['id'], 
+                    'authorized_authors': list(authorized_authors),
+                    'visibility_type': post_visibility  # Add visibility_type here
+                })
+            else:
+                posts_to_remove.append(post_data['id'])
+
+            filtered_posts = [post for post in serializer.data if post['id'] not in posts_to_remove]
+
+        print(f"BIG DICTIONARY {authorized_authors_per_post}")
 
         # Create response data with posts and their respective authorized authors
         response_data = {
-            'posts': serializer.data,  
+            'posts': filtered_posts,  
             'authorized_authors_per_post': authorized_authors_per_post
         }        
         return Response(response_data, status=status.HTTP_200_OK)
