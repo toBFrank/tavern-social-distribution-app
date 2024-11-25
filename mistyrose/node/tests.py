@@ -142,7 +142,7 @@ class NodeAddAndDeleteTestCase(TestCase):
         - Sharing nodes is verified by checking if the nodes are correctly returned via the API.
         """
         # Make a GET request
-        response = self.client.get("node/list/", format="json")
+        response = self.client.get("/api/node/list/", format="json")
 
         # print("Response content:", response.content)
         # print("Response type:", type(response))
@@ -175,7 +175,8 @@ class NodeAddAndDeleteTestCase(TestCase):
             Node.objects.get(remote_node_url=self.node.remote_node_url)
 
         # Validation node has been removed from the share list
-        response = self.client.get("node/list/", format="json")
+        response = self.client.get("/api/node/list/", format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_json = response.json()
 
         self.assertIn("type", response_json)
