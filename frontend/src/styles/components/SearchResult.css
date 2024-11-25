@@ -3,6 +3,7 @@
 .search-result {
   padding: 10px 20px;
   font-family: 'Fredoka', sans-serif;
+  width: 100%;
 }
 
 .search-result:hover {

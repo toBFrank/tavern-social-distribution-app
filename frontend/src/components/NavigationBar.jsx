@@ -38,21 +38,24 @@ const NavigationBar = ({ expanded, onToggleExpanded }) => {
   //#endregion
 
   return (
-    <nav className="navbar-menu" style={{ width: expanded ? 300 : 150 }}>
-      {expanded && (
-        <img
-          src= { appLogo }
-          alt="Tavern Logo"
-          className="navbar-app-logo" 
-        />
-      )}
-      <div className={`navbar-header${expanded ? '' : ' minimized'}`}>
-        <div className="burger" onClick={handleToggle}>
-          <div className="navbar-icon">
-            <MenuOutlined fontSize="inherit" />
+    <nav className="navbar-menu" >
+      <div className='top-nav-acc'>
+        {expanded && (
+          <img
+            src= { appLogo }
+            alt="Tavern Logo"
+            className="navbar-app-logo" 
+          />
+        )}
+        <div className={`navbar-header${expanded ? '' : ' minimized'}`}>
+          <div className="burger" onClick={handleToggle}>
+            <div className="navbar-icon">
+              <MenuOutlined fontSize="inherit" />
+            </div>
           </div>
         </div>
       </div>
+
       <ul className="navbar-list">
         {pages.map((page, index) => (
           <Link className="list-link" to={page[2]} key={index}>

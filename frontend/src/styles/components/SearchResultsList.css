@@ -13,5 +13,6 @@
   position: absolute; /*dont want it to push down the content when search list appears */
   top: 2.5rem; /* so that its displayed under the search bar which is set to 2.5 height*/
   z-index: 10; 
-  width: 47rem;
+  width: 73%;
+  margin-right: 40rem;
 }

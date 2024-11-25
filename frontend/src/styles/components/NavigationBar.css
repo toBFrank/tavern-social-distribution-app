@@ -1,16 +1,17 @@
 .navbar-menu {
   background-color: white;
-  border-right: 5px solid black;
-  width: 300px;
+  border-top-right-radius: 40px;
+  width: 100px;
   transition: width 0.3s;
   overflow: hidden;
-  height: 100vh;
+  height: 50vh;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 50%; /* Start positioning from the vertical center */
+  left: 0; /* Keep it aligned to the left */
+  transform: translateY(-50%); /* Offset by half its height to center vertically */
   z-index: 1000;
 }
 
@@ -60,12 +61,11 @@
 }
 
 .navbar-list-item.current {
-  background-color: #EFC67A;
-  border: 3px solid black;
+  background-color: #bba274;
 }
 
 .navbar-list-item:hover {
-  background-color: #EFC67A;
+  background-color: #c6b594;
 }
 
 .list-link {
@@ -104,7 +104,11 @@
 .navbar-app-logo {
   position: absolute; 
   top: 25px; 
-  right: 30px; 
   width: 7em; 
   height: auto; 
+  margin-left: 10em;
+}
+
+.top-nav-acc {
+  padding-left: 5px;
 }

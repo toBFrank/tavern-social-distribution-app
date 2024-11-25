@@ -168,7 +168,6 @@ const Home = () => {
   return (
     <div className="home-page-container">
       <div className="home-container">
-        <h1>Feeds</h1>
         <SearchBar setResults={setResults} />
         {results.length > 0 && <SearchResultsList results={results} />}
         <div className="home-filter-options">

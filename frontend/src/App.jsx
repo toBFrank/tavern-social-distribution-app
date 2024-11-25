@@ -40,11 +40,23 @@ function App() {
   // No margin and padding in Login and Signup page
   const isLoginPage = location.pathname === '/login';
   const isSignupPage = location.pathname === '/signup';
-
+  const isProfilePage = location.pathname.includes('/profile/');
   const style = {
-    marginLeft: isLoginPage || isSignupPage ? 0 : expanded ? 320 : 170,
-    padding: isLoginPage || isSignupPage ? 0 : undefined,
-    backgroundColor: isSignupPage ? '#C8BE8A' : undefined, // Background for signup page
+    marginTop: 60,
+    marginLeft: isProfilePage ? 0 : isLoginPage || isSignupPage ? 0 : expanded ? 320 : 170,
+    paddingLeft: isProfilePage
+    ? expanded
+      ? 450 
+      : 320 
+    : isLoginPage || isSignupPage
+    ? 0
+    : undefined,
+    padding: isLoginPage ? 0 : isSignupPage ? 0 : undefined, 
+    background: isSignupPage
+      ? '#C8BE8A' 
+      : isLoginPage
+      ? '#B89E78'
+      : undefined,
   };
 
   return (

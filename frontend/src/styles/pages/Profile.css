@@ -145,15 +145,6 @@
   align-items: center;
   text-align: center;
   margin-bottom: 20px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 222, 161, 1) 0%,
-    rgba(239, 198, 122, 1) 65%,
-    rgba(255, 217, 145, 1) 100%
-  );
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  border-radius: 30px;
-  /* border: 3px solid black; */
   padding: 40px;
   /* justify-content: space-between; */
   gap: 30px;
@@ -249,6 +240,7 @@
 .posts-section {
   margin-top: 20px;
   width: 100%;
+  background-color: #EAE5CE;
 }
 
 /* No posts message */
@@ -369,4 +361,10 @@
 .edit-button:hover {
   background: #fff;
   color: #212529;
+}
+
+.top-contaier h1 {
+  font-family: "Acme", sans-serif;
+  font-weight: 400;
+  color: black;
 }

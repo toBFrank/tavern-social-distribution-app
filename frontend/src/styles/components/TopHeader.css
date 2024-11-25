@@ -1,0 +1,19 @@
+.top-header {
+  position: fixed; /* Keeps the header fixed at the top */
+  top: 0; /* Aligns the header to the top */
+  left: 0; /* Aligns the header to the left */
+  width: 100%; /* Ensures the header spans the full width of the screen */
+  height: 50px; /* Adjust the height as needed */
+  display: flex;
+  align-items: center; /* Vertically centers the content */
+  justify-content: flex-start; /* Aligns content to the left */
+  background-color: #f3f3f3; /* Header background color */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Adds a shadow for depth */
+  z-index: 1000;
+}
+
+.logo {
+  margin-left: 5px; /* Removes any unnecessary margin */
+  height: 20px; /* Adjust the logo size to fit within the header */
+  width: auto; /* Maintains aspect ratio */
+}

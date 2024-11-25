@@ -39,7 +39,7 @@
   width: 92%;
   height: 50px;
   outline: none;
-  background: #f8e5d3;
+  background: #d9d3ce;
   color: black;
   border: 3px solid black;
   border-radius: 20px;
@@ -146,7 +146,7 @@ input[type='radio'] {
 #image-selection-container {
   flex: 0.8;
   width: 94%;
-  background-color: #f8e5d3;
+  background-color: #d9d3ce;
   border: 3px solid black;
   border-radius: 20px;
   box-shadow: 5px 5px 0px 0px black;
@@ -172,4 +172,10 @@ input[type='radio'] {
   height: 250px;
   margin: 20px;
   object-fit: contain;
+}
+
+.top-container h1 {
+  font-family: "Acme", sans-serif;
+  font-weight: 400;
+  color: black;
 }
