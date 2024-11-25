@@ -12,7 +12,7 @@ import '../styles/components/NavigationBar.css';
 import Cookies from 'js-cookie';
 import appLogo from  '../assets/Logo.png'
 
-const NavigationBar = ({ expanded, onToggleExpanded }) => {
+const NavigationBar = () => {
   //#region Variables
   const authorId = Cookies.get('author_id');
   const pages = [
@@ -26,10 +26,6 @@ const NavigationBar = ({ expanded, onToggleExpanded }) => {
 
   //#region Functions
 
-  const handleToggle = () => {
-    onToggleExpanded(!expanded); 
-  };
-
   const handleLogout = () => {
     Cookies.remove('author_id');
     Cookies.remove('access_token');
@@ -39,32 +35,15 @@ const NavigationBar = ({ expanded, onToggleExpanded }) => {
 
   return (
     <nav className="navbar-menu" >
-      <div className='top-nav-acc'>
-        {expanded && (
-          <img
-            src= { appLogo }
-            alt="Tavern Logo"
-            className="navbar-app-logo" 
-          />
-        )}
-        <div className={`navbar-header${expanded ? '' : ' minimized'}`}>
-          <div className="burger" onClick={handleToggle}>
-            <div className="navbar-icon">
-              <MenuOutlined fontSize="inherit" />
-            </div>
-          </div>
-        </div>
-      </div>
-
       <ul className="navbar-list">
         {pages.map((page, index) => (
           <Link className="list-link" to={page[2]} key={index}>
             <li
-              className={`navbar-list-item${location.pathname === page[2] ? ' current' : ''}${expanded ? '' : ' minimized'}`}
+              className={`navbar-list-item${location.pathname === page[2] ? ' current' : ''}`}
               key={index}
             >
               <div className="navbar-icon">{page[1]}</div>
-              {expanded && <span className="navbar-list-text">{page[0]}</span>}
+              <span className="navbar-list-text">{page[0]}</span>
             </li>
           </Link>
         ))}
@@ -73,7 +52,7 @@ const NavigationBar = ({ expanded, onToggleExpanded }) => {
         <div className="navbar-icon">
           <MeetingRoomOutlined fontSize="inherit" />
         </div>
-        {expanded && <span className="navbar-list-text">Logout</span>}
+        <span className="navbar-list-text">Logout</span>
       </div>
     </nav>
   );

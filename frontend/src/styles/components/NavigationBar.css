@@ -1,7 +1,8 @@
 .navbar-menu {
   background-color: white;
   border-top-right-radius: 40px;
-  width: 100px;
+  border-bottom-right-radius: 40px;
+  width: 175px;
   transition: width 0.3s;
   overflow: hidden;
   height: 50vh;
@@ -9,19 +10,17 @@
   flex-direction: column;
   justify-content: flex-start;
   position: fixed;
-  top: 50%; /* Start positioning from the vertical center */
-  left: 0; /* Keep it aligned to the left */
-  transform: translateY(-50%); /* Offset by half its height to center vertically */
+  top: 50%; 
+  left: 0;
+  transform: translateY(-50%); 
   z-index: 1000;
+  box-shadow: inset -2px 5px 25px -11px rgba(0,0,0,0.75);
 }
 
 .navbar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-.navbar-header.minimized {
-  justify-content: center;
 }
 
 .navbar-title {
@@ -56,12 +55,8 @@
   border-radius: 20px;
 }
 
-.navbar-list-item.minimized {
-  justify-content: center;
-}
-
 .navbar-list-item.current {
-  background-color: #bba274;
+  background-color: #d9c49d;
 }
 
 .navbar-list-item:hover {
@@ -75,7 +70,7 @@
 
 .navbar-icon {
   display: flex;
-  font-size: 48px;
+  font-size: 25px;
   margin: 0;
 }
 
@@ -98,7 +93,8 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-  background-color: #dbccaf;
+  background-color: #d6d0c4;
+  padding: 15px;
 }
 
 .navbar-app-logo {
@@ -111,4 +107,9 @@
 
 .top-nav-acc {
   padding-left: 5px;
+}
+
+.css-1l6e05h  {
+  width: 5px;
+  height: 5px;
 }

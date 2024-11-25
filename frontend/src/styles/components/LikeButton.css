@@ -30,10 +30,22 @@
     cursor: pointer;
 }
 
-#liked {
-    color: red;
+.like-heart {
+  font-size: 24px;
+  transition: color 0.3s ease;
 }
 
-#not-liked {
-    color: grey;
+.liked {
+  color: red;
+}
+
+.not-liked {
+  color: grey;
+}
+
+.like-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
 }

@@ -43,7 +43,7 @@ function App() {
   const isProfilePage = location.pathname.includes('/profile/');
   const style = {
     marginTop: 60,
-    marginLeft: isProfilePage ? 0 : isLoginPage || isSignupPage ? 0 : expanded ? 320 : 170,
+    marginLeft: isProfilePage ? 0 : isLoginPage || isSignupPage ? 0: 150,
     paddingLeft: isProfilePage
     ? expanded
       ? 450 

@@ -7,12 +7,12 @@
   box-shadow: 0px 0px 8px #ddd;
   border-radius: 30px;
   border: black 2px;
-  margin-top: 7.2rem;
+  margin-top: 4.2rem;
   max-height: 300px;
   overflow-y: auto;
   position: absolute; /*dont want it to push down the content when search list appears */
   top: 2.5rem; /* so that its displayed under the search bar which is set to 2.5 height*/
   z-index: 10; 
-  width: 73%;
+  width: 77%;
   margin-right: 40rem;
 }
