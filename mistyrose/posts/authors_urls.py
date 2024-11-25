@@ -15,7 +15,7 @@ from .views import (
     PostImageView)
 
 """
-for post urls that start with api/authors/
+for post urls that start with authors/
 """
 # TODO: DO NOT REARRANGE THE ORDER OF URLS
 urlpatterns = [
