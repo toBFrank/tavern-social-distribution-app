@@ -1102,7 +1102,7 @@ class DeletePostTestCase(APITestCase):
         # Verify the visibility in the response
         self.assertEqual(response.data.get("visibility"), "DELETED")
 
-# User Story #09 Test: As an author, I want my node to send my posts to my remote followers and friends.
+# User Story #9 Test: As an author, I want my node to send my posts to my remote followers and friends.
 class PostDeliveryTestCase(APITestCase):
     def setUp(self):
         # Create two users and corresponding authors
@@ -1125,12 +1125,15 @@ class PostDeliveryTestCase(APITestCase):
         self.login_user_a()
     def login_user_a(self):
         # Log in to User A and set up authentication
-        login_url = "login/"
+        login_url = "/api/login/"
         response = self.client.post(
             login_url,
             {"username": "user_a", "password": "pass_a"},
             format="json"
         )
+        # print("Login response status code:", response.status_code)
+        # print("Login response content:", response.content)
+        
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Login failed for User A")
         token = response.data.get("access_token")
         self.assertIsNotNone(token, "No access token returned for User A")
@@ -1163,7 +1166,7 @@ class PostDeliveryTestCase(APITestCase):
                 "page": f"http://localhost/authors/{self.author_a.id}/"  # Make sure to include 'page'
             }
         }
-        response = self.client.post(f"authors/{self.author_b.id}/inbox/", post_data, format="json")
+        response = self.client.post(f"/api/authors/{self.author_b.id}/inbox/", post_data, format="json")
         # print("Response data (public post):", response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
     def test_friends_post_visible_to_friend(self):
@@ -1195,7 +1198,7 @@ class PostDeliveryTestCase(APITestCase):
                 "page": f"http://localhost/authors/{self.author_a.id}/"
             }
         }
-        response = self.client.post(f"authors/{self.author_b.id}/inbox/", post_data, format="json")
+        response = self.client.post(f"/api/authors/{self.author_b.id}/inbox/", post_data, format="json")
         # print("Response data (friends post):", response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
