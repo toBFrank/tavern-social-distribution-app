@@ -4,7 +4,7 @@ from django.contrib.auth.hashers import make_password, check_password
 
 class Node(models.Model):
     # url of the remote node
-    remote_node_url = models.URLField(primary_key=True, max_length=200, default=f"http://example.com/node/{uuid.uuid4()}")
+    remote_node_url = models.URLField(primary_key=True, max_length=200, default=f"https://tavern.com")
     
     # username and password for the remote node
     # - this is what WE use to access THEM

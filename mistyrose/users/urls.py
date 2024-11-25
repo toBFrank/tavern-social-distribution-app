@@ -37,4 +37,5 @@ urlpatterns = [
     path('api/authors/<path:pk>/friends/', FriendsView.as_view(), name='author-friends-fqid'),  # Friends endpoint
     path('api/authors/<path:pk>/following/', FollowingDetailView.as_view(), name='author-following-fqid'),  # Friends endpoint
     path('api/authors/<path:pk>/', AuthorDetailView.as_view(), name='author-detail'),  # Author detail view
+    path('authors/<path:pk>/', AuthorDetailView.as_view(), name='author-detail-fqid'),  # Author detail view
 ]

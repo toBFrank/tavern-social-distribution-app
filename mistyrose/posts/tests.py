@@ -22,7 +22,7 @@ class BaseTestCase(APITestCase):
         self.author = Author.objects.create(user=self.user)
 
         # Log in and get token
-        login_url = '/api/login/'
+        login_url = 'login/'
         response = self.client.post(
             login_url,
             data=json.dumps({
@@ -141,8 +141,8 @@ class PostImageViewTestCase(BaseTestCase):
         self.post = Post.objects.create(
             author_id=self.author,
             title='Post with Image',
-            content_type='image/png',
-            content='image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII'
+            content_type='image/png;base64',
+            content='iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII'
         )
         self.url = reverse('post-image', args=[self.author.id, self.post.id])
         print(f"SELF.URL: {self.url}")
@@ -174,7 +174,7 @@ class PublicPostsViewTestCase(BaseTestCase):
         )
 
     def test_get_public_posts(self):
-        response = self.client.get('/api/posts/')
+        response = self.client.get('posts/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)  # should return two posts
 
@@ -280,8 +280,8 @@ class CommentsByAuthorFQIDViewTestCase(BaseTestCase):
 
     #     self.assertEqual(response.status_code, status.HTTP_200_OK)
     #     self.assertEqual(response.data["type"], "comments")
-    #     self.assertEqual(response.data["page"], f"{self.author.host}/api/authors/{self.author.id}")
-    #     self.assertEqual(response.data["id"], f"{self.author.host}/api/authors/{self.author.id}")
+    #     self.assertEqual(response.data["page"], f"{self.author.host}authors/{self.author.id}")
+    #     self.assertEqual(response.data["id"], f"{self.author.host}authors/{self.author.id}")
 
     def test_get_comments_by_author_invalid_fqid(self):
         # Test with an invalid FQID format - 400
@@ -891,7 +891,7 @@ class AuthorPublicPostsTestCase(APITestCase):
         )
 
         self.client = APIClient()
-        response = self.client.post('/api/login/', {
+        response = self.client.post('login/', {
             'username': 'testuser',
             'password': 'testpass'
         })
@@ -901,7 +901,7 @@ class AuthorPublicPostsTestCase(APITestCase):
         self.assertIsNotNone(access_token, "Access token not found in response")
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
 
-        self.url = f'/api/authors/{self.author.id}/posts/'
+        self.url = f'authors/{self.author.id}/posts/'
 
     def test_author_public_posts(self):
         # Send a request to get the post list
@@ -930,7 +930,7 @@ class EditPostTest(APITestCase):
         self.author = Author.objects.create(
             id = uuid.uuid4(),
             display_name = "Test Author",
-            host = "http://localhost:8000",
+            host = "http://localhost:8000/api/",
             user= self.user
         )
 
@@ -948,7 +948,7 @@ class EditPostTest(APITestCase):
         )
 
         # Edit post API URL
-        self.edit_url = f"/api/authors/{self.author.id}/posts/{self.post.id}/"
+        self.edit_url = f"authors/{self.author.id}/posts/{self.post.id}/"
 
     def test_edit_post_success(self):
         updated_data = {
@@ -976,7 +976,7 @@ class CommonMarkPostTest(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
 
-        self.post_url = f"/api/authors/{self.author.id}/posts/"
+        self.post_url = f"authors/{self.author.id}/posts/"
 
     def test_create_post_with_commonmark(self):
         # Define content in a CommonMark format
@@ -1010,7 +1010,7 @@ class PlainTextPostTest(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
 
-        self.post_url = f"/api/authors/{self.author.id}/posts/"
+        self.post_url = f"authors/{self.author.id}/posts/"
 
     def test_create_plain_text_post(self):
         # Define plain text content
@@ -1045,7 +1045,7 @@ class ImagePostTest(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
 
-        self.post_url = f"/api/authors/{self.author.id}/posts/"
+        self.post_url = f"authors/{self.author.id}/posts/"
 
     def test_create_image_post(self):
         # Prepare the Base64 encoded content of the image
@@ -1072,7 +1072,7 @@ class ImagePostTest(APITestCase):
         get_response = self.client.get(f"{self.post_url}{post_id}/")
         self.assertEqual(get_response.status_code, 200)
         self.assertEqual(get_response.data['contentType'], "image/png")
-        self.assertEqual(get_response.data['content'], f"data:image/png;base64,{base64_image_content}")
+        self.assertEqual(get_response.data['content'], base64_image_content)
 
 # User Story #15 Test: As an author, posts I create that are in CommonMark can link to images, so that I can illustrate my posts.
 class PostCommonMarkImagesTestCase(APITestCase):
@@ -1165,7 +1165,7 @@ class PostDeliveryTestCase(APITestCase):
         self.login_user_a()
     def login_user_a(self):
         # Log in to User A and set up authentication
-        login_url = "/api/login/"
+        login_url = "login/"
         response = self.client.post(
             login_url,
             {"username": "user_a", "password": "pass_a"},
@@ -1203,7 +1203,7 @@ class PostDeliveryTestCase(APITestCase):
                 "page": f"http://localhost/authors/{self.author_a.id}/"  # Make sure to include 'page'
             }
         }
-        response = self.client.post(f"/api/authors/{self.author_b.id}/inbox/", post_data, format="json")
+        response = self.client.post(f"authors/{self.author_b.id}/inbox/", post_data, format="json")
         # print("Response data (public post):", response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
     def test_friends_post_visible_to_friend(self):
@@ -1235,7 +1235,7 @@ class PostDeliveryTestCase(APITestCase):
                 "page": f"http://localhost/authors/{self.author_a.id}/"
             }
         }
-        response = self.client.post(f"/api/authors/{self.author_b.id}/inbox/", post_data, format="json")
+        response = self.client.post(f"authors/{self.author_b.id}/inbox/", post_data, format="json")
         # print("Response data (friends post):", response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -1261,7 +1261,7 @@ class PostEditResendTestCase(APITestCase):
         self.client = APIClient()
         self.login_user_a()
     def login_user_a(self):
-        login_url = "/api/login/"
+        login_url = "login/"
         response = self.client.post(
             login_url,
             {"username": "user_a", "password": "pass_a"},
@@ -1286,7 +1286,7 @@ class PostEditResendTestCase(APITestCase):
                 "displayName": "Author A",
             }
         }
-        response = self.client.post(f"/api/authors/{self.author_a.id}/posts/", post_data, format="json")
+        response = self.client.post(f"authors/{self.author_a.id}/posts/", post_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Failed to create the original post")
         # # Verify that the post was created successfully
         # print("Post creation response:", response.data)
@@ -1299,7 +1299,7 @@ class PostEditResendTestCase(APITestCase):
         edited_post_data["title"] = "Edited Test Post"
         edited_post_data["content"] = "This is the edited content."
         # Construct the correct edit URL
-        edit_url = f"/api/authors/{self.author_a.id}/posts/{created_post_id}/"
+        edit_url = f"authors/{self.author_a.id}/posts/{created_post_id}/"
         response = self.client.put(edit_url, edited_post_data, format="json")
         # print("Edit post response:", response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Failed to edit the post")
