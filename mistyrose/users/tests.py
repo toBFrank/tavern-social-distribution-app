@@ -359,31 +359,6 @@ class UnfollowTestCase(TestCase):
         ).exists()
         self.assertFalse(follow_exists)
 
-class FollowersDetailViewTest(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.author = Author.objects.create(user=self.user, display_name="Test Author")
-
-        self.follower1 = Author.objects.create(user=User.objects.create_user(username='follower1', password='password1'), display_name='Follower One')
-        self.follower2 = Author.objects.create(user=User.objects.create_user(username='follower2', password='password2'), display_name='Follower Two')
-
-        Follows.objects.create(local_follower_id=self.follower1, followed_id=self.author, status='ACCEPTED')
-        Follows.objects.create(local_follower_id=self.follower2, followed_id=self.author, status='ACCEPTED')
-
-        refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
-
-        self.url = reverse('followers', kwargs={'author_id': str(self.author.id)})
-
-    # def test_get_followers_list(self):
-    #     response = self.client.get(self.url)
-
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    #     self.assertEqual(len(response.data['followers']), 2)
-    #     self.assertEqual(response.data['followers'][0]['displayName'], 'Follower One')
-    #     self.assertEqual(response.data['followers'][1]['displayName'], 'Follower Two')
-
 
 # User Story #2 Test: As an author, I want a consistent identity per node.
 class AuthorUrlTestCase(APITestCase):
