@@ -340,6 +340,7 @@ class PublicPostsView(APIView):
         followers_ids = set(Follows.objects.filter(followed_id=current_author, status='ACCEPTED').values_list('local_follower_id', flat=True))  
         mutual_friend_ids = following_ids.intersection(followers_ids)
 
+        posts_to_remove = []
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
             post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
@@ -360,7 +361,7 @@ class PublicPostsView(APIView):
                     print(f"REMOTE THEREFORE FOLLOWING IDS {following_ids} WITH {post_author_id}")
                     if post_author_id in following_ids:
                         authorized_authors.add(current_author.id)
-
+                    
             elif post_visibility == 'UNLISTED':
                 accepted_following_ids = Follows.objects.filter(
                 local_follower_id=current_author, 
@@ -394,12 +395,16 @@ class PublicPostsView(APIView):
                     'authorized_authors': list(authorized_authors),
                     'visibility_type': post_visibility  # Add visibility_type here
                 })
+            else:
+                posts_to_remove.append(post_data['id'])
+
+            filtered_posts = [post for post in serializer.data if post['id'] not in posts_to_remove]
 
         print(f"BIG DICTIONARY {authorized_authors_per_post}")
 
         # Create response data with posts and their respective authorized authors
         response_data = {
-            'posts': serializer.data,  
+            'posts': filtered_posts,  
             'authorized_authors_per_post': authorized_authors_per_post
         }        
         return Response(response_data, status=status.HTTP_200_OK)
