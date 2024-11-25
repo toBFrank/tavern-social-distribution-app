@@ -12,7 +12,7 @@ class CommentSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
     post = serializers.SerializerMethodField()
-    contentType = serializers.CharField(source='content_type', default='text/plain', read_only=True)
+    contentType = serializers.CharField(source='content_type', default='text/markdown', read_only=True)
 
     class Meta:
         model = Comment
@@ -63,7 +63,7 @@ class LikeSerializer(serializers.ModelSerializer):
     type = serializers.CharField(default='like', read_only=True)
     #author = serializers.SerializerMethodField()
     author = AuthorSerializer(source='author_id')  
-    object = serializers.SerializerMethodField() # calls get_object with current Like instance -> method will get the object_url
+    object = serializers.SerializerMethodField() # calls get_object with current Like instance to set the object url
     id = serializers.SerializerMethodField()
     class Meta:
         model = Like
