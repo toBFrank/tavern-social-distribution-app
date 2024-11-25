@@ -19,7 +19,7 @@ def get_remote_authors(request):
         for node in Node.objects.filter(is_whitelisted=True):
             
             # endpoint to get authors from remote node    
-            authors_remote_endpoint = f"{node.remote_node_url.rstrip('/')}/authors/"
+            authors_remote_endpoint = f"{node.remote_node_url.removesuffix('/api/')}/authors/"
             
             # my local node's host with scheme
             parsed_url = urlparse(request.build_absolute_uri())
