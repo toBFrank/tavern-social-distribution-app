@@ -220,10 +220,10 @@ class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
     """
-    pagination_class = CustomPostsPagination()
+    pagination_class = CustomPostsPagination
 
     def get(self, request, author_serial):
-        paginator = self.pagination_class
+        paginator = self.pagination_class()
 
         try:
             # check if author_serial is a URL (FQID) or a uuid (SERIAL)
@@ -238,7 +238,7 @@ class AuthorPostsView(APIView):
         posts = Post.objects.filter(author_id=author_serial)
 
         # paginate request
-        paginated_posts = paginator.paginate_queryset(posts, request)
+        paginated_posts = paginator.paginate_queryset(posts, request, view=self)
         serializer = PostSerializer(paginated_posts, many=True)
 
         return Response(paginator.get_paginated_response(serializer.data), status=status.HTTP_200_OK)
