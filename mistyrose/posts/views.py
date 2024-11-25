@@ -351,9 +351,10 @@ class PublicPostsView(APIView):
                 author_host = f"{parsed_url.scheme}://{parsed_url.hostname}"
 
                 current_host = request.get_host().rstrip('/')
+                current_host_full = f"{request.scheme}://{current_host}"
 
                 print(f"PUBLIC POSTS AUTHOR_HOST {author_host} AND CURRENT HOST {current_host}")
-                if author_host == current_host: #its a local author
+                if author_host == current_host_full: #its a local author
                     authorized_authors.add(current_author.id)
                 else:  
                     print(f"REMOTE THEREFORE FOLLOWING IDS {following_ids} WITH {post_author_id}")
