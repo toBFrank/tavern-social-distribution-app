@@ -970,7 +970,7 @@ class PlainTextPostTest(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
 
-        self.post_url = f"authors/{self.author.id}/posts/"
+        self.post_url = f"/api/authors/{self.author.id}/posts/"
 
     def test_create_plain_text_post(self):
         # Define plain text content
