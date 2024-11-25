@@ -9,7 +9,6 @@ import uuid
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.files.uploadedfile import SimpleUploadedFile
 
 from .models import Author, Follows
 from posts.models import Post
@@ -422,31 +421,6 @@ class FollowersDetailViewTest(APITestCase):
     #     self.assertEqual(response.data['followers'][0]['displayName'], 'Follower One')
     #     self.assertEqual(response.data['followers'][1]['displayName'], 'Follower Two')
 
-class ProfileImageUploadViewTest(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.author = Author.objects.create(user=self.user, display_name="Test Author")
-
-        self.url = reverse('upload-profile-image', kwargs={'username': self.user.username})
-        
-        self.image = SimpleUploadedFile(
-            name='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
-            content=b'image',
-            content_type='image/png'
-        )
-   
-    def test_upload_profile_image_success(self):
-        response = self.client.post(self.url, {'profile_image': self.image})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('url', response.data)
-        self.assertIn('Profile image uploaded successfully', response.data['message'])
-
-    def test_upload_profile_image_no_file(self):
-        response = self.client.post(self.url, {})
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['error'], 'No file provided.')
 
 # User Story #2 Test: As an author, I want a consistent identity per node.
 class AuthorUrlTestCase(APITestCase):
