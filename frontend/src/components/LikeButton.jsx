@@ -57,7 +57,7 @@ const LikeButton = ({ post, posterId }) => {
       const likeData = {
         type: 'like',
         author: currentProfileData,
-        object: `${post.author.id}posts/${post.id}/`,
+        object: `${post.author.id}posts/${.split('/').filter(Boolean).pop()}/`,
       };
 
       try {
