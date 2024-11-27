@@ -737,13 +737,13 @@ class LikedView(APIView):
             object_id = object_url.rstrip('/').split("/posts/")[-1]
             liked_object = get_object_or_404(Post, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Post)
-            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{author.id}/posts/{object_id}/"
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{liked_object.author_id.id}/posts/{object_id}/"
         elif "/commented/" in object_url:
             # object is a comment
             object_id = object_url.rstrip('/').split("/commented/")[-1]
             liked_object = get_object_or_404(Comment, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Comment)
-            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{author.id}/commented/{object_id}/"
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{liked_object.author_id.id}/commented/{object_id}/"
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
         
