@@ -178,7 +178,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       </div>
 
       <div className="post-footer">
-        <LikeButton postId={post.id} posterId={poster.id} />
+        <LikeButton post={post} posterId={poster.id} />
         <CommentsModal postId={post.id} />
         {post.visibility !== 'FRIENDS' &&
           post.visibility !== 'UNLISTED' &&
