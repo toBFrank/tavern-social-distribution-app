@@ -42,7 +42,7 @@ export const updatePost = async (authorSerial, postSerial, postData) => {
 // URL: ://service/api/posts/{POST_FQID}
 export const getPostByFqid = async (postFqid) => {
   try {
-    const response = await api.get(`posts/${postFqid}/`);
+    const response = await api.get(`posts/${postFqid}/`, {params: {size: 100}});
     return response;
   } catch (error) {
     throw error;
