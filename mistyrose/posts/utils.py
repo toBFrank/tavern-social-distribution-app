@@ -12,10 +12,11 @@ def get_remote_friends(author):
     Get remote friends of an author.
     """
     try:
+        author_url = author.url.rstrip('/')
         # Set of remote authors that the given author is following (URLs)
         remote_following_ids = set(
             Follows.objects.filter(
-                remote_follower_url=author.url, status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
+                remote_follower_url=author_url, status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
             ).values_list('followed_id', flat=True)  # Get URLs of followed authors
         )
 
