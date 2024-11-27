@@ -71,6 +71,7 @@ const Home = () => {
                 profileError
               );
               return {
+                id: post.id, // ID url
                 authorId: post.author.id.split('/')[5],
                 displayName: null,
                 profileImage: null,
