@@ -38,6 +38,16 @@ def get_remote_authors(request):
                 # params={"host": host_with_scheme},
                 headers={"Authorization": f"Basic {base64_credentials}"},
             )
+            
+            # if failed, try a different endpoint
+            if response.status_code >= 400:
+                authors_remote_endpoint = f"{node.remote_node_url.rstrip('/')}/api/authors/"
+                response = requests.get(
+                    authors_remote_endpoint,
+                    # params={"host": host_with_scheme},
+                    headers={"Authorization": f"Basic {base64_credentials}"},
+                )
+            
             print(f"GET REMOTE AUTHORS RESPONSE {response}")
             print(f"THE AUTHOR DATA IN GET REMOTE AUTHORS IS {response.json()}")
             authors_erm = response.json()["authors"]
