@@ -87,3 +87,5 @@ pylint.log
 .env.development.local
 .env.test.local
 .env.production.local
+
+jsonreader.json

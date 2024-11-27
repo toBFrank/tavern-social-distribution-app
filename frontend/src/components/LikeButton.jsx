@@ -8,7 +8,7 @@ import '../styles/components/LikeButton.css';
 import { Author } from '../models/Author';
 import AuthorsListModal from '../components/AuthorsListModal';
 
-const LikeButton = ({ postId }) => {
+const LikeButton = ({ post, posterId }) => {
   const [likesCount, setLikesCount] = useState(0);
   const [showAuthorsModal, setShowAuthorsModal] = useState(false);
   const [authorsList, setAuthorsList] = useState([]);
@@ -16,11 +16,11 @@ const LikeButton = ({ postId }) => {
   const authorId = Cookies.get('author_id');
   const [currentProfileData, setCurrentProfileData] = useState(null);
 
-  //get likes w/ useEffect to update whenever postId changes or page reloads
+  //get likes w/ useEffect to update whenever post.id changes or page reloads
   useEffect(() => {
     const fetchLikes = async () => {
       try {
-        const likesResponse = await getLikes(authorId, postId);
+        const likesResponse = await getLikes(authorId, post.id);
         setLikesCount(likesResponse.count);
 
         //check if user liked post already
@@ -38,7 +38,7 @@ const LikeButton = ({ postId }) => {
     };
 
     fetchLikes();
-  }, [authorId, postId]);
+  }, [authorId, post.id]);
 
   useEffect(() => {
     getAuthor(authorId)
@@ -57,7 +57,7 @@ const LikeButton = ({ postId }) => {
       const likeData = {
         type: 'like',
         author: currentProfileData,
-        object: `${currentHost}/api/authors/${authorId}/posts/${postId}/`,
+        object: `${post.author.id}posts/${post.id}/`,
       };
 
       try {
@@ -80,7 +80,7 @@ const LikeButton = ({ postId }) => {
 
   const handleShowAuthors = async () => {
     try {
-      const likesResponse = await getLikes(authorId, postId) //hitting endpoint again because if you like, you'll have to call getLikes anyways
+      const likesResponse = await getLikes(authorId, post.id) //hitting endpoint again because if you like, you'll have to call getLikes anyways
 
       // store authors who liked the post
       const authors = likesResponse.src.map(
