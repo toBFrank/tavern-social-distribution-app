@@ -9,7 +9,7 @@ import { getAuthor } from '../services/AuthorsService';
 import { Author } from '../models/Author';
 import AuthorsListModal from '../components/AuthorsListModal';
 
-const LikeButton = ({ postId }) => {
+const LikeButton = ({ post, posterId }) => {
   const [likesCount, setLikesCount] = useState(0);
   const [showAuthorsModal, setShowAuthorsModal] = useState(false);
   const [authorsList, setAuthorsList] = useState([]);
@@ -83,7 +83,7 @@ const LikeButton = ({ postId }) => {
   useEffect(() => {
     const fetchLikes = async () => {
       try {
-        const likesResponse = await getLikes(authorId, postId);
+        const likesResponse = await getLikes(authorId, post.id);
         setLikesCount(likesResponse.count);
 
         const userLike = likesResponse.src.find((like) => {
@@ -98,7 +98,7 @@ const LikeButton = ({ postId }) => {
     };
 
     fetchLikes();
-  }, [authorId, postId]);
+  }, [authorId, post.id]);
 
   useEffect(() => {
     getAuthor(authorId)
@@ -116,7 +116,7 @@ const LikeButton = ({ postId }) => {
       const likeData = {
         type: 'like',
         author: currentProfileData,
-        object: `${currentHost}/api/authors/${authorId}/posts/${postId}/`,
+        object: `${post.author.id}posts/${post.id}/`,
       };
 
       try {
