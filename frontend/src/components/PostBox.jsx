@@ -27,7 +27,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     ? originalPost.published
     : post.published;
   const navigate = useNavigate();
-  const postLink = `${window.location.origin}/post/${post.id}`;
+  const postLink = `${window.location.origin}/post/${post.id.split('/').filter(Boolean).pop()}`;
 
   const handleCopyLink = () => {
     navigator.clipboard
@@ -147,8 +147,8 @@ const PostBox = ({ post, poster, isUserEditable }) => {
             <button
               className="post-edit-button"
               onClick={() =>
-                navigate(`/post/${post.id}/edit`, {
-                  state: { postId: post.id },
+                navigate(`/post/${post.id.split('/').filter(Boolean).pop()}/edit`, {
+                  state: { postId: post.id.split('/').filter(Boolean).pop() },
                 })
               }
             >
