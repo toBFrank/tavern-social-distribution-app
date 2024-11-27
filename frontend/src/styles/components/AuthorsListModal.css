@@ -3,6 +3,8 @@
     flex-direction: column;
     align-items: flex-start; 
     width: 100%;
+    background-color: rgb(238, 226, 210);
+    border-radius: 15px;
 }
 
 .authors-list-item {
