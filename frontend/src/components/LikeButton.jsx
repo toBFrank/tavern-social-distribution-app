@@ -1,13 +1,14 @@
+//https://medium.com/@yuvidexter/%EF%B8%8Fadding-a-magical-like-button-to-your-react-js-464989211940 for like button jsx logic, Author: Yuvi Dexter, obtained 2024-10-19
 // https://codepen.io/bnewton/pen/KMbLZx
 import React, { useEffect, useState, useRef } from 'react';
 import Cookies from 'js-cookie';
 import { createLike, getLikes } from '../services/LikesService';
 import { Favorite } from '@mui/icons-material';
-import mojs from '@mojs/core';
-import '../styles/components/LikeButton.css';
 import { getAuthor } from '../services/AuthorsService';
+import '../styles/components/LikeButton.css';
 import { Author } from '../models/Author';
 import AuthorsListModal from '../components/AuthorsListModal';
+import mojs from '@mojs/core';
 
 const LikeButton = ({ post, posterId }) => {
   const [likesCount, setLikesCount] = useState(0);
@@ -16,7 +17,7 @@ const LikeButton = ({ post, posterId }) => {
   const [isLiked, setIsLiked] = useState(false);
   const authorId = Cookies.get('author_id');
   const [currentProfileData, setCurrentProfileData] = useState(null);
-  const buttonRef = useRef(null); // Reference for the button element
+  const buttonRef = useRef(null); 
 
   // Initialize animation
   useEffect(() => {
@@ -79,19 +80,22 @@ const LikeButton = ({ post, posterId }) => {
     };
   }, [isLiked]);
 
-  // Fetch likes when component mounts
+  //get likes w/ useEffect to update whenever post.id changes or page reloads
   useEffect(() => {
     const fetchLikes = async () => {
       try {
         const likesResponse = await getLikes(authorId, post.id);
         setLikesCount(likesResponse.count);
 
+        //check if user liked post already
         const userLike = likesResponse.src.find((like) => {
-          const authorUuid = like.author.id.split('authors/')[1].replace('/', '');
-          return authorUuid === authorId;
-        });
+          const authorUuid = like.author.id.split("authors/")[1].replace("/", "");
+          return authorUuid === authorId
+        }); //authors who liked post
 
-        if (userLike) setIsLiked(true);
+        if (userLike) {
+          setIsLiked(true);
+        }
       } catch (error) {
         console.error(error);
       }
@@ -108,11 +112,12 @@ const LikeButton = ({ post, posterId }) => {
       .catch((error) => {
         console.error(error);
       });
-  }, []);
+  }, []); //empty dependency list so that its only called once to get author info when component mounts
 
   const handleLike = async () => {
     if (!isLiked) {
-      const currentHost = window.location.origin;
+      //create like object
+      const currentHost = window.location.origin; //getting host for post url
       const likeData = {
         type: 'like',
         author: currentProfileData,
@@ -121,9 +126,13 @@ const LikeButton = ({ post, posterId }) => {
 
       try {
         const response = await createLike(authorId, likeData);
+
+        // only updating likes if request is successful
         if (response.status === 201) {
-          setLikesCount((prev) => prev + 1);
+          setLikesCount(likesCount + 1);
           setIsLiked(true);
+        } else if (response.status === 200) {
+          console.log(response.data);
         } else {
           console.error('Creating like failed with ', response.status);
         }
@@ -135,8 +144,9 @@ const LikeButton = ({ post, posterId }) => {
 
   const handleShowAuthors = async () => {
     try {
-      const likesResponse = await getLikes(authorId, postId);
+      const likesResponse = await getLikes(authorId, post.id) //hitting endpoint again because if you like, you'll have to call getLikes anyways
 
+      // store authors who liked the post
       const authors = likesResponse.src.map(
         (like) =>
           new Author(
@@ -153,7 +163,9 @@ const LikeButton = ({ post, posterId }) => {
     } catch (error) {
       console.error(error);
     }
-  };
+  }
+
+
 
   return (
     <div className="like-button-container">
@@ -165,13 +177,14 @@ const LikeButton = ({ post, posterId }) => {
         <Favorite className={`like-heart ${isLiked ? 'liked' : 'not-liked'}`} />
       </button>
       <span className="like-text" onClick={handleShowAuthors}>
+        {' '}
         {likesCount} {likesCount === 1 ? 'like' : 'likes'}
       </span>
       {showAuthorsModal && (
         <AuthorsListModal 
           authors={authorsList}
           onModalClose={() => setShowAuthorsModal(false)}
-        />
+           />
       )}
     </div>
   );
