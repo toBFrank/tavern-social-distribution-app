@@ -10,6 +10,6 @@ urlpatterns = [
     # Post URLs
     path('github/events/<str:username>/', GitHubEventsView.as_view(), name='github-events'),
     path('', PublicPostsView.as_view(), name='public-posts'),
-    path('<path:post_fqid>/', PostDetailsByFqidView.as_view(), name='post-detail-fqid'),
+    path('<path:post_fqid>', PostDetailsByFqidView.as_view(), name='post-detail-fqid'),
     
 ]
