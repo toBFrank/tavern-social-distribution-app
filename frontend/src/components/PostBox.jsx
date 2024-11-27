@@ -28,6 +28,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     : post.published;
   const navigate = useNavigate();
   const postLink = `${window.location.origin}/post/${post.id}`;
+  console.log(postLink);
 
   const handleCopyLink = () => {
     navigator.clipboard
