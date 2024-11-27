@@ -54,7 +54,7 @@ def get_remote_authors(request):
                     # for example: https://cmput404-group-project.herokuapp.com/authors/1
                     # host = https://cmput404-group-project.herokuapp.com
                     host = author_data['id'].rstrip('/').split("/api/authors")[0] + "/api"
-                    print(f"host: {host}, node.remote_node_url: {node.remote_node_url.rstrip('/')}")
+                    print(f"host: {author_data['id'].rstrip('/').split("/api/authors")[0]}, node.remote_node_url: {node.remote_node_url.rstrip('/')}")
                     if author_data['id'].rstrip('/').split("/api/authors")[0] != node.remote_node_url.rstrip('/'):
                         # skip if author is not from the this node
                         continue
@@ -62,6 +62,7 @@ def get_remote_authors(request):
                     # get author id
                     # - assuming the id is in the format: <host>/authors/<id>
                     author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
+                    print(f"author_data['id']: {author_data['id']}")
                     print(f"GET REMOTE AUTHORS AUTHOR ID {author_id}")
                     
                     
@@ -104,7 +105,7 @@ def get_remote_authors(request):
                         # for example: https://cmput404-group-project.herokuapp.com/authors/1
                         # host = https://cmput404-group-project.herokuapp.com
                         host = author_data['id'].rstrip('/').split("/api/authors")[0] + "/api"
-                        print(f"host: {host}, node.remote_node_url: {node.remote_node_url.rstrip('/')}")
+                        print(f"host: {author_data['id'].rstrip('/').split("/api/authors")[0]}, node.remote_node_url: {node.remote_node_url.rstrip('/')}")
                         if author_data['id'].rstrip('/').split("/api/authors")[0] != node.remote_node_url.rstrip('/'):
                             # skip if author is not from the this node
                             continue
