@@ -39,24 +39,14 @@ def get_remote_authors(request):
                 headers={"Authorization": f"Basic {base64_credentials}"},
             )
             
-            # if failed, try a different endpoint
-            if response.status_code >= 400:
-                authors_remote_endpoint = f"{node.remote_node_url.rstrip('/')}/api/authors/"
-                response = requests.get(
-                    authors_remote_endpoint,
-                    # params={"host": host_with_scheme},
-                    headers={"Authorization": f"Basic {base64_credentials}"},
-                )
             
             print(f"GET REMOTE AUTHORS RESPONSE {response}")
             print(f"THE AUTHOR DATA IN GET REMOTE AUTHORS IS {response.json()}")
             authors_erm = response.json()["authors"]
             print(f"THE AUTHOR DATA JUST AUTHORS IN GET REMOTE AUTHORS IS {authors_erm}")
             
-            # if successful, get the authors
             if response.status_code == 200:
-                
-                authors_data = response.json()["authors"]
+                authors_data = response.json()
                 
                 for author_data in authors_data:
                     # get host from author id
@@ -91,6 +81,56 @@ def get_remote_authors(request):
                         remote_authors.append(author)
             else:
                 failed_nodes_urls.append([node.remote_node_url, response.status_code])
+                continue
+                
+            
+            # if failed, try a different endpoint
+            if response.status_code >= 400:
+                authors_remote_endpoint = f"{node.remote_node_url.rstrip('/')}/api/authors/"
+                response = requests.get(
+                    authors_remote_endpoint,
+                    # params={"host": host_with_scheme},
+                    headers={"Authorization": f"Basic {base64_credentials}"},
+                )
+                # if successful, get the authors
+                if response.status_code == 200:
+                    
+                    authors_data = response.json()["authors"]
+                    
+                    for author_data in authors_data:
+                        # get host from author id
+                        # for example: https://cmput404-group-project.herokuapp.com/authors/1
+                        # host = https://cmput404-group-project.herokuapp.com
+                        host = author_data['id'].rstrip('/').split("/api/authors")[0] + "/api"
+                        print(f"host: {host}, node.remote_node_url: {node.remote_node_url.rstrip('/')}")
+                        if host != node.remote_node_url.rstrip('/'):
+                            # skip if author is not from the this node
+                            continue
+                        
+                        # get author id
+                        # - assuming the id is in the format: <host>/authors/<id>
+                        author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
+                        print(f"GET REMOTE AUTHORS AUTHOR ID {author_id}")
+                        
+                        
+                        # get remote author
+                        # - if author doesn't exist, create it
+                        # - if author does exist, update it
+                        if author_id:
+                            author, created = Author.objects.get_or_create(id=author_id)
+                            print(f"THE AUTHOR OBJECT IN GET REMOTE AUTHORS IS {author}")
+                            author.url = author_data['id']
+                            author.host = author_data['host']
+                            author.display_name = author_data['displayName']
+                            author.github = author_data.get('github', '')
+                            author.profile_image = author_data.get('profileImage', '')
+                            author.page = author_data['page']
+                            author.save()
+
+                            remote_authors.append(author)
+                else:
+                    failed_nodes_urls.append([node.remote_node_url, response.status_code])
+                    continue
             
         # show failed nodes
         if failed_nodes_urls:
@@ -99,7 +139,7 @@ def get_remote_authors(request):
         print(f"Got remote authors successfully: {remote_authors}")
         return remote_authors   
     except Exception as e:
-        print("Could not get remote authors")
+        print(f"Could not get remote authors due to error: {e}")
         raise e
 
 def is_fqid(value):
