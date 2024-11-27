@@ -41,11 +41,8 @@ def get_remote_authors(request):
             
             
             print(f"GET REMOTE AUTHORS RESPONSE {response}")
-            print(f"THE AUTHOR DATA IN GET REMOTE AUTHORS IS {response.json()}")
-            authors_erm = response.json()["authors"]
-            print(f"THE AUTHOR DATA JUST AUTHORS IN GET REMOTE AUTHORS IS {authors_erm}")
             
-            if response.status_code == 200:
+            if response.status_code == 200:                
                 authors_data = response.json()
                 
                 for author_data in authors_data:
@@ -79,10 +76,6 @@ def get_remote_authors(request):
                         author.save()
 
                         remote_authors.append(author)
-            else:
-                failed_nodes_urls.append([node.remote_node_url, response.status_code])
-                continue
-                
             
             # if failed, try a different endpoint
             if response.status_code >= 400:
@@ -92,6 +85,11 @@ def get_remote_authors(request):
                     # params={"host": host_with_scheme},
                     headers={"Authorization": f"Basic {base64_credentials}"},
                 )
+                
+                print(f"THE AUTHOR DATA IN GET REMOTE AUTHORS IS {response.json()}")
+                authors_erm = response.json()["authors"]
+                print(f"THE AUTHOR DATA JUST AUTHORS IN GET REMOTE AUTHORS IS {authors_erm}")
+                
                 # if successful, get the authors
                 if response.status_code == 200:
                     
