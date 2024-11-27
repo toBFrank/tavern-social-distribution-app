@@ -45,6 +45,10 @@ def get_remote_authors(request):
             if response.status_code == 200:                
                 authors_data = response.json()
                 
+                # get usernames from authors_data
+                displayNames = [author['displayName'] for author in authors_data]
+                print(f"THE DISPLAY NAMES IN GET REMOTE AUTHORS ALL IS {displayNames}")
+                
                 for author_data in authors_data:
                     # get host from author id
                     # for example: https://cmput404-group-project.herokuapp.com/authors/1
