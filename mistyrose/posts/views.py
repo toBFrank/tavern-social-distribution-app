@@ -341,6 +341,7 @@ class PublicPostsView(APIView):
         mutual_friend_ids = following_ids.intersection(followers_ids)
 
         posts_to_remove = []
+        filtered_posts = []
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
             post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-1])
