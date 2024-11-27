@@ -8,7 +8,7 @@ import '../styles/components/LikeButton.css';
 import { Author } from '../models/Author';
 import AuthorsListModal from '../components/AuthorsListModal';
 
-const LikeButton = ({ postId }) => {
+const LikeButton = ({ postId, posterId }) => {
   const [likesCount, setLikesCount] = useState(0);
   const [showAuthorsModal, setShowAuthorsModal] = useState(false);
   const [authorsList, setAuthorsList] = useState([]);
@@ -57,7 +57,7 @@ const LikeButton = ({ postId }) => {
       const likeData = {
         type: 'like',
         author: currentProfileData,
-        object: `${currentHost}/api/authors/${authorId}/posts/${postId}/`,
+        object: `${posterId}posts/${postId}/`,
       };
 
       try {
