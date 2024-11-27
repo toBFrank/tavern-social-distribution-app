@@ -164,7 +164,7 @@ class PostDetailsView(APIView):
             
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-
+'''
 class PostDetailsByFqidView(APIView):
     """
     Retrieve post by Fully Qualified ID (URL + ID).
@@ -179,7 +179,107 @@ class PostDetailsByFqidView(APIView):
         
         serializer = PostSerializer(post)
         return Response(serializer.data)
-    
+'''
+
+class PostDetailsByFqidView(APIView):
+    """
+    Retrieve post by Fully Qualified ID (URL + ID).
+    """
+
+    def get(self, request, post_fqid):
+        try:
+            post = Post.objects.get(url=post_fqid)
+        except Post.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        # Get related objects for comments and likes
+        comments = post.comments.all()
+        likes = post.likes.all()
+
+        # Get the author of the post
+        author = post.author_id
+        
+        # Prepare the post data with dynamic links from the database
+        post_data = {
+            "type": "post",
+            "title": post.title,
+            "id": post.url,
+            "description": post.description,
+            "contentType": post.content_type,
+            "content": post.content,
+            "author": {
+                "type": "author",
+                "id": author.url,
+                "host": author.host,
+                "displayName": author.display_name,
+                "page": author.page,
+                "github": author.github,
+                "profileImage": author.profile_image
+            },
+            "comments": {
+                "type": "comments",
+                "page": post.url,  # Page URL for the comments
+                "id": post.url + "/comments",  # Custom URL for comments
+                "page_number": 1,
+                "size": len(comments),
+                "count": post.comments.count(),
+                "src": []
+            },
+            "likes": {
+                "type": "likes",
+                "page": post.url,  # Likes page URL
+                "id": post.url + "/likes",  # Custom URL for likes
+                "page_number": 1,
+                "size": len(likes),
+                "count": post.likes.count(),
+                "src": []
+            },
+            "published": post.published.isoformat(),
+            "visibility": post.visibility
+        }
+
+        # Collect comments data
+        for comment in comments:
+            comment_data = {
+                "type": "comment",
+                "author": {
+                    "type": "author",
+                    "id": comment.author_id.url,
+                    "page": comment.author_id.page,
+                    "host": comment.author_id.host,
+                    "displayName": comment.author_id.display_name,
+                    "github": comment.author_id.github,
+                    "profileImage": comment.author_id.profile_image
+                },
+                "comment": comment.comment,
+                "contentType": comment.content_type,
+                "published": comment.published.isoformat(),
+                "id": comment.url,
+                "post": post.url,
+                "page": comment.page,
+            }
+            post_data["comments"]["src"].append(comment_data)
+
+        # Collect likes data
+        for like in likes:
+            like_data = {
+                "type": "like",
+                "author": {
+                    "type": "author",
+                    "id": like.author_id.url,
+                    "page": like.author_id.page,
+                    "host": like.author_id.host,
+                    "displayName": like.author_id.display_name,
+                    "github": like.author_id.github,
+                    "profileImage": like.author_id.profile_image
+                },
+                "published": like.published.isoformat(),
+                "id": like.url,
+                "object": post.url
+            }
+            post_data["likes"]["src"].append(like_data)
+
+        return Response(post_data)
 
 class AuthorPostsView(APIView):
     """
