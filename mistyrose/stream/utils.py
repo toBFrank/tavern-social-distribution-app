@@ -284,6 +284,7 @@ def handle_comment_inbox(request, author, author_id):
     
         return Response(comment_serializer.data, status=status.HTTP_201_CREATED) 
     else:
+        comment_serializer = CommentSerializer(comment)
         return Response(comment_serializer.data, status=status.HTTP_200_OK)    
         
 def handle_like_inbox(request, author, author_id):
