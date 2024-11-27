@@ -13,3 +13,7 @@
     display: flex;
     align-items: center;
 }
+
+#authors-modal-title {
+    padding-bottom: 15px;
+}
