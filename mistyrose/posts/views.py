@@ -164,7 +164,7 @@ class PostDetailsView(APIView):
             
             return Response(serializer.data, status=status.HTTP_200_OK)
         
-'''
+
 class PostDetailsByFqidView(APIView):
     """
     Retrieve post by Fully Qualified ID (URL + ID).
@@ -179,8 +179,8 @@ class PostDetailsByFqidView(APIView):
         
         serializer = PostSerializer(post)
         return Response(serializer.data)
-'''
 
+'''
 class PostDetailsByFqidView(APIView):
     """
     Retrieve post by Fully Qualified ID (URL + ID).
@@ -280,7 +280,7 @@ class PostDetailsByFqidView(APIView):
             post_data["likes"]["src"].append(like_data)
 
         return Response(post_data)
-
+'''
 class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
