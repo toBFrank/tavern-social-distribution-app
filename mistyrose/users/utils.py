@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+import uuid
 import requests
 import base64
 from node.models import Node
@@ -69,7 +70,7 @@ def get_remote_authors(request):
                     # get remote author
                     # - if author doesn't exist, create it
                     # - if author does exist, update it
-                    if author_id:
+                    if author_id and is_valid_uuid(author_id):
                         author, created = Author.objects.get_or_create(id=author_id)
                         print(f"THE AUTHOR OBJECT IN GET REMOTE AUTHORS IS {author}")
                         author.url = author_data['id']
@@ -113,6 +114,8 @@ def get_remote_authors(request):
                         # get author id
                         # - assuming the id is in the format: <host>/authors/<id>
                         author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
+                        # check if author_id is a uuid string
+                        if author_id 
                         print(f"author_data['id']: {author_data['id']}")
                         print(f"GET REMOTE AUTHORS AUTHOR ID {author_id}")
                         
@@ -120,7 +123,7 @@ def get_remote_authors(request):
                         # get remote author
                         # - if author doesn't exist, create it
                         # - if author does exist, update it
-                        if author_id:
+                        if author_id and is_valid_uuid(author_id):
                             author, created = Author.objects.get_or_create(id=author_id)
                             print(f"THE AUTHOR OBJECT IN GET REMOTE AUTHORS IS {author}")
                             author.url = author_data['id']
@@ -188,3 +191,10 @@ def upload_to_imgur(image_data):
             return None, [response_data["data"].get("error", "Unknown error")]
     except Exception as e:
         return None, str(e)
+    
+def is_valid_uuid(uuid_string):
+    try:
+        uuid_obj = uuid.UUID(uuid_string)
+        return True
+    except ValueError:
+        return False
