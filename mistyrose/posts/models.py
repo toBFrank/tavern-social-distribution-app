@@ -67,7 +67,7 @@ class Like(models.Model):
     url = models.URLField(unique=True, editable=False, blank=True, null=True) #identify like by url
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='likes') 
     published = models.DateTimeField(null=True, auto_now_add=True)
-    object_url = models.URLField(null=True, blank=True)  # can be a URL to a post or comment
+    object_url = models.URLField(null=True, blank=True, max_length=10000)  # can be a URL to a post or comment
 
     # generic foreign key to attach like to Post or Comment
     # set default value to post content type

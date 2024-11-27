@@ -864,7 +864,7 @@ class LikedView(APIView):
 
             like = like_serializer.save(
                 author_id=author,  
-                object_id=liked_object.id,
+                object_id=object_id,
                 content_type=object_content_type,
                 object_url=object_url_remote
             )
