@@ -114,8 +114,6 @@ def get_remote_authors(request):
                         # get author id
                         # - assuming the id is in the format: <host>/authors/<id>
                         author_id = author_data['id'].rstrip('/').split("/authors/")[-1]
-                        # check if author_id is a uuid string
-                        if author_id 
                         print(f"author_data['id']: {author_data['id']}")
                         print(f"GET REMOTE AUTHORS AUTHOR ID {author_id}")
                         
