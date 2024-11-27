@@ -130,6 +130,9 @@ class PostSerializer(serializers.ModelSerializer):
         # if instance.content_type.startswith('image/'):
         #     representation['content'] = f"data:{instance.content_type};base64,{instance.content}"
         
+        # get id for post
+        representation['id'] = self.get_id(instance)
+        
         return representation
     
     def get_id(self, post_object): #get is for turning into JSON response
