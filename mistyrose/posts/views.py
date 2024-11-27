@@ -373,11 +373,106 @@ class AuthorPostsView(APIView):
         
         posts = Post.objects.filter(author_id=author_serial)
 
-        # paginate request
-        paginated_posts = paginator.paginate_queryset(posts, request, view=self)
-        serializer = PostSerializer(paginated_posts, many=True)
+        all_post_data = []
 
-        return Response(paginator.get_paginated_response(serializer.data), status=status.HTTP_200_OK)
+        # Loop through each post and format it
+        for post in posts:
+            comments = post.comments.all()
+            likes = post.likes.all()
+
+            # Prepare the post data with dynamic links from the database
+            post_data = {
+                "type": "post",
+                "title": post.title,
+                "id": post.url,
+                "description": post.description,
+                "contentType": post.content_type,
+                "content": post.content,
+                "author": {
+                    "type": "author",
+                    "id": post.author_id.url,
+                    "host": post.author_id.host,
+                    "displayName": post.author_id.display_name,
+                    "page": post.author_id.page,
+                    "github": post.author_id.github,
+                    "profileImage": post.author_id.profile_image
+                },
+                "comments": {
+                    "type": "comments",
+                    "page": post.url,  # Page URL for the comments
+                    "id": post.url + "/comments",  # Custom URL for comments
+                    "page_number": 1,
+                    "size": len(comments),
+                    "count": post.comments.count(),
+                    "src": []
+                },
+                "likes": {
+                    "type": "likes",
+                    "page": post.url,  # Likes page URL
+                    "id": post.url + "/likes",  # Custom URL for likes
+                    "page_number": 1,
+                    "size": len(likes),
+                    "count": post.likes.count(),
+                    "src": []
+                },
+                "published": post.published.isoformat(),
+                "visibility": post.visibility
+            }
+
+            # Collect comments data
+            for comment in comments:
+                comment_data = {
+                    "type": "comment",
+                    "author": {
+                        "type": "author",
+                        "id": comment.author_id.url,
+                        "page": comment.author_id.page,
+                        "host": comment.author_id.host,
+                        "displayName": comment.author_id.display_name,
+                        "github": comment.author_id.github,
+                        "profileImage": comment.author_id.profile_image
+                    },
+                    "comment": comment.comment,
+                    "contentType": comment.content_type,
+                    "published": comment.published.isoformat(),
+                    "id": comment.url,
+                    "post": post.url,
+                    "page": comment.page,
+                }
+                post_data["comments"]["src"].append(comment_data)
+
+            # Collect likes data
+            for like in likes:
+                like_data = {
+                    "type": "like",
+                    "author": {
+                        "type": "author",
+                        "id": like.author_id.url,
+                        "page": like.author_id.page,
+                        "host": like.author_id.host,
+                        "displayName": like.author_id.display_name,
+                        "github": like.author_id.github,
+                        "profileImage": like.author_id.profile_image
+                    },
+                    "published": like.published.isoformat(),
+                    "id": like.url,
+                    "object": post.url
+                }
+                post_data["likes"]["src"].append(like_data)
+
+            # Append the post data to the response list
+            all_post_data.append(post_data)
+
+        # Hardcoded response format
+        response_data = {
+            "type": "posts",
+            "page_number": 1,  # Hardcoding to 1 since no pagination
+            "size": len(posts),  # Total posts as size
+            "count": len(posts),  # Total posts count
+            "src": all_post_data  # List of all posts
+        }
+
+        return Response(response_data)
 
 
     def post(self, request, author_serial):
