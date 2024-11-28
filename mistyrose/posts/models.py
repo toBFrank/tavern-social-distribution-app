@@ -30,8 +30,8 @@ class Post(models.Model):
     
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='post')
     title = models.CharField(max_length=200, blank=True, null=True, default='No Title')
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    url = models.URLField(unique=True, editable=False, blank=True, null=True) #identify post by url
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key=True, unique=True, editable=False, blank=True, null=True) #identify post by url
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='posts')
     description = models.TextField(blank=True, null=True, editable=True, default='No Description')
     content_type = models.CharField(max_length=50, choices=CONTENT_TYPE_CHOICES, default='text/plain')
@@ -63,8 +63,8 @@ class Post(models.Model):
         ordering = ['-published']
       
 class Like(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    url = models.URLField(unique=True, editable=False, blank=True, null=True) #identify like by url
+    id = models.URLField(primary_key=True, unique=True, editable=False, blank=True, null=True) #identify like by url
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='likes') 
     published = models.DateTimeField(null=True, auto_now_add=True)
     object_url = models.URLField(null=True, blank=True, max_length=10000)  # can be a URL to a post or comment
@@ -86,8 +86,8 @@ class Like(models.Model):
       return f'{self.author_id} like'
     
 class Comment(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    url = models.URLField(unique=True, editable=False, blank=True, null=True) #identify comment by url
+    uuid =  models.UUIDField(default=uuid.uuid4, editable=False)
+    id = models.URLField(primary_key=True, unique=True, editable=False, blank=True, null=True) #identify comment by url
     author_id = models.ForeignKey('users.Author', on_delete=models.CASCADE, related_name='comments') 
     published = models.DateTimeField(auto_now_add=True)
     comment = models.TextField()
