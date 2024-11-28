@@ -1,39 +1,45 @@
 .like-button-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0;
-    padding: 0;
-    gap: 5px;
-}
-.like-button {
-    background-color: transparent;
-    border: none;
-    padding: 0;
-    cursor: pointer;  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
 }
 
 .like-button:hover,
 .like-button:focus {
-    background-color: transparent;
-    outline: none;
-    border: none;
-    box-shadow: none;
+  background-color: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
 .like-button .MuiSvgIcon-root {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 .like-text {
-    font-family: 'Fredoka', sans-serif;
-    cursor: pointer;
+  font-family: 'Fredoka', sans-serif;
+  cursor: pointer;
 }
 
-#liked {
-    color: red;
+.like-heart {
+font-size: 24px;
+transition: color 0.3s ease;
 }
 
-#not-liked {
-    color: grey;
+.liked {
+color: red;
+}
+
+.not-liked {
+color: grey;
+}
+
+.like-button {
+background: transparent;
+border: none;
+cursor: pointer;
+outline: none;
 }

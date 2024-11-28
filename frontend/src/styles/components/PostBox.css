@@ -74,6 +74,7 @@
 .post-content p {
   font-size: large;
   margin: 0;
+  font-family: "Comic Neue", cursive;
 }
 .post-content img {
   max-width: 100%;

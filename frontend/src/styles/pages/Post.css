@@ -110,25 +110,68 @@ input[type='radio'] {
 }
 
 .delete-button {
-  width: 300px;
-  border-radius: 30px;
+  width: 300px; 
   height: 40px;
-  color: #000000;
-  padding: 5px 10px;
-  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  display: inline-block;
-  outline: none;
-  border: 2px solid #d9534f;
-  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  position: relative; 
+  background: #e62222;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease; 
+  border: 2px solid #1d0700;
+}
+
+.delete-button .text {
+  color: black;
+  font-weight: bold;
+  margin-left: 20px;
+  transition: color 0.3s ease; 
+}
+
+.delete-button .icon {
+  position: absolute;
+  top: 50%;
+  right: 20px; 
+  transform: translateY(-50%);
+  height: 40px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease; 
+}
+
+.delete-button svg {
+  width: 15px;
+  fill: black;
 }
 
 .delete-button:hover {
-  background: #d9534f;
-  color: #fff;
+  background: #ff3636; 
 }
+
+.delete-button:hover .text {
+  color: transparent; 
+}
+
+.delete-button:hover .icon {
+  width: 40px;
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  right: auto; 
+}
+ 
+ .delete-button:focus {
+  outline: none;
+ }
+ 
+ .delete-button:active .icon svg {
+  transform: scale(0.8);
+ }
 
 .posts-options h3 {
   cursor: pointer;
