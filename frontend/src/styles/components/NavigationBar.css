@@ -1,6 +1,6 @@
 .navbar-menu {
-  background-color: white;
-  border-right: 5px solid black;
+  background-color: #2E3D34;
+  border-top-right-radius: 30px;
   width: 300px;
   transition: width 0.3s;
   overflow: hidden;
@@ -60,12 +60,12 @@
 }
 
 .navbar-list-item.current {
-  background-color: #EFC67A;
+  background-color: #9e8351;
   border: 3px solid black;
 }
 
 .navbar-list-item:hover {
-  background-color: #EFC67A;
+  background-color: #8d845a;
 }
 
 .list-link {
@@ -74,12 +74,14 @@
 }
 
 .navbar-icon {
+  color: bisque;
   display: flex;
   font-size: 48px;
   margin: 0;
 }
 
 .navbar-list-text {
+  color: bisque;
   font-family: 'Fredoka', sans-serif;
   font-weight: 600;
   font-size: large;
@@ -98,10 +100,11 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-  background-color: #dbccaf;
+  background-color: #1a251e;
 }
 
 .navbar-app-logo {
+  color: bisque;
   position: absolute; 
   top: 25px; 
   right: 30px; 
