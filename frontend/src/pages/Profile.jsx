@@ -21,8 +21,8 @@ const Profile = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);
   const [modalTitle, setModalTitle] = useState(''); // To display the title dynamically
-  const [authorProfileData, setAuthorProfileData] = userState(null);
-  const [authorCurrentData, setAuthorCurrentData] = userState(null);
+  const [authorProfileData, setAuthorProfileData] = useState(null);
+  const [authorCurrentData, setAuthorCurrentData] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
