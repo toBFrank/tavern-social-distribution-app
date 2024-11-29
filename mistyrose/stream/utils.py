@@ -57,8 +57,8 @@ def handle_follow_request(request, author):
               "page": actor_data.get('page', ""),
           }
       )
+      print(f"THE REMOTE AUTHOR IS {remote_author}")
 
-  print(f"THE REMOTE AUTHOR IS {remote_author}")
 
   # Determine if the `object` (followed author) is local or remote
   print(f"object_host: {object_hostn} vs. current_host: {current_host}")
