@@ -337,34 +337,38 @@ const Post = () => {
       )}
 
       <div className="visibility-options">
-        <label>
+        <label className="radio-button">
           <input
             type="radio"
+            name="visibility"
             value="public"
             checked={visibility === 'public'}
             onChange={handleVisibilityChange}
           />
-          Public
+          Public <span></span>
         </label>
-        <label>
+        <label className="radio-button">
           <input
             type="radio"
+            name="visibility"
             value="friends"
             checked={visibility === 'friends'}
             onChange={handleVisibilityChange}
           />
-          Friends
+          Friends <span></span>
         </label>
-        <label>
+        <label className="radio-button">
           <input
             type="radio"
+            name="visibility"
             value="unlisted"
             checked={visibility === 'unlisted'}
             onChange={handleVisibilityChange}
           />
-          Unlisted
+          Unlisted <span></span>
         </label>
       </div>
+
       <div className="postPage-buttons">
         <button className="post-button" onClick={handlePostClick}>
           Post
