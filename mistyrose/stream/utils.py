@@ -28,8 +28,8 @@ def handle_follow_request(request, author):
       return Response({"error": "'object' or 'object.id' is missing from the request"}, status=status.HTTP_400_BAD_REQUEST)
 
   # Extract actor_id and object_id safely
-  actor_id = actor_data['id'].rstrip('/').split('/')[-1]
-  object_id = object_data['id'].rstrip('/').split('/')[-1]
+  actor_id = actor_data['id'].rstrip('/').split('/')[-1].rstrip('/')
+  object_id = object_data['id'].rstrip('/').split('/')[-1].rstrip('/')
 #   object_id = object_data['page'].rstrip('/').split('/')[-1]
   print(f"THIS IS OBJECT ID {object_id}")
   # Extract host information and normalize

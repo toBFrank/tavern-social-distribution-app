@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService';
-import { getAuthor } from '..services//AuthorsService';
+import { getAuthor } from '..services/AuthorsService';
 import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
 import Cookies from 'js-cookie';
