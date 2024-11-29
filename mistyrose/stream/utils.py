@@ -18,7 +18,8 @@ def handle_follow_request(request, author):
   # Retrieve actor and object data, and handle None case
   actor_data = request.data.get('actor')
   object_data = request.data.get('object')
-  print(object_data)
+  print(f"THIS IS ACTOR DATA {actor_data}")
+  print(f"THIS IS OBJECT DATA {object_data}")
   # Check if actor_data and object_data exist
   if actor_data is None or 'id' not in actor_data:
       return Response({"error": "'actor' or 'actor.id' is missing from the request"}, status=status.HTTP_400_BAD_REQUEST)
@@ -30,7 +31,7 @@ def handle_follow_request(request, author):
   actor_id = actor_data['id'].rstrip('/').split('/')[-1]
   object_id = object_data['id'].rstrip('/').split('/')[-1]
 #   object_id = object_data['page'].rstrip('/').split('/')[-1]
-  print(object_id)
+  print(f"THIS IS OBJECT ID {object_id}")
   # Extract host information and normalize
   actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")
   object_host = urlparse(object_data['host'])
@@ -65,7 +66,7 @@ def handle_follow_request(request, author):
       if not node:
           return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
       remote_inbox_url = f"{object_data['host'].rstrip('/')}/authors/{object_id}/inbox/"
-      print(remote_inbox_url)
+      print(f"THIS IS THE REMOTE INBOX URL {remote_inbox_url}")
       parsed_url = urlparse(request.build_absolute_uri())
       host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
       credentials = f"{node.remote_username}:{node.remote_password}"
@@ -79,7 +80,9 @@ def handle_follow_request(request, author):
           "object": object_data  # Send full object data
       }
 
-      print(f"REQUEST remote_inbox_url: {remote_inbox_url} host_with_scheme: {host_with_scheme}")
+      print(f"THIS IS THE FOLLOW REQUEST PAYLOAD {follow_request_payload}")
+
+      print(f"REQUEST remote_inbox_url: {remote_inbox_url} host_with_scheme: {host_with_scheme} FUCK YOU: {follow_request_payload}")
       try:
           # Send POST request to the remote node
           response = requests.post(
@@ -88,6 +91,8 @@ def handle_follow_request(request, author):
               headers={"Authorization": f"Basic {base64_credentials}"},
               json=follow_request_payload,
           )
+
+          print(f"THIS IS THE RESPONSE FROM THEIR INBOX {response}")
           if response.status_code not in [200, 201]:
               return Response({"error": f"Failed to send follow request to remote node {response}"}, status=status.HTTP_400_BAD_REQUEST)
       except requests.RequestException as e:

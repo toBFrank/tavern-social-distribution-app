@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService';
+import { getAuthor } from '..services//AuthorsService';
 import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
 import Cookies from 'js-cookie';
@@ -20,6 +21,8 @@ const Profile = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);
   const [modalTitle, setModalTitle] = useState(''); // To display the title dynamically
+  const [authorProfileData, setAuthorProfileData] = userState(null);
+  const [authorCurrentData, setAuthorCurrentData] = userState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,6 +38,19 @@ const Profile = () => {
         setLoading(false);
       });
   }, [authorId]);
+  
+  useEffect(() => {
+    getAuthor(authorId)
+    .then((data) => {
+      setAuthorProfileData(data);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, [authorId]);
+
   useEffect(() => {
     setShowModal(false);
   }, [location]);
@@ -51,6 +67,16 @@ const Profile = () => {
       .catch((error) => {
         console.error(error);
       });
+  }, []);
+
+  useEffect(() => {
+    getAuthor(currentUserId)
+    .then((data) => {
+      setAuthorCurrentData(data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
   }, []);
 
   // Function to fetch followers and toggle the display
@@ -123,8 +149,8 @@ const Profile = () => {
             <FollowButton
               authorId={authorId}
               currentUserId={currentUserId}
-              currentProfileData={currentProfileData}
-              profileData={profileData}
+              currentProfileData={authorCurrentData}
+              profileData={authorProfileData}
             />
           )}
         </div>
