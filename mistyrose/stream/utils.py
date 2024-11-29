@@ -42,9 +42,11 @@ def handle_follow_request(request, author):
   print(f"actor_host: {actor_host} vs. current_host: {current_host}")
   is_remote_actor = actor_host != current_host
 
+  print("WE GOT HERE")
+
   if is_remote_actor:
       # Populate the `Author` table with remote `actor` details if it doesn't exist
-      Author.objects.get_or_create(
+      remote_author = Author.objects.get_or_create(
           id=actor_id,
           defaults={
               "host": actor_data['host'],
@@ -56,6 +58,8 @@ def handle_follow_request(request, author):
           }
       )
 
+  print(f"THE REMOTE AUTHOR IS {remote_author}")
+
   # Determine if the `object` (followed author) is local or remote
   print(f"object_host: {object_hostn} vs. current_host: {current_host}")
   is_remote_object = object_hostn != current_host
@@ -65,7 +69,7 @@ def handle_follow_request(request, author):
       node = Node.objects.filter(remote_node_url=object_host_with_scheme).first()
       if not node:
           return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
-      remote_inbox_url = f"{object_data['host'].rstrip('/')}/authors/{object_id}/inbox/"
+      remote_inbox_url = f"{object_data['host'].rstrip('/')}/authors/{object_id}/inbox"
       print(f"THIS IS THE REMOTE INBOX URL {remote_inbox_url}")
       parsed_url = urlparse(request.build_absolute_uri())
       host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
