@@ -123,7 +123,7 @@ const LikeButton = ({ post, posterId }) => {
       const likeData = {
         type: 'like',
         author: currentProfileData,
-        object: `${post_author_host}/posts/${post.id}/`,
+        object: `${post.id}/`,
       };
 
       try {
