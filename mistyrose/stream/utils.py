@@ -266,7 +266,13 @@ def handle_comment_inbox(request, author, author_id):
     # get author of commenter 
     author_of_comment = comment_data["author"]["id"]
     author_of_comment_id = author_of_comment.rstrip('/').split("/authors/")[-1]
-    comment_id = comment_data["id"].rstrip('/').split('/commented/')[-1]
+    comment_id = comment_data["id"]
+
+    if '/commented/' in comment_id:
+        comment_id = comment_data["id"].rstrip('/').split('/commented/')[-1]
+    elif '/comments/' in comment_id:
+        comment_id = comment_data["id"].rstrip('/').split('/comments/')[-1]
+
 
     author_data = request.data["author"]
 
