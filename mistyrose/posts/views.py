@@ -610,7 +610,7 @@ class PublicPostsView(APIView):
         filtered_posts = []
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
-            post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
+            post_author_id = uuid.UUID(post_data.get('author').get('id').rstrip('/').split('/authors/')[-1])
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':

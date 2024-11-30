@@ -8,7 +8,7 @@ const SearchResult = ({ result }) => {
 
   const handleClickProfile = async () => {
     console.log(result);
-    const authorId = result.id.split('/').slice(-2, -1)[0]; // Grabs the second last segment, which is the UUID
+    const authorId = result.id.replace(/\/$/, '').split('/').slice(-1)[0]; // Grabs the second last segment, which is the UUID
     navigate(`/profile/${authorId}`);
   }
 
