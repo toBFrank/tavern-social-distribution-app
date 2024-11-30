@@ -117,11 +117,13 @@ const LikeButton = ({ post, posterId }) => {
   const handleLike = async () => {
     if (!isLiked) {
       //create like object
+      const post_author_host = post.author.id.replace(/\/$/, '');
+      console.log(`POST AUTHOR HOST ${post_author_host} WITH POST ID ${post.id}`);
       const currentHost = window.location.origin; //getting host for post url
       const likeData = {
         type: 'like',
         author: currentProfileData,
-        object: `${post.author.id}posts/${post.id}/`,
+        object: `${post_author_host}/posts/${post.id}/`,
       };
 
       try {
