@@ -31,8 +31,7 @@ def handle_follow_request(request, author):
   actor_id = actor_data['id'].rstrip('/').split('/')[-1].rstrip('/')
   object_id = object_data['id'].rstrip('/').split('/')[-1].rstrip('/')
 
-  actor_data['id'] = actor_data['id'].rstrip('/')
-  object_data['id'] = object_data['id'].rstrip('/')
+  print(f"IN THE FOLLOW REQUEST ACTOR ID {actor_data['id']} AND OBJECT ID {object_data['id']}")
 #   object_id = object_data['page'].rstrip('/').split('/')[-1]
   print(f"THIS IS OBJECT ID {object_id}")
   # Extract host information and normalize
