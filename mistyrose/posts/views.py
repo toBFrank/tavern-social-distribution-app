@@ -995,6 +995,7 @@ class LikedView(APIView):
             return Response({"detail: Must be 'like' type"}, status=status.HTTP_400_BAD_REQUEST)
         
         object_url = like_data.get("object") #object can be either a comment or post
+        print(f"OBJECT URL FROM LIKE: {object_url}")
         if not object_url:
             return Response({"Error": "object URL is required."}, status=status.HTTP_400_BAD_REQUEST)
 
