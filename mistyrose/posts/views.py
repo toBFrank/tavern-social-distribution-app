@@ -1050,6 +1050,7 @@ class LikedView(APIView):
         
         try:
             like_data = LikeSerializer(like).data
+            like_data["object"] = like_data["object"].rstrip('/') #for crimson, they can't have / at the end of post object I think
             print(f"LIKE DATA {like_data}")
             handle_remote_inboxes(liked_object, request, like_data, author)
         except Exception as e:
