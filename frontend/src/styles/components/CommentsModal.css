@@ -165,8 +165,8 @@
 
 /* Author link styling */
 .author-link {
-  color: blue; /* Makes the link text blue */
-  text-decoration: underline; /* Underlines the text */
+  color: rgb(0, 0, 0); /* Makes the link text blue */
+  text-decoration: none; /* Underlines the text */
   cursor: pointer; /* Changes the cursor to a pointer when hovering */
   font-weight: bold; /* Makes the text bold */
 }

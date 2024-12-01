@@ -28,7 +28,7 @@ const CommentsModal = ({ postId }) => {
         const mappedComments = fetchComments.src.map((comment) => ({
           comment: comment.comment,
           displayName: comment.author.displayName, 
-          authorId: comment.author.id.split('/').slice(-2, -1)[0], // Extracting authorId from URL
+          authorId: comment.author.id.replace(/\/$/, '').split('/').slice(-1)[0], // Extracting authorId from URL
         }));
         
         setComments(mappedComments);
