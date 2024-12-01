@@ -23,6 +23,7 @@ export const getFollowRequests = async (authorSerial) => {
 export const createFollowRequest = async (authorSerial, followRequestData) => {
   const token = Cookies.get('access_token');
   try {
+    console.log(`FOLLOW REQUEST ${followRequestData}`);
     const response = await api.post(
       `/authors/${authorSerial}/inbox/`,
       followRequestData,
