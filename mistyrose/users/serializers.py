@@ -15,7 +15,6 @@ class AuthorSerializer(serializers.Serializer):
 
     def get_id(self, author):
     # Constructs the URL based on the author's host and their UUID
-       #return f"{author.host.rstrip('/')}/authors/{author.id}/"
        return f"{author.host.rstrip('/')}/authors/{author.id}"
     
     # https://dev.to/amanbothra/understanding-the-torepresentation-and-tointernalvalue-methods-in-the-django-rest-framework-naa want 'type' to be in serialized output but not part of model

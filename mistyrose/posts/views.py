@@ -711,7 +711,7 @@ class PublicPostsView(APIView):
         filtered_posts = []
         for post_data in serializer.data:
             post_visibility = post_data.get('visibility')
-            post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-1])
+            post_author_id = uuid.UUID(post_data.get('author').get('id').rstrip('/').split('/authors/')[-1])
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
@@ -1096,6 +1096,7 @@ class LikedView(APIView):
             return Response({"detail: Must be 'like' type"}, status=status.HTTP_400_BAD_REQUEST)
         
         object_url = like_data.get("object") #object can be either a comment or post
+        print(f"OBJECT URL FROM LIKE: {object_url}")
         if not object_url:
             return Response({"Error": "object URL is required."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1148,6 +1149,7 @@ class LikedView(APIView):
         
         try:
             like_data = LikeSerializer(like).data
+            like_data["object"] = like_data["object"].rstrip('/') #for crimson, they can't have / at the end of post object I think
             print(f"LIKE DATA {like_data}")
             handle_remote_inboxes(liked_object, request, like_data, author)
         except Exception as e:
