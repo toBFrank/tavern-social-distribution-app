@@ -65,7 +65,7 @@ const FollowRequests = () => {
     return (
         <div className="FollowRequest-container">
         <div className="requests-title">
-            Requests
+            {`Follow Requests (${followRequests.length})`}
             <img
                 src={dropdownIcon}
                 alt="Dropdown"
