@@ -629,6 +629,10 @@ class PublicPostsView(APIView):
                         # base64 encoded image is returned
                         # replace the image url with the base64 encoded image
                         post_data['content'] = post_data['content'].replace(image_url, f"{response.json()}")
+                        # save the post data
+                        post = Post.objects.get(id=post_data['id'])
+                        post.content = post_data['content']
+                        post.save()
                 except:
                     pass
                     
