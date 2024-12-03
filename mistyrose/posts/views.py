@@ -625,7 +625,7 @@ class PublicPostsView(APIView):
                     if response.status_code == 200:
                         # base64 encoded image is returned
                         # replace the image url with the base64 encoded image
-                        post_data['content'] = post_data['content'].replace(image_url, f"{response.text}")
+                        post_data['content'].replace(image_url, f"{response.text}")
                 except:
                     pass
                     
