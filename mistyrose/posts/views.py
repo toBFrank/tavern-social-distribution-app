@@ -609,6 +609,26 @@ class PublicPostsView(APIView):
         posts_to_remove = []
         filtered_posts = []
         for post_data in serializer.data:
+            # if markdown contains image, try to get the image
+            if post_data['content_type'].endswith('markdown') and '![image]' in post_data['content']:
+                try:
+                    # find node by host
+                    author_host = urlparse(post_data['author']['host'])
+                    host_with_scheme = f"{author_host.scheme}://{author_host.netloc}"
+                    node = Node.objects.get(remote_node_url=host_with_scheme)
+                    image_url = post_data['content'].split('](')[1].split(')')[0]
+                    credentials = f"{node.remote_username}:{node.remote_password}"
+                    base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                    
+                    response = requests.get(image_url, headers={'Authorization': f'Basic {base64_credentials}'})
+                    if response.status_code == 200:
+                        # base64 encoded image is returned
+                        # replace the image url with the base64 encoded image
+                        post_data['content'] = post_data['content'].replace(image_url, f"{response.text}")
+                except:
+                    pass
+                    
+            
             post_visibility = post_data.get('visibility')
             post_author_id = uuid.UUID(post_data.get('author').get('id').rstrip('/').split('/authors/')[-1])
             authorized_authors = set()
