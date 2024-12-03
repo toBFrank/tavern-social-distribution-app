@@ -10,6 +10,7 @@ import ShareButton from './ShareButton';
 import { BorderColor } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import shareLinkIcon from '../assets/share_link.png';
+import unknownUser from  '../assets/unknownUser.png';
 
 const PostBox = ({ post, poster, isUserEditable }) => {
   // const [imageUrl, setImageUrl] = useState(null);
@@ -134,7 +135,12 @@ const PostBox = ({ post, poster, isUserEditable }) => {
                 loading="lazy"
               />
             ) : (
-              <div className="profile-image-default" />
+              <img
+                src={unknownUser}
+                alt="profile"
+                className="profile-image"
+                loading="lazy"
+              />
             )}
           </div>
         </Link>
