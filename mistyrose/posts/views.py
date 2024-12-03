@@ -625,7 +625,7 @@ class PublicPostsView(APIView):
                     
                     response = requests.get(image_url, headers={'Authorization': f'Basic {base64_credentials}'})
                     if response.status_code == 200:
-                        print(f"RESPONSE {response.json()}")
+                        print(f"RESPONSE TO GET IMG {response.json()}")
                         # base64 encoded image is returned
                         # replace the image url with the base64 encoded image
                         # post_data['content'] = post_data['content'].replace(image_url, f"{response.text}")
