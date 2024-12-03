@@ -616,16 +616,19 @@ class PublicPostsView(APIView):
                     # find node by host
                     author_host = urlparse(post_data['author']['host'])
                     host_with_scheme = f"{author_host.scheme}://{author_host.netloc}"
+                    print(f"HOST WITH SCHEME {host_with_scheme}")
                     node = Node.objects.get(remote_node_url=host_with_scheme)
                     image_url = post_data['content'].split('](')[1].split(')')[0]
+                    print(f"IMAGE URL {image_url}")
                     credentials = f"{node.remote_username}:{node.remote_password}"
                     base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
                     
                     response = requests.get(image_url, headers={'Authorization': f'Basic {base64_credentials}'})
                     if response.status_code == 200:
+                        print(f"RESPONSE {response.text}")
                         # base64 encoded image is returned
                         # replace the image url with the base64 encoded image
-                        post_data['content'].replace(image_url, f"{response.text}")
+                        post_data['content'] = post_data['content'].replace(image_url, f"{response.text}")
                 except:
                     pass
                     
