@@ -16,7 +16,7 @@ const AuthorsListModal = ({ authors, onModalClose, title = "Authors" }) => { /* 
 const navigate = useNavigate();
 
 const handleClickProfile = async (author) => {
-    const authorId = author.id.split('/').slice(-2, -1)[0];
+    const authorId = author.id.replace(/\/$/, '').split('/').slice(-1)[0];
     navigate(`/profile/${authorId}`);
   }
 
