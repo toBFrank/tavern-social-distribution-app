@@ -611,7 +611,7 @@ class PublicPostsView(APIView):
         for post_data in serializer.data:
             # TODO: TEST THIS MORE THOROUGHLY
             # if markdown contains image, try to get the image
-            if post_data.get('contentType').endswith('markdown') and '![image]' in post_data['content']:
+            if post_data.get('contentType').endswith('markdown') and '![' in post_data['content']:
                 try:
                     # find node by host
                     author_host = urlparse(post_data['author']['host'])
