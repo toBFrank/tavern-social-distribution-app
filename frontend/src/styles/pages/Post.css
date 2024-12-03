@@ -105,7 +105,7 @@ input[type='radio'] {
 .post-button:hover {
   width: 300px;
   border-radius: 30px;
-  background:#f1cc23;
+  background:#d3ba46;
   color: #292821
 }
 
@@ -215,4 +215,82 @@ input[type='radio'] {
   height: 250px;
   margin: 20px;
   object-fit: contain;
+}
+
+/* Styling for the radio button container */
+.radio-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Hide the default radio button */
+.radio-button input {
+  display: none;
+}
+
+/* Custom circle style */
+.radio-button span {
+  width: 29px;
+  height: 29px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #bdbdbd; /* Default background color */
+  transition: all 0.3s ease;
+}
+
+/* Inner dot for the selected state */
+.radio-button input:checked + span:after {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #ffffff; /* Dot color */
+}
+
+/* Change background color when selected */
+.radio-button input:checked + span {
+  background-color: #000000;
+}
+
+/* Disabled state */
+.radio-button input:disabled + span {
+  background-color: #e5e5e5;
+}
+
+/* Hover effect for the circle */
+.radio-button span:before {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border-radius: 50%;
+  background-color: #8b908b;
+}
+
+/* Animation for the selected state */
+.radio-button input:checked + span:before {
+  animation: growAndFade 0.2s ease-out;
+}
+
+@keyframes growAndFade {
+  0% {
+    opacity: 1;
+    transform: scale(2);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(2.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3);
+  }
 }
