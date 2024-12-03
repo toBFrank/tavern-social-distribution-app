@@ -10,14 +10,19 @@
   transition: 0.3s ease;
 }
 
-h1,
+h1 {
+  font-family: Acme,sans-serif;
+  font-style: normal;
+  font-weight: 400;
+}
+
+
 h2,
 h3,
 h4,
-h5,
-h6 {
-  font-family: 'Fredoka', sans-serif;
-  font-weight: 600;
+h5 {
+  font-family: "Comic Neue", cursive;
+  font-weight: 700;
 }
 
 textarea {
