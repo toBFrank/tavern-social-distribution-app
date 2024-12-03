@@ -65,6 +65,8 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
             print(f"ABLE TO GET NODE {node}")
             if node:
                 author_inbox_remote_endpoint = f"{remote_author.url.rstrip('/')}/inbox/"
+                if '-crimson-' in author_inbox_remote_endpoint:
+                    author_inbox_remote_endpoint = author_inbox_remote_endpoint.rstrip('/')  # Remove trailing /
                 print(f"author_inbox_remote_endpoint : {author_inbox_remote_endpoint}")
                 # my local node's host with scheme
                 parsed_url = urlparse(request.build_absolute_uri())
