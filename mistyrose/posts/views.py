@@ -609,6 +609,7 @@ class PublicPostsView(APIView):
         posts_to_remove = []
         filtered_posts = []
         for post_data in serializer.data:
+            # TODO: TEST THIS MORE THOROUGHLY
             # if markdown contains image, try to get the image
             if post_data['content_type'].endswith('markdown') and '![image]' in post_data['content']:
                 try:
