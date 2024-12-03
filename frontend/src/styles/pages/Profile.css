@@ -2,8 +2,6 @@
 .profile-page {
   width: 100%;
   height: 100vh;
-  margin-top: 100px;
-  padding: 20px;
   background-color: transparent;
   justify-content: center; /* Centers vertically */
 }
@@ -138,17 +136,15 @@
 }
 
 .profile-header {
+  background-color: #C4BC8C;
   display: flex;
   flex-direction: row;
   align-items: center;
   text-align: center;
-  padding-bottom: 20px;
-  margin-bottom: 30px;
-  margin-left: 40px;
-  margin-top: 30px;
 }
 
 .profile-details {
+  margin: 75px 0 50px 0;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -163,7 +159,8 @@
 }
 
 .Img-details {
-  margin-left: 30px;
+  margin: 75px 0 50px 0;
+  margin-left: 18%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -172,8 +169,8 @@
 
 /* Profile image */
 .profile-image {
-  width: 200px;
-  height: 200px;
+  width: 225px;
+  height: 225px;
   border-radius: 50%;
   border: 3px solid #291d07;
 }
@@ -235,17 +232,13 @@
 
 /* Posts section */
 .posts-section {
+  display: flex;
   margin-top: 20px;
-  width: 100%;
-}
-
-/* No posts message */
-.no-posts-message {
-  font-size: 18px;
-  color: #555;
-  text-align: center;
-  margin-top: 20px;
-  /* Spacing above the message */
+  margin-left: 150px;
+  width: 80%;
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
 }
 
 .edit-Icon {
@@ -363,7 +356,7 @@
   display: flex;
   justify-content: flex-start;
   gap: 20px;
-  margin-left: 50px;
+  margin-left: 1750px;
   margin-top: 20px;
 }
 
@@ -373,12 +366,4 @@
   transition: opacity 0.3s ease;
   font-family: 'Fredoka', sans-serif;
   font-size: 13px;
-}
-
-.posts-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 20px;
-  gap: 20px;
 }

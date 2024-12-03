@@ -40,7 +40,10 @@
 }
 
 .follower-name {
+  max-width: 15px;
+  width: auto;
   font-family: 'Fredoka', sans-serif;
+  padding-right: 2px;
   padding-top: 5px;
 }
 
@@ -69,6 +72,7 @@
 }
 
 .follower-picAndName {
+  width: 100%;
   display: flex;
   flex-direction: row;
   margin: 5px;

@@ -44,11 +44,9 @@ function App() {
   
   const style = {
     marginLeft: isLoginPage || isSignupPage ? 0 : expanded ? 280 : 130,
-    padding: isLoginPage || isSignupPage ? 0 : undefined,
+    padding: isLoginPage || isSignupPage || isProfilePage ? 0 : undefined,
     background: isSignupPage
       ? '#C8BE8A' // Signup page background
-      : isProfilePage
-      ? 'linear-gradient(to bottom, #C4BC8C 50%, transparent 50%)' // Profile page gradient
       : undefined,
   };
 
