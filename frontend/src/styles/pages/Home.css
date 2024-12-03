@@ -5,7 +5,8 @@
 }
 
 .follow-request-container {
-  width: 14rem;
+  min-width: 14em;
+  width: auto;
   padding: 20px;
   position: fixed;
   right: 0;
