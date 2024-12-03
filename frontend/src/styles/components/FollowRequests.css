@@ -10,6 +10,7 @@
   border-radius: 20px;
   background-color: rgba(196, 188, 140, 0.887);
   margin-bottom: 15px;
+  width: auto;
 }
 
 .btns {
@@ -40,11 +41,10 @@
 }
 
 .follower-name {
-  max-width: 15px;
   width: auto;
   font-family: 'Fredoka', sans-serif;
   padding-right: 2px;
-  padding-top: 5px;
+  padding-top: 15px;
 }
 
 .accept-button,
