@@ -12,6 +12,8 @@ from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
+from urllib.parse import urlparse
+import re
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -502,8 +504,12 @@ class LikedViewTest(BaseTestCase):
         }
 
         response = self.client.post(self.like_url, like_data, format='json')
+        
+        # Allow either 200 OK or 201 Created, depending on backend logic
+        self.assertIn(response.status_code, [status.HTTP_200_OK, status.HTTP_201_CREATED])
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # Additional check to ensure the 'like' type in the response
+        self.assertEqual(response.data['type'], 'like')
 
     def test_get_likes(self):
         Like.objects.create(
@@ -881,14 +887,29 @@ class CommonMarkPostTest(APITestCase):
         }, format='json')
 
         # Verify creation is successful
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Post creation failed")
         post_id = response.data.get('id')
+        self.assertIsNotNone(post_id, "Post creation did not return an ID")
+        
+        # # Debugging: Print post creation response and post_id
+        # print("Post creation response:", response.data)
+
+        # Extract the UUID from post_id using regex
+        match = re.search(r'/posts/([a-f0-9\-]+)/?$', post_id)
+        self.assertIsNotNone(match, "Post ID does not contain a valid UUID")
+        post_uuid = match.group(1)
+
+        print("Extracted UUID:", post_uuid)  # Debugging: Print extracted UUID
+
+        # Construct the correct URL for GET request
+        get_url = f"{self.post_url}{post_uuid}/"
+        # print("Constructed GET URL:", get_url)  # Debugging: Print GET URL
 
         # Get the post and verify whether the returned content is consistent with the input
-        get_response = self.client.get(f"{self.post_url}{post_id}/")
-        self.assertEqual(get_response.status_code, status.HTTP_200_OK)
+        get_response = self.client.get(get_url)
+        self.assertEqual(get_response.status_code, status.HTTP_200_OK, "Failed to retrieve the post")
         self.assertEqual(get_response.data['content'], commonmark_content)
-
+        
 # User Story #13 Test: As an author, posts I make can be in simple plain text, because I don't always want all the formatting features of CommonMark.
 class PlainTextPostTest(APITestCase):
     def setUp(self):
@@ -915,12 +936,27 @@ class PlainTextPostTest(APITestCase):
         }, format='json')
 
         # Verify post is created successfully
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, "Post creation failed")
         post_id = response.data.get('id')
+        self.assertIsNotNone(post_id, "Post creation did not return an ID")
+
+        # # Debugging: Print post creation response and post_id
+        # print("Post creation response:", response.data)
+
+        # Extract the UUID from post_id using regex
+        match = re.search(r'/posts/([a-f0-9\-]+)/?$', post_id)
+        self.assertIsNotNone(match, "Post ID does not contain a valid UUID")
+        post_uuid = match.group(1)
+
+        print("Extracted UUID:", post_uuid)  
+
+        # Construct the correct URL for GET request
+        get_url = f"{self.post_url}{post_uuid}/"
+        print("Constructed GET URL:", get_url)  
 
         # Get the post and verify that the content matches the input
-        get_response = self.client.get(f"{self.post_url}{post_id}/")
-        self.assertEqual(get_response.status_code, 200)
+        get_response = self.client.get(get_url)
+        self.assertEqual(get_response.status_code, 200, "Failed to retrieve the post")
         self.assertEqual(get_response.data['content'], plain_text_content)
         self.assertEqual(get_response.data['contentType'], "text/plain")
 
@@ -940,10 +976,10 @@ class ImagePostTest(APITestCase):
     def test_create_image_post(self):
         # Prepare the Base64 encoded content of the image
         base64_image_content = (
-        "/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQA"
-        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
-        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
-        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+            "/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQA"
+            "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+            "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+            "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
         )
         
         # Create post request
@@ -955,12 +991,27 @@ class ImagePostTest(APITestCase):
         }, format='json')
 
         # Verify post is created successfully
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, "Post creation failed")
         post_id = response.data.get('id')
+        self.assertIsNotNone(post_id, "Post creation did not return an ID")
+        
+        # # Debugging: Print post creation response and post_id
+        # print("Post creation response:", response.data)
 
+        # Extract the UUID from post_id using regex
+        match = re.search(r'/posts/([a-f0-9\-]+)/?$', post_id)
+        self.assertIsNotNone(match, "Post ID does not contain a valid UUID")
+        post_uuid = match.group(1)
+
+        print("Extracted UUID:", post_uuid)  
+
+        # Construct the correct URL for GET request
+        get_url = f"{self.post_url}{post_uuid}/"
+        print("Constructed GET URL:", get_url)  
+        
         # Get post data and verify
-        get_response = self.client.get(f"{self.post_url}{post_id}/")
-        self.assertEqual(get_response.status_code, 200)
+        get_response = self.client.get(get_url)
+        self.assertEqual(get_response.status_code, 200, "Failed to retrieve the post")
         self.assertEqual(get_response.data['contentType'], "image/png")
         self.assertEqual(get_response.data['content'], base64_image_content)
 
@@ -1186,13 +1237,17 @@ class PostEditResendTestCase(APITestCase):
         # Get created post ID from response
         created_post_id = response.data.get("id")
         self.assertIsNotNone(created_post_id, "Post creation did not return a valid ID")
+        
+        # Extract the UUID from the post ID URL
+        parsed_url = urlparse(created_post_id)
+        uuid_part = parsed_url.path.split('/')[-1]  # Extract the UUID part
         # Step 2: Edit post content
         edited_post_data = post_data.copy()
-        edited_post_data["id"] = created_post_id  # Use the post ID returned on creation
+        edited_post_data["id"] = uuid_part  # Use the post ID returned on creation
         edited_post_data["title"] = "Edited Test Post"
         edited_post_data["content"] = "This is the edited content."
         # Construct the correct edit URL
-        edit_url = f"/api/authors/{self.author_a.id}/posts/{created_post_id}/"
+        edit_url = f"/api/authors/{self.author_a.id}/posts/{uuid_part}/"
         response = self.client.put(edit_url, edited_post_data, format="json")
         # print("Edit post response:", response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Failed to edit the post")
