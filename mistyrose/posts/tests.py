@@ -957,10 +957,10 @@ class ImagePostTest(APITestCase):
     def test_create_image_post(self):
         # Prepare the Base64 encoded content of the image
         base64_image_content = (
-        "/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQA"
-        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
-        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
-        "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+            "/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQA"
+            "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+            "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
+            "AAEAAAABAAAASAAAAAEAAAABAAEAAKADAAQAAAABAAAAGgAAAAAAAAAAqgAAAAAAANABAAMAAAABAAEAAKACAAQAAAABAAAAGgAA"
         )
         
         # Create post request
@@ -972,12 +972,27 @@ class ImagePostTest(APITestCase):
         }, format='json')
 
         # Verify post is created successfully
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201, "Post creation failed")
         post_id = response.data.get('id')
+        self.assertIsNotNone(post_id, "Post creation did not return an ID")
+        
+        # # Debugging: Print post creation response and post_id
+        # print("Post creation response:", response.data)
 
+        # Extract the UUID from post_id using regex
+        match = re.search(r'/posts/([a-f0-9\-]+)/?$', post_id)
+        self.assertIsNotNone(match, "Post ID does not contain a valid UUID")
+        post_uuid = match.group(1)
+
+        print("Extracted UUID:", post_uuid)  
+
+        # Construct the correct URL for GET request
+        get_url = f"{self.post_url}{post_uuid}/"
+        print("Constructed GET URL:", get_url)  
+        
         # Get post data and verify
-        get_response = self.client.get(f"{self.post_url}{post_id}/")
-        self.assertEqual(get_response.status_code, 200)
+        get_response = self.client.get(get_url)
+        self.assertEqual(get_response.status_code, 200, "Failed to retrieve the post")
         self.assertEqual(get_response.data['contentType'], "image/png")
         self.assertEqual(get_response.data['content'], base64_image_content)
 
