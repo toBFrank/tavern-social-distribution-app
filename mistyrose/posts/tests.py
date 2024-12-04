@@ -13,6 +13,7 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 from urllib.parse import urlparse
+import re
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -882,14 +883,29 @@ class CommonMarkPostTest(APITestCase):
         }, format='json')
 
         # Verify creation is successful
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Post creation failed")
         post_id = response.data.get('id')
+        self.assertIsNotNone(post_id, "Post creation did not return an ID")
+        
+        # # Debugging: Print post creation response and post_id
+        # print("Post creation response:", response.data)
+
+        # Extract the UUID from post_id using regex
+        match = re.search(r'/posts/([a-f0-9\-]+)/?$', post_id)
+        self.assertIsNotNone(match, "Post ID does not contain a valid UUID")
+        post_uuid = match.group(1)
+
+        print("Extracted UUID:", post_uuid)  # Debugging: Print extracted UUID
+
+        # Construct the correct URL for GET request
+        get_url = f"{self.post_url}{post_uuid}/"
+        # print("Constructed GET URL:", get_url)  # Debugging: Print GET URL
 
         # Get the post and verify whether the returned content is consistent with the input
-        get_response = self.client.get(f"{self.post_url}{post_id}/")
-        self.assertEqual(get_response.status_code, status.HTTP_200_OK)
+        get_response = self.client.get(get_url)
+        self.assertEqual(get_response.status_code, status.HTTP_200_OK, "Failed to retrieve the post")
         self.assertEqual(get_response.data['content'], commonmark_content)
-
+        
 # User Story #13 Test: As an author, posts I make can be in simple plain text, because I don't always want all the formatting features of CommonMark.
 class PlainTextPostTest(APITestCase):
     def setUp(self):
