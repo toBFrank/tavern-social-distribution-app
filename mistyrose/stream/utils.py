@@ -69,7 +69,9 @@ def handle_follow_request(request, author):
   if is_remote_object:
       # node = Node.objects.get(host=str(object_host_with_scheme) + "/")
       node = Node.objects.filter(remote_node_url=object_host_with_scheme).first()
+      print("node3",node)
       if not node:
+          print("node123",node)
           return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
       remote_inbox_url = f"{object_data['host'].rstrip('/')}/authors/{object_id}/inbox"
       print(f"THIS IS THE REMOTE INBOX URL {remote_inbox_url}")
