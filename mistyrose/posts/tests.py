@@ -12,6 +12,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
+from urllib.parse import urlparse
 
 #Basic test class, used for login settings
 class BaseTestCase(APITestCase):
@@ -1186,13 +1187,17 @@ class PostEditResendTestCase(APITestCase):
         # Get created post ID from response
         created_post_id = response.data.get("id")
         self.assertIsNotNone(created_post_id, "Post creation did not return a valid ID")
+        
+        # Extract the UUID from the post ID URL
+        parsed_url = urlparse(created_post_id)
+        uuid_part = parsed_url.path.split('/')[-1]  # Extract the UUID part
         # Step 2: Edit post content
         edited_post_data = post_data.copy()
-        edited_post_data["id"] = created_post_id  # Use the post ID returned on creation
+        edited_post_data["id"] = uuid_part  # Use the post ID returned on creation
         edited_post_data["title"] = "Edited Test Post"
         edited_post_data["content"] = "This is the edited content."
         # Construct the correct edit URL
-        edit_url = f"/api/authors/{self.author_a.id}/posts/{created_post_id}/"
+        edit_url = f"/api/authors/{self.author_a.id}/posts/{uuid_part}/"
         response = self.client.put(edit_url, edited_post_data, format="json")
         # print("Edit post response:", response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Failed to edit the post")
