@@ -6,10 +6,18 @@ import { getFollowRequests } from '../services/FollowService';
 import { acceptFollowRequest, rejectFollowRequest } from '../services/FollowService';
 import Cookies from 'js-cookie';
 import unknownUser from  '../assets/followerUserUnknown.png';
+import dropdownIcon from '../assets/Dropdown.png';
 
 const FollowRequests = () => {
     const [followRequests, setFollowRequests] = useState([]);
     const authorId = Cookies.get('author_id');
+    const [isRequestsVisible, setIsRequestsVisible] = useState(true);
+    const [isDropdownRotated, setIsDropdownRotated] = useState(false);
+
+    const handleToggleRequests = () => {
+        setIsRequestsVisible((prev) => !prev);
+        setIsDropdownRotated((prev) => !prev);
+    };
 
     // Function to extract only the UUID from a full URL
     const extractUUID = (url) => {
@@ -56,29 +64,35 @@ const FollowRequests = () => {
 
     return (
         <div className="FollowRequest-container">
-            <div className="requests-title">Requests</div>
-            {followRequests.map((followRequest, index) => {
-                return (
-                    <div key={index} className="follow-request-box">
-                        <div className="follower-picAndName"> 
-                            <img
-                                className="follower-profilePic"
-                                src={followRequest.actor.profileImage || unknownUser } 
-                                alt={`Img`} 
-                            />
-                            <div className="follower-name">{followRequest.actor.displayName}</div>
-                        </div>
-                        <div className="btns">
-                            <button className="reject-button" onClick={() => handleReject(followRequest.actor.id)}>
-                                <Clear className="icon"/> {/* 'x' button */}
-                            </button>
-                            <button className="accept-button" onClick={() => handleAccept(followRequest.actor.id)}>
-                                <Check className="icon"/> {/* check button */}
-                            </button>
-                        </div>
+        <div className="requests-title">
+            {`Follow Requests (${followRequests.length})`}
+            <img
+                src={dropdownIcon}
+                alt="Dropdown"
+                className={`dropdown-icon ${isDropdownRotated ? 'rotated' : ''}`}
+                onClick={handleToggleRequests}
+            />
+        </div>
+        {isRequestsVisible && followRequests.map((followRequest, index) => (
+                <div key={index} className="follow-request-box">
+                    <div className="follower-picAndName"> 
+                        <img
+                            className="follower-profilePic"
+                            src={followRequest.actor.profileImage || unknownUser} 
+                            alt="Img" 
+                        />
+                        <div className="follower-name">{followRequest.actor.displayName}</div>
                     </div>
-                );
-            })}
+                    <div className="btns">
+                        <button className="reject-button" onClick={() => handleReject(followRequest.actor.id)}>
+                            <Clear className="icon" />
+                        </button>
+                        <button className="accept-button" onClick={() => handleAccept(followRequest.actor.id)}>
+                            <Check className="icon" />
+                        </button>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 };

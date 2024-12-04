@@ -18,7 +18,8 @@ def handle_follow_request(request, author):
   # Retrieve actor and object data, and handle None case
   actor_data = request.data.get('actor')
   object_data = request.data.get('object')
-  print(object_data)
+  print(f"THIS IS ACTOR DATA {actor_data}")
+  print(f"THIS IS OBJECT DATA {object_data}")
   # Check if actor_data and object_data exist
   if actor_data is None or 'id' not in actor_data:
       return Response({"error": "'actor' or 'actor.id' is missing from the request"}, status=status.HTTP_400_BAD_REQUEST)
@@ -27,10 +28,12 @@ def handle_follow_request(request, author):
       return Response({"error": "'object' or 'object.id' is missing from the request"}, status=status.HTTP_400_BAD_REQUEST)
 
   # Extract actor_id and object_id safely
-  actor_id = actor_data['id'].rstrip('/').split('/')[-1]
-  object_id = object_data['id'].rstrip('/').split('/')[-1]
+  actor_id = actor_data['id'].rstrip('/').split('/')[-1].rstrip('/')
+  object_id = object_data['id'].rstrip('/').split('/')[-1].rstrip('/')
+
+  print(f"IN THE FOLLOW REQUEST ACTOR ID {actor_data['id']} AND OBJECT ID {object_data['id']}")
 #   object_id = object_data['page'].rstrip('/').split('/')[-1]
-  print(object_id)
+  print(f"THIS IS OBJECT ID {object_id}")
   # Extract host information and normalize
   actor_host = urlparse(actor_data['host']).netloc  # Extracts only the netloc (e.g., "127.0.0.1:8000")
   object_host = urlparse(object_data['host'])
@@ -41,9 +44,11 @@ def handle_follow_request(request, author):
   print(f"actor_host: {actor_host} vs. current_host: {current_host}")
   is_remote_actor = actor_host != current_host
 
+  print("WE GOT HERE")
+
   if is_remote_actor:
       # Populate the `Author` table with remote `actor` details if it doesn't exist
-      Author.objects.get_or_create(
+      remote_author = Author.objects.get_or_create(
           id=actor_id,
           defaults={
               "host": actor_data['host'],
@@ -54,6 +59,8 @@ def handle_follow_request(request, author):
               "page": actor_data.get('page', ""),
           }
       )
+      print(f"THE REMOTE AUTHOR IS {remote_author}")
+
 
   # Determine if the `object` (followed author) is local or remote
   print(f"object_host: {object_hostn} vs. current_host: {current_host}")
@@ -64,8 +71,8 @@ def handle_follow_request(request, author):
       node = Node.objects.filter(remote_node_url=object_host_with_scheme).first()
       if not node:
           return Response({"error": "Node not found"}, status=status.HTTP_404_NOT_FOUND)
-      remote_inbox_url = f"{object_data['host'].rstrip('/')}/authors/{object_id}/inbox/"
-      print(remote_inbox_url)
+      remote_inbox_url = f"{object_data['host'].rstrip('/')}/authors/{object_id}/inbox"
+      print(f"THIS IS THE REMOTE INBOX URL {remote_inbox_url}")
       parsed_url = urlparse(request.build_absolute_uri())
       host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"
       credentials = f"{node.remote_username}:{node.remote_password}"
@@ -79,7 +86,9 @@ def handle_follow_request(request, author):
           "object": object_data  # Send full object data
       }
 
-      print(f"REQUEST remote_inbox_url: {remote_inbox_url} host_with_scheme: {host_with_scheme}")
+      print(f"THIS IS THE FOLLOW REQUEST PAYLOAD {follow_request_payload}")
+
+      print(f"REQUEST remote_inbox_url: {remote_inbox_url} host_with_scheme: {host_with_scheme} FUCK YOU: {follow_request_payload}")
       try:
           # Send POST request to the remote node
           response = requests.post(
@@ -88,6 +97,8 @@ def handle_follow_request(request, author):
               headers={"Authorization": f"Basic {base64_credentials}"},
               json=follow_request_payload,
           )
+
+          print(f"THIS IS THE RESPONSE FROM THEIR INBOX {response}")
           if response.status_code not in [200, 201]:
               return Response({"error": f"Failed to send follow request to remote node {response}"}, status=status.HTTP_400_BAD_REQUEST)
       except requests.RequestException as e:
@@ -255,7 +266,13 @@ def handle_comment_inbox(request, author, author_id):
     # get author of commenter 
     author_of_comment = comment_data["author"]["id"]
     author_of_comment_id = author_of_comment.rstrip('/').split("/authors/")[-1]
-    comment_id = comment_data["id"].rstrip('/').split('/commented/')[-1]
+    comment_id = comment_data["id"]
+
+    if '/commented/' in comment_id:
+        comment_id = comment_data["id"].rstrip('/').split('/commented/')[-1]
+    elif '/comments/' in comment_id:
+        comment_id = comment_data["id"].rstrip('/').split('/comments/')[-1]
+
 
     author_data = request.data["author"]
 
@@ -284,6 +301,7 @@ def handle_comment_inbox(request, author, author_id):
     
         return Response(comment_serializer.data, status=status.HTTP_201_CREATED) 
     else:
+        comment_serializer = CommentSerializer(comment)
         return Response(comment_serializer.data, status=status.HTTP_200_OK)    
         
 def handle_like_inbox(request, author, author_id):

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthorProfile } from '../services/profileService';
+import { getAuthor } from '../services/AuthorsService';
 import FollowButton from '../components/FollowButton';
 import '../styles/pages/Profile.css';
 import Cookies from 'js-cookie';
@@ -20,7 +21,10 @@ const Profile = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState([]);
   const [modalTitle, setModalTitle] = useState(''); // To display the title dynamically
+  const [authorProfileData, setAuthorProfileData] = useState(null);
+  const [authorCurrentData, setAuthorCurrentData] = useState(null);
 
+  const [selectedFilter, setSelectedFilter] = useState('Public');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,6 +39,19 @@ const Profile = () => {
         setLoading(false);
       });
   }, [authorId]);
+  
+  useEffect(() => {
+    getAuthor(authorId)
+    .then((data) => {
+      setAuthorProfileData(data);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, [authorId]);
+
   useEffect(() => {
     setShowModal(false);
   }, [location]);
@@ -51,6 +68,16 @@ const Profile = () => {
       .catch((error) => {
         console.error(error);
       });
+  }, []);
+
+  useEffect(() => {
+    getAuthor(currentUserId)
+    .then((data) => {
+      setAuthorCurrentData(data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
   }, []);
 
   // Function to fetch followers and toggle the display
@@ -103,6 +130,13 @@ const Profile = () => {
   const sharedPosts = profileData.shared_posts || [];
   const UnlistedAndSharesPosts = [...unlistedPosts, ...sharedPosts];
 
+  const filteredPosts =
+  selectedFilter === 'Public'
+    ? profileData.public_posts || []
+    : selectedFilter === 'Friends'
+    ? profileData.friends_posts || []
+    : [...(profileData.unlisted_posts || []), ...(profileData.shared_posts || [])];
+
   return (
     <div className="profile-page">
       <div className="profile-header">
@@ -123,8 +157,8 @@ const Profile = () => {
             <FollowButton
               authorId={authorId}
               currentUserId={currentUserId}
-              currentProfileData={currentProfileData}
-              profileData={profileData}
+              currentProfileData={authorCurrentData}
+              profileData={authorProfileData}
             />
           )}
         </div>
@@ -182,76 +216,48 @@ const Profile = () => {
         </div>
       </div>
 
+      <div className="profile-filter-options">
+        <h3
+          onClick={() => setSelectedFilter('Public')}
+          style={{
+            opacity: selectedFilter === 'Public' ? '100%' : '50%',
+            cursor: 'pointer',
+          }}
+        >
+          Public
+        </h3>
+        <h3
+          onClick={() => setSelectedFilter('Friends')}
+          style={{
+            opacity: selectedFilter === 'Friends' ? '100%' : '50%',
+            cursor: 'pointer',
+          }}
+        >
+          Friends
+        </h3>
+        <h3
+          onClick={() => setSelectedFilter('Unlisted')}
+          style={{
+            opacity: selectedFilter === 'Unlisted' ? '100%' : '50%',
+            cursor: 'pointer',
+          }}
+        >
+          Unlisted
+        </h3>
+      </div>
+
       <div className="posts-section">
-        {isCurrentUser ? (
-          <>
-            <h2>Public Posts</h2>
-            {publicPosts.length > 0 ? (
-              publicPosts.map((post) => (
-                <div key={post.id}>
-                  <PostBox
-                    post={post}
-                    poster={profileData}
-                    isUserEditable={isCurrentUser}
-                  />
-                </div>
-              ))
-            ) : (
-              <p>No public posts available.</p>
-            )}
-
-            <h2>Friends Posts</h2>
-            {friendsPosts.length > 0 ? (
-              friendsPosts.map((post) => (
-                <div key={post.id}>
-                  <PostBox
-                    post={post}
-                    poster={profileData}
-                    isUserEditable={isCurrentUser}
-                  />
-                </div>
-              ))
-            ) : (
-              <p>No friends posts available.</p>
-            )}
-
-            <h2>Unlisted Posts</h2>
-            {UnlistedAndSharesPosts.length > 0 ? (
-              UnlistedAndSharesPosts.sort(
-                (a, b) => new Date(b.published) - new Date(a.published)
-              ).map((post) => {
-                // console.log('Unlisted Post:', post);
-                return (
-                  <div key={post.id}>
-                    <PostBox
-                      post={post}
-                      poster={profileData}
-                      isUserEditable={isCurrentUser}
-                    />
-                  </div>
-                );
-              })
-            ) : (
-              <p>No unlisted or shared posts available.</p>
-            )}
-          </>
+        {filteredPosts.length > 0 ? (
+          filteredPosts.map((post) => (
+            <PostBox
+              key={post.id}
+              post={post}
+              poster={profileData}
+              isUserEditable={isCurrentUser}
+            />
+          ))
         ) : (
-          <>
-            <h2>Public Posts</h2>
-            {publicPosts.length > 0 ? (
-              publicPosts.map((post) => (
-                <div key={post.id}>
-                  <PostBox
-                    post={post}
-                    poster={profileData}
-                    isUserEditable={isCurrentUser}
-                  />
-                </div>
-              ))
-            ) : (
-              <p>This user doesn't have any public posts.</p>
-            )}
-          </>
+          <p>No posts available.</p>
         )}
       </div>
 

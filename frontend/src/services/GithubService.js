@@ -14,7 +14,7 @@ export const makeGithubActivityPosts = async (authorId) => {
       throw new Error('Github username not found');
     }
     console.log('Github username:', username);
-    const posts = (await getAllPosts(authorId)).data;
+    const posts = (await getAllPosts(authorId)).data.src ?? [];
 
     // 1. Get raw data from Github API
     const rawData = await getGithubActivityData(username);

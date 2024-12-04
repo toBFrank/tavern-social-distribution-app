@@ -10,6 +10,7 @@ import ShareButton from './ShareButton';
 import { BorderColor } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import shareLinkIcon from '../assets/share_link.png';
+import unknownUser from  '../assets/unknownUser.png';
 
 const PostBox = ({ post, poster, isUserEditable }) => {
   // const [imageUrl, setImageUrl] = useState(null);
@@ -27,7 +28,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
     ? originalPost.published
     : post.published;
   const navigate = useNavigate();
-  const postLink = `${window.location.origin}/post/${post.id}`;
+  const postLink = `${window.location.origin}/post/${post.id.split('/').filter(Boolean).pop()}`;
 
   const handleCopyLink = () => {
     navigator.clipboard
@@ -134,7 +135,12 @@ const PostBox = ({ post, poster, isUserEditable }) => {
                 loading="lazy"
               />
             ) : (
-              <div className="profile-image-default" />
+              <img
+                src={unknownUser}
+                alt="profile"
+                className="profile-image"
+                loading="lazy"
+              />
             )}
           </div>
         </Link>
@@ -147,8 +153,8 @@ const PostBox = ({ post, poster, isUserEditable }) => {
             <button
               className="post-edit-button"
               onClick={() =>
-                navigate(`/post/${post.id}/edit`, {
-                  state: { postId: post.id },
+                navigate(`/post/${post.id.split('/').filter(Boolean).pop()}/edit`, {
+                  state: { postId: post.id.split('/').filter(Boolean).pop() },
                 })
               }
             >
@@ -178,7 +184,7 @@ const PostBox = ({ post, poster, isUserEditable }) => {
       </div>
 
       <div className="post-footer">
-        <LikeButton postId={post.id} />
+        <LikeButton post={post} posterId={poster.id} />
         <CommentsModal postId={post.id} />
         {post.visibility !== 'FRIENDS' &&
           post.visibility !== 'UNLISTED' &&
