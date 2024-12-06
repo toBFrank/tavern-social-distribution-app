@@ -12,10 +12,11 @@ def get_remote_friends(author):
     Get remote friends of an author.
     """
     try:
+        author_url = author.url.rstrip('/')
         # Set of remote authors that the given author is following (URLs)
         remote_following_ids = set(
             Follows.objects.filter(
-                remote_follower_url=author.url, status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
+                remote_follower_url=author.url.rstrip('/'), status='ACCEPTED', is_remote=True #maybe include local follower as well? some items in db don't have remote_follower_url...
             ).values_list('followed_id', flat=True)  # Get URLs of followed authors
         )
 
@@ -64,7 +65,9 @@ def post_to_remote_inboxes(request, remote_authors, post_data):
             print(f"ABLE TO GET NODE {node}")
             if node:
                 author_inbox_remote_endpoint = f"{remote_author.url.rstrip('/')}/inbox/"
-                print(f"author_inbox_remote_endpoint")
+                if '-crimson-' in author_inbox_remote_endpoint:
+                    author_inbox_remote_endpoint = author_inbox_remote_endpoint.rstrip('/')  # Remove trailing /
+                print(f"author_inbox_remote_endpoint : {author_inbox_remote_endpoint}")
                 # my local node's host with scheme
                 parsed_url = urlparse(request.build_absolute_uri())
                 host_with_scheme = f"{parsed_url.scheme}://{parsed_url.netloc}"

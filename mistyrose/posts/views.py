@@ -352,6 +352,107 @@ class PostDetailsByFqidView(APIView):
         return Response(post_data)
     
 
+'''
+class PostDetailsByFqidView(APIView):
+    """
+    Retrieve post by Fully Qualified ID (URL + ID).
+    """
+
+    def get(self, request, post_fqid):
+        try:
+            post = Post.objects.get(url=post_fqid)
+        except Post.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        # Get related objects for comments and likes
+        comments = post.comments.all()
+        likes = post.likes.all()
+
+        # Get the author of the post
+        author = post.author_id
+        
+        # Prepare the post data with dynamic links from the database
+        post_data = {
+            "type": "post",
+            "title": post.title,
+            "id": post.url,
+            "description": post.description,
+            "contentType": post.content_type,
+            "content": post.content,
+            "author": {
+                "type": "author",
+                "id": author.url,
+                "host": author.host,
+                "displayName": author.display_name,
+                "page": author.page,
+                "github": author.github,
+                "profileImage": author.profile_image
+            },
+            "comments": {
+                "type": "comments",
+                "page": post.url,  # Page URL for the comments
+                "id": post.url + "/comments",  # Custom URL for comments
+                "page_number": 1,
+                "size": len(comments),
+                "count": post.comments.count(),
+                "src": []
+            },
+            "likes": {
+                "type": "likes",
+                "page": post.url,  # Likes page URL
+                "id": post.url + "/likes",  # Custom URL for likes
+                "page_number": 1,
+                "size": len(likes),
+                "count": post.likes.count(),
+                "src": []
+            },
+            "published": post.published.isoformat(),
+            "visibility": post.visibility
+        }
+
+        # Collect comments data
+        for comment in comments:
+            comment_data = {
+                "type": "comment",
+                "author": {
+                    "type": "author",
+                    "id": comment.author_id.url,
+                    "page": comment.author_id.page,
+                    "host": comment.author_id.host,
+                    "displayName": comment.author_id.display_name,
+                    "github": comment.author_id.github,
+                    "profileImage": comment.author_id.profile_image
+                },
+                "comment": comment.comment,
+                "contentType": comment.content_type,
+                "published": comment.published.isoformat(),
+                "id": comment.url,
+                "post": post.url,
+                "page": comment.page,
+            }
+            post_data["comments"]["src"].append(comment_data)
+
+        # Collect likes data
+        for like in likes:
+            like_data = {
+                "type": "like",
+                "author": {
+                    "type": "author",
+                    "id": like.author_id.url,
+                    "page": like.author_id.page,
+                    "host": like.author_id.host,
+                    "displayName": like.author_id.display_name,
+                    "github": like.author_id.github,
+                    "profileImage": like.author_id.profile_image
+                },
+                "published": like.published.isoformat(),
+                "id": like.url,
+                "object": post.url
+            }
+            post_data["likes"]["src"].append(like_data)
+
+        return Response(post_data)
+'''
 class AuthorPostsView(APIView):
     """
     List all posts by an author, or create a new post for the author.
@@ -609,8 +710,38 @@ class PublicPostsView(APIView):
         posts_to_remove = []
         filtered_posts = []
         for post_data in serializer.data:
+            # TODO: TEST THIS MORE THOROUGHLY
+            # if markdown contains image, try to get the image
+            if post_data.get('contentType').endswith('markdown') and '![' in post_data['content']:
+                try:
+                    # find node by host
+                    author_host = urlparse(post_data['author']['host'])
+                    host_with_scheme = f"{author_host.scheme}://{author_host.netloc}"
+                    print(f"HOST WITH SCHEME {host_with_scheme}")
+                    node = Node.objects.get(remote_node_url=host_with_scheme)
+                    image_url = post_data['content'].split('](')[1].split(')')[0]
+                    print(f"IMAGE URL {image_url}")
+                    credentials = f"{node.remote_username}:{node.remote_password}"
+                    base64_credentials = base64.b64encode(credentials.encode()).decode("utf-8")
+                    
+                    response = requests.get(image_url, headers={'Authorization': f'Basic {base64_credentials}'})
+                    if response.status_code == 200:
+                        print(f"RESPONSE TO GET IMG {response.json()}")
+                        # check if response.json() is a base64 encoded image
+                        if response.json().startswith('data:image'):
+                            # base64 encoded image is returned
+                            # replace the image url with the base64 encoded image
+                            post_data['content'] = post_data['content'].replace(image_url, f"{response.json()}")
+                            # save the post data
+                            post = Post.objects.get(url=post_data['id'].rstrip('/') + '/')
+                            post.content = post_data['content']
+                            post.save()
+                except:
+                    pass
+                    
+            
             post_visibility = post_data.get('visibility')
-            post_author_id = uuid.UUID(post_data.get('author').get('id').split('/')[-2])
+            post_author_id = uuid.UUID(post_data.get('author').get('id').rstrip('/').split('/authors/')[-1])
             authorized_authors = set()
 
             if post_visibility == 'PUBLIC':
@@ -995,6 +1126,7 @@ class LikedView(APIView):
             return Response({"detail: Must be 'like' type"}, status=status.HTTP_400_BAD_REQUEST)
         
         object_url = like_data.get("object") #object can be either a comment or post
+        print(f"OBJECT URL FROM LIKE: {object_url}")
         if not object_url:
             return Response({"Error": "object URL is required."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1004,15 +1136,13 @@ class LikedView(APIView):
             object_id = object_url.rstrip('/').split("/posts/")[-1]
             liked_object = get_object_or_404(Post, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Post)
-            object_url_remote = object_url
-            # object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{author.id}/posts/{object_id}/"
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{liked_object.author_id.id}/posts/{object_id}"
         elif "/commented/" in object_url:
             # object is a comment
             object_id = object_url.rstrip('/').split("/commented/")[-1]
             liked_object = get_object_or_404(Comment, id=object_id)
             object_content_type = ContentType.objects.get_for_model(Comment)
-            object_url_remote = object_url
-            # object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{author.id}/commented/{object_id}/"
+            object_url_remote = f"{liked_object.author_id.host.rstrip('/')}/authors/{liked_object.author_id.id}/commented/{object_id}"
         else:
             return Response({"detail": "Invalid object URL format."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1049,6 +1179,7 @@ class LikedView(APIView):
         
         try:
             like_data = LikeSerializer(like).data
+            like_data["object"] = like_data["object"].rstrip('/') #for crimson, they can't have / at the end of post object I think
             print(f"LIKE DATA {like_data}")
             handle_remote_inboxes(liked_object, request, like_data, author)
         except Exception as e:

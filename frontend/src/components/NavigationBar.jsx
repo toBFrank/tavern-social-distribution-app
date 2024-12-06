@@ -10,7 +10,7 @@ import {
 } from '@mui/icons-material';
 import '../styles/components/NavigationBar.css';
 import Cookies from 'js-cookie';
-import appLogo from  '../assets/Logo.png'
+import appLogo from  '../assets/NavLogo.png'
 
 const NavigationBar = ({ expanded, onToggleExpanded }) => {
   //#region Variables

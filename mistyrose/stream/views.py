@@ -23,6 +23,7 @@ class InboxView(APIView):
                 if not author_id.endswith('/'):
                     author_id += '/'
                 author_id = Author.objects.get(url=author_id).id
+                print("Author:",author_id)
         except:
             return Response({"error": "InboxView - POST - You didn't give me a valid FQID or SERIAL, babe."}, status=status.HTTP_400_BAD_REQUEST)
         

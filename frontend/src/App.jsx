@@ -38,13 +38,16 @@ function App() {
   };
 
   // No margin and padding in Login and Signup page
-  const isLoginPage = location.pathname === '/login';
-  const isSignupPage = location.pathname === '/signup';
-
+  const isLoginPage = location.pathname === '/login' || location.pathname === '/login/';
+  const isSignupPage = location.pathname === '/signup' || location.pathname === '/signup/';
+  const isProfilePage = location.pathname.startsWith('/profile');
+  
   const style = {
-    marginLeft: isLoginPage || isSignupPage ? 0 : expanded ? 320 : 170,
-    padding: isLoginPage || isSignupPage ? 0 : undefined,
-    backgroundColor: isSignupPage ? '#C8BE8A' : undefined, // Background for signup page
+    marginLeft: isLoginPage || isSignupPage ? 0 : expanded ? 280 : 130,
+    padding: isLoginPage || isSignupPage || isProfilePage ? 0 : undefined,
+    background: isSignupPage
+      ? '#C8BE8A' // Signup page background
+      : undefined,
   };
 
   return (

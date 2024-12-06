@@ -13,6 +13,12 @@ const PostDetail = () => {
   const [error, setError] = useState(null);
   const [authorizedAuthors, setAuthorizedAuthors] = useState([]);
 
+  // Helper function to extract UUID from the post URL
+  const extractUUIDFromId = (url) => {
+    const parts = url.split('/');
+    return parts[parts.length - 1] || parts[parts.length - 2];
+  };
+
   useEffect(() => {
     const fetchPostDetail = async () => {
       try {
@@ -21,7 +27,7 @@ const PostDetail = () => {
         console.log('postId:', postId);
         console.log('data.posts:', data.posts);    
         // Find the specific post using postId
-        const postData = data.posts.find(post => post.id === postId);
+        const postData = data.posts.find(post => extractUUIDFromId(post.id) === postId);
         console.log(postData);
         if (!postData) {
           throw new Error('Post not found');
