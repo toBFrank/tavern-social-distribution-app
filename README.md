@@ -6,9 +6,11 @@
 
 ## 📜 _description_
 
-Make a distributed social network!
+The web is fundamentally interconnected and peer to peer. There's no really great reason why we should all use facebook.com or google+ or MySpace or something like that. If these social networks came up with an API you could probably link between them and use the social network you wanted. Furthermore, you might gain some autonomy.
 
-[Project Details](https://uofa-cmput404.github.io/general/project.html)
+Thus, in the spirit of diaspora https://diasporafoundation.org/ (Diaspora was the predecessor to Mastodon) we want to build something like diaspora but far, far simpler.
+
+This blogging/social network platform will allow the importing of other sources of information (GitHub) as well allow the distribution and sharing of posts and content.
 
 ## 🌸 _team mistyrose_
 
