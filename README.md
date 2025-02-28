@@ -1,4 +1,4 @@
-**Tavern**
+**Tavern - Decentralized Social Networking App**
 ===================================
 
 ## 🎥 _demo_
